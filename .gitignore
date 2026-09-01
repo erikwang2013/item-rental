@@ -1,0 +1,16 @@
+# ---- 工具状态 / 本地数据 ----
+.claude-flow/
+.swarm/
+.agents/
+.claude/
+ruvector.db
+
+# ---- 密钥 / 环境变量 ----
+.env
+.env.*
+!.env.example
+deploy/.env
+
+# ---- Go ----
+server/rental
+*.exe
