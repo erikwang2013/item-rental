@@ -11,7 +11,7 @@
 | P0 正确性门 | 6 | 6 | 0 | 0 |
 | P1 领域完备 | 5 | 5 | 0 | 0 |
 | P2 加固 | 4 | 4 | 0 | 0 |
-| P3 收尾 | 2 | 0 | 2 | 0 |
+| P3 收尾 | 6 | 6 | 0 | 0 |
 
 ## 2. P0 — 正确性门(✅ 全部完成)
 
@@ -37,10 +37,14 @@
 - [x] **P2-3** CI 门 — golangci-lint + build/vet/test + 覆盖率 ≥15%(基线 25.9%)。
 - [x] **P2-4** 前端规划书 — docs/frontend-plan.md(仅规划,无代码任务)。
 
-## 5. P3 — 收尾(🟡 本轮)
+## 5. P3 — 收尾(✅ 本轮全部完成)
 
-- [ ] **P3-1** README.md + 本地规划/任务/设计文档(本文件 + plan.md + design.md)。
-- [ ] **P3-2** 推送规则 — scripts/push-release.sh:获取最新版本→push→按新版本增量建 tag + GitHub Release。
+- [x] **P3-1** README.md + 本地规划/任务/设计文档(本文件 + plan.md + design.md)。
+- [x] **P3-2** 推送规则 — scripts/push-release.sh:获取最新版本→push→按新版本增量建 tag + GitHub Release。
+- [x] **P3-3** CI Quality Gate — golangci-lint default(errcheck)7 处全修齐,build/vet/test/coverage/lint 全绿。
+- [x] **P3-4** v1.0.0 正式发布 — main 分支 push + tag 创建 + GitHub Release 创建 + Release 指向 CI 通过的 main HEAD(d207f5f)。
+- [x] **P3-5** 吉祥物「租租」— docs/mascot.svg + 启动横幅 + GET /static/mascot.svg + README 展示。
+- [x] **P3-6** docs/api.md 独立 API 接口文档 + 功能特性图高清化(960×560 → 1200×700)。
 
 ## 6. 已裁剪(记录在案)
 
