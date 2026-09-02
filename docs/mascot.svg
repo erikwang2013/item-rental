@@ -1,103 +1,104 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="租租松鼠 —— item-rental 吉祥物">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 260" width="260" height="260" role="img" aria-label="租租松鼠 —— item-rental 吉祥物">
   <defs>
-    <linearGradient id="fur" x1="50" y1="40" x2="200" y2="220" gradientUnits="userSpaceOnUse">
+    <linearGradient id="fur" x1="60" y1="40" x2="220" y2="240" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#f59e0b"/>
       <stop offset="1" stop-color="#d97706"/>
     </linearGradient>
-    <linearGradient id="furLight" x1="80" y1="60" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+    <linearGradient id="furLight" x1="90" y1="80" x2="200" y2="220" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#fbbf24"/>
       <stop offset="1" stop-color="#f59e0b"/>
     </linearGradient>
-    <linearGradient id="cap" x1="60" y1="20" x2="180" y2="70" gradientUnits="userSpaceOnUse">
+    <linearGradient id="cap" x1="80" y1="30" x2="200" y2="90" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#4338ca"/>
       <stop offset="1" stop-color="#312e81"/>
     </linearGradient>
-    <linearGradient id="bag" x1="60" y1="100" x2="200" y2="220" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#14b8a6"/>
-      <stop offset="1" stop-color="#0d9488"/>
-    </linearGradient>
+    <radialGradient id="acorn" cx="0.5" cy="0.4" r="0.7">
+      <stop offset="0" stop-color="#92400e"/>
+      <stop offset="1" stop-color="#78350f"/>
+    </radialGradient>
   </defs>
 
-  <ellipse cx="120" cy="228" rx="82" ry="9" fill="#e7e5e4" opacity="0.9"/>
+  <ellipse cx="130" cy="252" rx="90" ry="9" fill="#e7e5e4" opacity="0.9"/>
 
-  <path d="M165 175
-           C 225 155, 235 95, 210 65
-           C 195 48, 175 50, 168 68
-           C 162 82, 178 92, 188 88
-           C 170 105, 168 145, 195 165
-           C 205 173, 188 182, 175 182 Z"
-        fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
-  <path d="M200 80 Q208 72 215 78"  fill="none" stroke="#fde68a" stroke-width="3" stroke-linecap="round"/>
-  <path d="M192 105 Q198 96 205 100" fill="none" stroke="#fde68a" stroke-width="3" stroke-linecap="round"/>
+  <!-- ==================== 大尾巴(松鼠灵魂,从右后高高翘起) ==================== -->
+  <path d="M180 190
+           C 240 180, 258 130, 240 78
+           C 230 55, 205 48, 194 66
+           C 186 82, 200 96, 214 92
+           C 200 118, 200 160, 232 178
+           C 248 188, 228 208, 208 204 Z"
+        fill="url(#fur)" stroke="#92400e" stroke-width="2.5"/>
+  <path d="M228 82  Q236 74 244 82" fill="none" stroke="#fde68a" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M220 112 Q228 102 236 108" fill="none" stroke="#fde68a" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M208 150 Q216 140 224 146" fill="none" stroke="#fde68a" stroke-width="3.5" stroke-linecap="round"/>
 
-  <ellipse cx="82"  cy="218" rx="22" ry="10" fill="url(#fur)"/>
-  <ellipse cx="168" cy="218" rx="22" ry="10" fill="url(#fur)"/>
-  <ellipse cx="82"  cy="214" rx="18" ry="6"  fill="#78350f"/>
-  <ellipse cx="168" cy="214" rx="18" ry="6"  fill="#78350f"/>
+  <!-- ==================== 两条后腿(露出,脚掌深色) ==================== -->
+  <path d="M88 200 Q82 232 96 244 L116 244 Q112 224 108 200 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
+  <path d="M164 200 Q170 232 156 244 L136 244 Q140 224 144 200 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
+  <ellipse cx="102" cy="246" rx="16" ry="7" fill="#78350f"/>
+  <ellipse cx="146" cy="246" rx="16" ry="7" fill="#78350f"/>
+  <circle cx="94"  cy="243" r="2.2" fill="#92400e"/>
+  <circle cx="104" cy="244" r="2.2" fill="#92400e"/>
+  <circle cx="114" cy="243" r="2.2" fill="#92400e"/>
+  <circle cx="140" cy="243" r="2.2" fill="#92400e"/>
+  <circle cx="150" cy="244" r="2.2" fill="#92400e"/>
+  <circle cx="160" cy="243" r="2.2" fill="#92400e"/>
 
-  <path d="M78 120
-           Q 75 165 85 205
-           Q 120 215 155 205
-           Q 165 165 162 120
-           Q 120 108 78 120 Z"
-        fill="url(#furLight)" stroke="#92400e" stroke-width="2"/>
+  <!-- ==================== 身体(椭圆,肚子浅色) ==================== -->
+  <ellipse cx="122" cy="170" rx="42" ry="52" fill="url(#furLight)" stroke="#92400e" stroke-width="2.5"/>
+  <ellipse cx="122" cy="178" rx="26" ry="40" fill="#fef3c7"/>
 
-  <path d="M96 132 Q 94 170 104 200 Q 120 208 136 200 Q 146 170 144 132
-           Q 120 124 96 132 Z"
-        fill="#fef3c7" opacity="0.9"/>
+  <!-- ==================== 两条前臂(从身体两侧伸出,抱着坚果) ==================== -->
+  <path d="M84 150 Q70 172 78 200 L96 200 Q92 178 100 158 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
+  <path d="M160 150 Q174 172 166 200 L148 200 Q152 178 144 158 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
 
-  <path d="M88 100 L178 130" stroke="#0d9488" stroke-width="7" stroke-linecap="round"/>
-  <path d="M88 100 L178 130" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 4"/>
-  <rect x="128" y="150" width="52" height="42" rx="8" fill="url(#bag)" stroke="#0d9488" stroke-width="2"/>
-  <path d="M128 150 L128 168 L180 168 L180 150 Z" fill="#0d9488"/>
-  <rect x="148" y="164" width="12" height="10" rx="2" fill="#fbbf24" stroke="#92400e" stroke-width="1"/>
-  <circle cx="154" cy="169" r="1.6" fill="#92400e"/>
-  <rect x="158" y="176" width="16" height="11" rx="2" fill="#fff7ed" stroke="#0d9488" stroke-width="1"/>
-  <text x="166" y="184.5" text-anchor="middle" font-size="8" fill="#0d9488" font-family="Arial" font-weight="bold">¥</text>
+  <!-- ==================== 抱的大坚果(松鼠标志物,替代包裹) ==================== -->
+  <path d="M112 132 L132 132 L128 128 Q122 122 116 128 Z" fill="#92400e" stroke="#78350f" stroke-width="2"/>
+  <ellipse cx="122" cy="176" rx="22" ry="26" fill="url(#acorn)" stroke="#78350f" stroke-width="2"/>
+  <path d="M122 152 Q120 176 122 200" stroke="#92400e" stroke-width="2" fill="none"/>
+  <path d="M112 168 Q122 172 132 168" fill="none" stroke="#fde68a" stroke-width="2" opacity="0.6"/>
 
-  <rect x="80" y="160" width="46" height="34" rx="5" fill="#818cf8" stroke="#4338ca" stroke-width="2"/>
-  <rect x="80" y="174" width="46" height="5" fill="#4338ca"/>
-  <rect x="101" y="160" width="5" height="34" fill="#4338ca"/>
-  <text x="103" y="168" text-anchor="middle" font-size="6" fill="#fff7ed" font-family="Arial" font-weight="bold">R</text>
-  <path d="M78 168 Q 74 178 78 188 L82 188 L82 168 Z" fill="url(#fur)"/>
-  <path d="M128 168 Q 132 178 128 188 L124 188 L124 168 Z" fill="url(#fur)"/>
+  <!-- ==================== 头部(圆,居中) ==================== -->
+  <circle cx="122" cy="100" r="40" fill="url(#furLight)" stroke="#92400e" stroke-width="2.5"/>
 
-  <ellipse cx="120" cy="78" rx="42" ry="36" fill="url(#furLight)" stroke="#92400e" stroke-width="2"/>
+  <!-- 脸颊白毛 -->
+  <ellipse cx="104" cy="112" rx="11" ry="13" fill="#fef3c7" opacity="0.85"/>
+  <ellipse cx="140" cy="112" rx="11" ry="13" fill="#fef3c7" opacity="0.85"/>
 
-  <path d="M88 52 Q 78 28 96 32 Q 108 40 104 60 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
-  <path d="M88 50 Q 84 36 94 38 Q 100 44 98 56 Z" fill="#fef3c7"/>
-  <path d="M152 52 Q 162 28 144 32 Q 132 40 136 60 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
-  <path d="M152 50 Q 156 36 146 38 Q 140 44 142 56 Z" fill="#fef3c7"/>
+  <!-- ==================== 两只大尖耳(松鼠第二标志) ==================== -->
+  <path d="M92 74 Q76 40 100 50 Q114 60 108 82 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2.5"/>
+  <path d="M94 70 Q84 52 98 58 Q106 66 102 78 Z" fill="#fef3c7"/>
+  <path d="M152 74 Q168 40 144 50 Q130 60 136 82 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2.5"/>
+  <path d="M150 70 Q160 52 146 58 Q138 66 142 78 Z" fill="#fef3c7"/>
 
-  <ellipse cx="98"  cy="88" rx="12" ry="14" fill="#fef3c7" opacity="0.85"/>
-  <ellipse cx="142" cy="88" rx="12" ry="14" fill="#fef3c7" opacity="0.85"/>
+  <!-- ==================== 小邮差帽(不遮耳,帽顶+帽檐) ==================== -->
+  <path d="M92 70 Q92 42 122 40 Q152 42 152 70 L146 72 Q122 66 98 72 Z" fill="url(#cap)" stroke="#1e1b4b" stroke-width="2"/>
+  <path d="M88 72 Q122 82 156 72 L156 78 Q122 86 88 78 Z" fill="#1e1b4b"/>
+  <circle cx="122" cy="56" r="7" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/>
+  <text x="122" y="59.5" text-anchor="middle" font-size="7" fill="#92400e" font-family="Arial, sans-serif" font-weight="bold">¥</text>
 
-  <path d="M82 48 Q 82 22 120 20 Q 158 22 158 48 L150 50 Q 120 44 90 50 Z" fill="url(#cap)" stroke="#1e1b4b" stroke-width="2"/>
-  <path d="M76 50 Q 120 60 164 50 L164 56 Q 120 64 76 56 Z" fill="#1e1b4b"/>
-  <circle cx="120" cy="36" r="8" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/>
-  <text x="120" y="39.5" text-anchor="middle" font-size="8" fill="#92400e" font-family="Arial" font-weight="bold">¥</text>
-
-  <ellipse cx="110" cy="60" rx="10" ry="5" fill="#ffffff" opacity="0.28"/>
+  <!-- ==================== 脸(眼睛/腮红/鼻/笑) ==================== -->
   <g>
-    <circle cx="104" cy="80" r="8" fill="#ffffff"/>
-    <circle cx="136" cy="80" r="8" fill="#ffffff"/>
-    <circle cx="105" cy="81" r="4.8" fill="#1c1917"/>
-    <circle cx="137" cy="81" r="4.8" fill="#1c1917"/>
-    <circle cx="107" cy="79" r="1.9" fill="#ffffff"/>
-    <circle cx="139" cy="79" r="1.9" fill="#ffffff"/>
+    <circle cx="108" cy="98" r="8" fill="#ffffff"/>
+    <circle cx="136" cy="98" r="8" fill="#ffffff"/>
+    <circle cx="109" cy="99" r="4.8" fill="#1c1917"/>
+    <circle cx="137" cy="99" r="4.8" fill="#1c1917"/>
+    <circle cx="111" cy="97" r="1.9" fill="#ffffff"/>
+    <circle cx="139" cy="97" r="1.9" fill="#ffffff"/>
   </g>
-  <circle cx="90"  cy="94" r="5.5" fill="#fed7aa" opacity="0.95"/>
-  <circle cx="150" cy="94" r="5.5" fill="#fed7aa" opacity="0.95"/>
-  <ellipse cx="120" cy="98" rx="4" ry="3" fill="#78350f"/>
-  <path d="M112 104 Q 120 112 128 104" fill="none" stroke="#78350f" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="96"  cy="110" r="5" fill="#fed7aa" opacity="0.95"/>
+  <circle cx="148" cy="110" r="5" fill="#fed7aa" opacity="0.95"/>
+  <ellipse cx="122" cy="118" rx="4" ry="3" fill="#78350f"/>
+  <path d="M114 124 Q122 130 130 124" fill="none" stroke="#78350f" stroke-width="2.4" stroke-linecap="round"/>
 
-  <line x1="120" y1="118" x2="120" y2="132" stroke="#92400e" stroke-width="2"/>
-  <circle cx="120" cy="140" r="9" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
-  <circle cx="120" cy="140" r="6" fill="#fef3c7"/>
-  <line x1="120" y1="140" x2="120" y2="136" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round"/>
-  <line x1="120" y1="140" x2="123" y2="141" stroke="#1c1917" stroke-width="1.2" stroke-linecap="round"/>
-  <circle cx="120" cy="140" r="0.8" fill="#1c1917"/>
+  <!-- ==================== 怀表(胸前,按时归还) ==================== -->
+  <line x1="122" y1="200" x2="122" y2="212" stroke="#92400e" stroke-width="2"/>
+  <circle cx="122" cy="220" r="9" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
+  <circle cx="122" cy="220" r="6" fill="#fef3c7"/>
+  <line x1="122" y1="220" x2="122" y2="216" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="122" y1="220" x2="125" y2="221" stroke="#1c1917" stroke-width="1.2" stroke-linecap="round"/>
+  <circle cx="122" cy="220" r="0.8" fill="#1c1917"/>
 
-  <text x="238" y="234" text-anchor="end" fill="rgba(0,0,0,0.22)" font-size="10"
+  <text x="258" y="254" text-anchor="end" fill="rgba(0,0,0,0.22)" font-size="10"
         font-family="Arial, sans-serif">https://erik.xyz</text>
 </svg>
