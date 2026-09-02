@@ -37,8 +37,13 @@ func SecurityFilter(ctx *context.Context) {
 		return
 	}
 
-	// 2. 全量攻击检测
-	results := sec.Engine.DetectRequest(ctx.Request)
+	// 2. 全量攻击检测。
+	// 从待扫描的请求副本中剥离 Authorization 头：客户端必须通过该头传递 JWT，
+	// 若原样送入引擎，SensitiveDataLeak(data_leak) 会把合法 JWT 误判为"敏感数据泄露"
+	// (SeverityCritical) 导致所有鉴权端点一律 403。攻击检测不需要 Authorization 头。
+	scanReq := ctx.Request.Clone(ctx.Request.Context())
+	scanReq.Header.Del("Authorization")
+	results := sec.Engine.DetectRequest(scanReq)
 	attacked := false
 	for _, r := range results {
 		if r.Detected && r.Severity >= blockLevel {
