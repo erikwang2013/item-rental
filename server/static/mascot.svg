@@ -1,111 +1,75 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="租租猫 —— item-rental 吉祥物">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 215.6 326.6" width="216" height="327" role="img" aria-label="租租鼠 —— item-rental 吉祥物 (Go Gopher)">
+  <!-- 本体:Go 官方 Gopher 矢量,© Go Authors / Renee French,CC BY 4.0 -->
   <defs>
-    <linearGradient id="fur" x1="50" y1="40" x2="200" y2="230" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#f59e0b"/>
+    <linearGradient id="helmet" x1="50" y1="40" x2="170" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fbbf24"/>
       <stop offset="1" stop-color="#d97706"/>
-    </linearGradient>
-    <linearGradient id="furDark" x1="60" y1="40" x2="200" y2="200" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#d97706"/>
-      <stop offset="1" stop-color="#b45309"/>
-    </linearGradient>
-    <linearGradient id="vest" x1="60" y1="100" x2="200" y2="220" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#4338ca"/>
-      <stop offset="1" stop-color="#312e81"/>
     </linearGradient>
   </defs>
 
-  <ellipse cx="120" cy="228" rx="80" ry="8" fill="#e7e5e4" opacity="0.9"/>
+  <!-- 地面阴影 -->
+  <ellipse cx="107.8" cy="322" rx="72" ry="7" fill="#e7e5e4" opacity="0.9"/>
 
-  <!-- ============ 长尾巴(身后向上翘,橘色带虎斑) ============ -->
-  <path d="M172 195
-           C 215 190, 232 145, 214 108
-           C 206 92, 190 92, 186 108
-           C 183 122, 196 130, 208 124
-           C 194 148, 196 180, 220 196
-           C 230 202, 218 210, 205 208 Z"
-        fill="url(#fur)" stroke="#92400e" stroke-width="2.5"/>
-  <path d="M210 118 Q218 122 216 130" fill="none" stroke="#b45309" stroke-width="3" stroke-linecap="round"/>
-  <path d="M200 150 Q210 154 208 162" fill="none" stroke="#b45309" stroke-width="3" stroke-linecap="round"/>
+  <!-- ============ 官方 Go Gopher 本体(下移 45 给帽子留位) ============ -->
+  <g transform="translate(0,45)">
+    <g>
+      <path fill="#8CC5E7" d="M207.3,44.6c-6.7-13.7-22.9-1.6-27-5.9c-21-21.6-46.4-27-66.3-28c0,0-9,0-11,0c-20,0.5-45.4,6.3-66.3,28
+        c-4.1,4.3-20.4-7.8-27,5.9c-7.7,16,15.7,17.6,14.5,24.7c-2.3,12.8-0.8,31.8,1,50.5C28,151.5,4.3,227.4,53.6,257.9
+        c9.3,5.8,34.4,9,56.2,9.5l0,0c0,0,0.1,0,0.1,0c0,0,0.1,0,0.1,0l0,0c21.8-0.5,43.9-3.7,53.2-9.5c49.4-30.5,25.7-106.4,28.6-138.1
+        c1.7-18.7,3.2-37.7,1-50.5C191.6,62.2,215,60.5,207.3,44.6z"/>
+      <g>
+        <path fill="#E0DEDC" d="M143.2,54.3c-33.4,3.9-28.9,38.7-16,50c24,21,49,0,46.2-21.2C170.9,62.7,153.6,53.1,143.2,54.3z"/>
+        <circle fill="#111212" cx="145.5" cy="84.3" r="11.4"/>
+        <circle fill="#FFFFFF" cx="142.5" cy="79.4" r="3.6"/>
+      </g>
+      <g>
+        <path fill="#B8937F" d="M108.5,107c-16,2.4-21.7,7-20.5,14.2c2,11.8,39.7,10.5,40.9,0.6C129.9,113.3,114.8,106.1,108.5,107z"/>
+        <path d="M98.2,111.8c-2.7,9.8,21.7,8.3,21.1,2c-0.3-3.7-3.6-8.4-12.3-8.2C103.6,105.7,99.4,107.2,98.2,111.8z"/>
+        <path fill="#E0DEDC" d="M99,127.7c-0.9,0.4-2.4,10.2,2.2,10.7c3.1,0.3,11.6,1.3,13.6,0c3.9-2.5,3.5-8.5,1.3-10
+          C112.4,126,100,127.2,99,127.7z"/>
+      </g>
+      <g>
+        <path fill="#E0DEDC" d="M73.6,54.3c33.4,3.9,28.9,38.7,16,50c-24,21-49,0-46.2-21.2C46,62.7,63.3,53.1,73.6,54.3z"/>
+        <circle fill="#111212" cx="71.4" cy="84.3" r="11.4"/>
+        <circle fill="#FFFFFF" cx="74.4" cy="79.4" r="3.6"/>
+      </g>
+      <path fill="#B8937F" d="M193.6,186.7c11,0.1,5.6-23.5-1.2-18.8c-3.3,2.3-3.9,7.6-3.9,12.1C188.5,182.5,190.5,186.6,193.6,186.7z"/>
+      <path fill="#B8937F" d="M23.3,186.7c-11,0.1-5.6-23.5,1.2-18.8c3.3,2.3,3.9,7.6,3.9,12.1C28.4,182.5,26.4,186.6,23.3,186.7z"/>
+      <path fill="#B8937F" d="M172.7,259.2c-6-8.9-11.4-2-20.1,2.4c-4.1,2.1,6.8,9.6,19,4C174.8,264.1,174.7,262.1,172.7,259.2z"/>
+      <path fill="#B8937F" d="M44.2,260.2c6-8.9,11.4-2,20.1,2.4c4.1,2.1-6.8,9.6-19,4C42.1,265.1,42.2,263.1,44.2,260.2z"/>
+      <path fill="#3C89BF" d="M188.6,47c-0.6,2.1,2.1,1.8,3.1,8.3c0.4,2.4,9-3.5,5.5-7.8C194.3,43.9,189.1,44.9,188.6,47z"/>
+      <path fill="#3C89BF" d="M28.3,47c0.6,2.1-2.1,1.8-3.1,8.3c-0.4,2.4-9-3.5-5.5-7.8C22.5,43.9,27.7,44.9,28.3,47z"/>
+    </g>
+  </g>
 
-  <!-- ============ 两只后腿(露出,带脚掌) ============ -->
-  <path d="M80 188 Q72 220 88 232 L112 232 Q108 216 104 188 Z" fill="url(#furDark)" stroke="#92400e" stroke-width="2"/>
-  <path d="M160 188 Q168 220 152 232 L128 232 Q132 216 136 188 Z" fill="url(#furDark)" stroke="#92400e" stroke-width="2"/>
-  <ellipse cx="96"  cy="234" rx="14" ry="6" fill="#1c1917"/>
-  <ellipse cx="144" cy="234" rx="14" ry="6" fill="#1c1917"/>
-  <circle cx="88"  cy="231" r="1.8" fill="#78350f"/>
-  <circle cx="96"  cy="232" r="1.8" fill="#78350f"/>
-  <circle cx="104" cy="231" r="1.8" fill="#78350f"/>
-  <circle cx="136" cy="231" r="1.8" fill="#78350f"/>
-  <circle cx="144" cy="232" r="1.8" fill="#78350f"/>
-  <circle cx="152" cy="231" r="1.8" fill="#78350f"/>
+  <!-- ============ 胸前 ¥ 徽章(平台管家/押金) ============ -->
+  <circle cx="107.8" cy="150" r="17" fill="#fbbf24" stroke="#92400e" stroke-width="2"/>
+  <text x="107.8" y="156" text-anchor="middle" font-size="18" font-family="Arial, sans-serif"
+        font-weight="bold" fill="#92400e">¥</text>
 
-  <!-- ============ 身体(椭圆) + indigo 小马甲(管家制服) ============ -->
-  <ellipse cx="120" cy="170" rx="44" ry="54" fill="url(#fur)" stroke="#92400e" stroke-width="2.5"/>
-  <!-- 马甲 -->
-  <path d="M82 148 Q82 200 100 218 L140 218 Q158 200 158 148
-           L148 138 L120 130 L92 138 Z"
-        fill="url(#vest)" stroke="#1e1b4b" stroke-width="2"/>
-  <!-- 马甲纽扣 -->
-  <circle cx="120" cy="158" r="3" fill="#fbbf24"/>
-  <circle cx="120" cy="178" r="3" fill="#fbbf24"/>
-  <circle cx="120" cy="198" r="3" fill="#fbbf24"/>
-  <!-- 肚子浅色(马甲下摆露出) -->
-  <path d="M100 218 L140 218 Q132 228 120 230 Q108 228 100 218 Z" fill="#fef3c7"/>
-
-  <!-- ============ 胸牌(平台管家:¥+钥匙) ============ -->
-  <rect x="98" y="148" width="24" height="14" rx="2" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/>
-  <text x="110" y="158.5" text-anchor="middle" font-size="9" fill="#92400e" font-family="Arial, sans-serif" font-weight="bold">¥</text>
-
-  <!-- ============ 两只前臂(从马甲两侧伸出,右手握钥匙) ============ -->
-  <path d="M78 148 Q62 178 72 210 L88 210 Q84 184 92 158 Z" fill="url(#furDark)" stroke="#92400e" stroke-width="2"/>
-  <path d="M162 148 Q178 178 168 210 L152 210 Q156 184 148 158 Z" fill="url(#furDark)" stroke="#92400e" stroke-width="2"/>
-  <!-- 右手钥匙 -->
-  <circle cx="176" cy="208" r="6" fill="none" stroke="#fbbf24" stroke-width="3"/>
-  <rect x="179" y="196" width="4" height="14" rx="1.5" fill="#fbbf24"/>
-  <rect x="179" y="206" width="3" height="3" rx="1" fill="#fbbf24"/>
-  <rect x="183" y="202" width="3" height="2" rx="1" fill="#fbbf24"/>
-
-  <!-- ============ 头部(圆脸) ============ -->
-  <circle cx="120" cy="92" r="42" fill="url(#fur)" stroke="#92400e" stroke-width="2.5"/>
-
-  <!-- ============ 两只大三角耳(猫的灵魂,内侧粉) ============ -->
-  <path d="M84 62 L74 26 L108 50 Z" fill="url(#furDark)" stroke="#92400e" stroke-width="2.5"/>
-  <path d="M86 58 L80 38 L102 52 Z" fill="#fda4af"/>
-  <path d="M156 62 L166 26 L132 50 Z" fill="url(#furDark)" stroke="#92400e" stroke-width="2.5"/>
-  <path d="M154 58 L160 38 L138 52 Z" fill="#fda4af"/>
-
-  <!-- ============ 头顶 + 脸颊虎斑纹 ============ -->
-  <path d="M118 58 L114 68 M122 58 L126 68" stroke="#92400e" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-  <path d="M96 78 L92 84 M100 74 L98 82"  stroke="#92400e" stroke-width="2" stroke-linecap="round" fill="none"/>
-  <path d="M144 78 L148 84 M140 74 L142 82" stroke="#92400e" stroke-width="2" stroke-linecap="round" fill="none"/>
-
-  <!-- ============ 脸(大眼睛/鼻/嘴/胡须) ============ -->
+  <!-- ============ 怀中箱子(物品流转,indigo+teal) ============ -->
   <g>
-    <circle cx="104" cy="92" r="8" fill="#ffffff"/>
-    <circle cx="136" cy="92" r="8" fill="#ffffff"/>
-    <circle cx="105" cy="93" r="5" fill="#1c1917"/>
-    <circle cx="137" cy="93" r="5" fill="#1c1917"/>
-    <circle cx="107" cy="91" r="2" fill="#ffffff"/>
-    <circle cx="139" cy="91" r="2" fill="#ffffff"/>
-  </g>
-  <circle cx="90"  cy="106" r="5" fill="#fed7aa" opacity="0.9"/>
-  <circle cx="150" cy="106" r="5" fill="#fed7aa" opacity="0.9"/>
-  <!-- 鼻(倒三角,猫鼻特征) -->
-  <path d="M116 104 L124 104 L120 110 Z" fill="#f472b6" stroke="#92400e" stroke-width="1"/>
-  <!-- 嘴(W 形) -->
-  <path d="M120 110 L120 116" stroke="#92400e" stroke-width="2" fill="none"/>
-  <path d="M120 116 Q113 122 108 116" stroke="#92400e" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <path d="M120 116 Q127 122 132 116" stroke="#92400e" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <!-- 胡须(左3 右3,白) -->
-  <g stroke="#ffffff" stroke-width="1.6" stroke-linecap="round">
-    <line x1="92"  y1="108" x2="60" y2="104"/>
-    <line x1="90"  y1="114" x2="58" y2="114"/>
-    <line x1="92"  y1="120" x2="62" y2="126"/>
-    <line x1="148" y1="108" x2="180" y2="104"/>
-    <line x1="150" y1="114" x2="182" y2="114"/>
-    <line x1="148" y1="120" x2="178" y2="126"/>
+    <rect x="76" y="230" width="62" height="46" rx="7" fill="#4338ca" stroke="#312e81" stroke-width="2"/>
+    <rect x="76" y="230" width="62" height="12" rx="7" fill="#4f46e5"/>
+    <path d="M76 236 Q107 244 138 236" stroke="#1e1b4b" stroke-width="1.5" fill="none"/>
+    <rect x="103" y="230" width="8" height="46" fill="#14b8a6" opacity="0.85"/>
+    <rect x="92" y="248" width="20" height="13" rx="2.5" fill="#fff7ed" stroke="#0d9488" stroke-width="1.5"/>
+    <text x="102" y="258" text-anchor="middle" font-size="10" font-family="Arial, sans-serif"
+          font-weight="bold" fill="#0d9488">¥</text>
   </g>
 
-  <text x="238" y="234" text-anchor="end" fill="rgba(0,0,0,0.22)" font-size="10"
+  <!-- ============ 橙色安全帽(交付/搬运) ============ -->
+  <g>
+    <!-- 帽身 -->
+    <path d="M58 95 Q58 52 107.8 48 Q157.6 52 157.6 95 L146 95 Q107.8 82 69.6 95 Z"
+          fill="url(#helmet)" stroke="#92400e" stroke-width="2"/>
+    <!-- 帽檐 -->
+    <path d="M50 95 Q107.8 108 165.6 95 L165.6 101 Q107.8 114 50 101 Z"
+          fill="#d97706" stroke="#92400e" stroke-width="1.5"/>
+    <!-- 帽顶钮 -->
+    <circle cx="107.8" cy="48" r="4.5" fill="#92400e"/>
+  </g>
+
+  <text x="213" y="324" text-anchor="end" fill="rgba(0,0,0,0.22)" font-size="10"
         font-family="Arial, sans-serif">https://erik.xyz</text>
 </svg>
