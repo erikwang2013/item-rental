@@ -13,7 +13,7 @@ type BaseController struct {
 // OK 成功响应
 func (c *BaseController) OK(data any) {
 	c.Data["json"] = map[string]any{"code": 0, "msg": "ok", "data": data}
-	c.ServeJSON()
+	_ = c.ServeJSON()
 }
 
 // Fail 失败响应

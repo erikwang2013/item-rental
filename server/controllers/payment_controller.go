@@ -217,7 +217,7 @@ func (c *PaymentController) writeNotifyResult(success bool) {
 		code = "SUCCESS"
 	}
 	c.Ctx.Output.Header("Content-Type", "text/xml; charset=utf-8")
-	c.Ctx.Output.Body([]byte("<xml><return_code><![CDATA[" + code + "]]></return_code></xml>"))
+	_ = c.Ctx.Output.Body([]byte("<xml><return_code><![CDATA[" + code + "]]></return_code></xml>"))
 }
 
 // genTradeNo 生成商户订单号：RENT + 时间戳毫秒 + 订单ID，保证唯一。

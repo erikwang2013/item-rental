@@ -2,8 +2,8 @@
 package routers
 
 import (
-	"log"
 	stdctx "context"
+	"log"
 
 	"github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/server/web/context"
@@ -47,7 +47,7 @@ func init() {
 
 	// 健康检查（公开）
 	web.Get("/health", func(ctx *context.Context) {
-		ctx.Output.JSON(map[string]any{"code": 0, "msg": "ok"}, false, false)
+		_ = ctx.Output.JSON(map[string]any{"code": 0, "msg": "ok"}, false, false)
 	})
 
 	// 认证相关（公开）
