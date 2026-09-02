@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/beego/beego/v2/server/web/context"
-	"github.com/erikwang2013/security-go"
 	sec "github.com/erikwang2013/item-rental/server/security"
+	"github.com/erikwang2013/security-go"
 )
 
 const (
@@ -21,9 +21,9 @@ const (
 
 // SecurityFilter 是 beego 前置过滤器，对请求做全量攻击检测。
 // 语义分离：
-//   1) 命中高危/严重攻击 → 一律 403 拦截（WAF 本职）
-//   2) 拦截的同时，对来源 IP 计数，达到阈值触发自动封禁
-//   3) 已封禁的 IP → 直接拒绝
+//  1. 命中高危/严重攻击 → 一律 403 拦截（WAF 本职）
+//  2. 拦截的同时，对来源 IP 计数，达到阈值触发自动封禁
+//  3. 已封禁的 IP → 直接拒绝
 func SecurityFilter(ctx *context.Context) {
 	if sec.Engine == nil {
 		return
@@ -66,7 +66,7 @@ func SecurityFilter(ctx *context.Context) {
 // reject 以 403 拒绝请求
 func reject(ctx *context.Context, msg string) {
 	ctx.Output.SetStatus(http.StatusForbidden)
-	ctx.Output.JSON(map[string]any{"code": 403, "msg": msg}, false, false)
+	_ = ctx.Output.JSON(map[string]any{"code": 403, "msg": msg}, false, false)
 	ctx.Abort(403, "Forbidden")
 }
 

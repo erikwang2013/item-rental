@@ -19,5 +19,5 @@ func (c *BaseController) OK(data any) {
 // Fail 失败响应
 func (c *BaseController) Fail(code int, msg string) {
 	c.Data["json"] = map[string]any{"code": code, "msg": msg}
-	c.ServeJSON()
+	_ = c.ServeJSON()
 }

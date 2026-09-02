@@ -15,7 +15,7 @@ func InitORM() {
 		panic("app.conf 缺少 sqlconn 数据库配置")
 	}
 
-	orm.RegisterDriver("mysql", orm.DRMySQL)
+	_ = orm.RegisterDriver("mysql", orm.DRMySQL)
 	// 注册全部模型
 	orm.RegisterModel(new(User), new(Category), new(Item), new(Order), new(Payment), new(Deposit))
 

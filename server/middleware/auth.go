@@ -55,6 +55,6 @@ func GetRole(ctx *context.Context) string {
 
 func unauthorized(ctx *context.Context, msg string) {
 	ctx.Output.SetStatus(401)
-	ctx.Output.JSON(map[string]any{"code": 401, "msg": msg}, false, false)
+	_ = ctx.Output.JSON(map[string]any{"code": 401, "msg": msg}, false, false)
 	ctx.Abort(401, "Unauthorized")
 }
