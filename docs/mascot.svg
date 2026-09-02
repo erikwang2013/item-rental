@@ -1,94 +1,103 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="租租龟 —— item-rental 吉祥物">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="租租松鼠 —— item-rental 吉祥物">
   <defs>
-    <linearGradient id="shell" x1="40" y1="80" x2="200" y2="200" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#6366f1"/>
-      <stop offset="1" stop-color="#4338ca"/>
+    <linearGradient id="fur" x1="50" y1="40" x2="200" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#d97706"/>
     </linearGradient>
-    <linearGradient id="skin" x1="80" y1="80" x2="170" y2="200" gradientUnits="userSpaceOnUse">
+    <linearGradient id="furLight" x1="80" y1="60" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="cap" x1="60" y1="20" x2="180" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4338ca"/>
+      <stop offset="1" stop-color="#312e81"/>
+    </linearGradient>
+    <linearGradient id="bag" x1="60" y1="100" x2="200" y2="220" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#14b8a6"/>
       <stop offset="1" stop-color="#0d9488"/>
     </linearGradient>
-    <linearGradient id="scarf" x1="40" y1="120" x2="200" y2="170" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#fb923c"/>
-      <stop offset="1" stop-color="#f97316"/>
-    </linearGradient>
   </defs>
 
-  <!-- 地面阴影 -->
-  <ellipse cx="120" cy="226" rx="78" ry="9" fill="#e7e5e4" opacity="0.9"/>
+  <ellipse cx="120" cy="228" rx="82" ry="9" fill="#e7e5e4" opacity="0.9"/>
 
-  <!-- 后腿 -->
-  <ellipse cx="62"  cy="208" rx="18" ry="13" fill="url(#skin)"/>
-  <ellipse cx="178" cy="208" rx="18" ry="13" fill="url(#skin)"/>
+  <path d="M165 175
+           C 225 155, 235 95, 210 65
+           C 195 48, 175 50, 168 68
+           C 162 82, 178 92, 188 88
+           C 170 105, 168 145, 195 165
+           C 205 173, 188 182, 175 182 Z"
+        fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
+  <path d="M200 80 Q208 72 215 78"  fill="none" stroke="#fde68a" stroke-width="3" stroke-linecap="round"/>
+  <path d="M192 105 Q198 96 205 100" fill="none" stroke="#fde68a" stroke-width="3" stroke-linecap="round"/>
 
-  <!-- 龟壳主体(圆厚,带钥匙环挂扣) -->
-  <path d="M40 130 Q40 60 120 60 Q200 60 200 130 Q200 200 120 210 Q40 200 40 130 Z"
-        fill="url(#shell)" stroke="#312e81" stroke-width="2"/>
-  <!-- 龟壳分格纹理 -->
-  <g stroke="#312e81" stroke-width="1.5" fill="none" opacity="0.55">
-    <path d="M120 70 L120 200"/>
-    <path d="M60 110 Q120 90 180 110"/>
-    <path d="M55 150 Q120 130 185 150"/>
-    <path d="M65 180 Q120 168 175 180"/>
-    <path d="M85 75 L105 110"/>
-    <path d="M155 75 L135 110"/>
-    <path d="M70 130 L90 165"/>
-    <path d="M170 130 L150 165"/>
-  </g>
+  <ellipse cx="82"  cy="218" rx="22" ry="10" fill="url(#fur)"/>
+  <ellipse cx="168" cy="218" rx="22" ry="10" fill="url(#fur)"/>
+  <ellipse cx="82"  cy="214" rx="18" ry="6"  fill="#78350f"/>
+  <ellipse cx="168" cy="214" rx="18" ry="6"  fill="#78350f"/>
 
-  <!-- 壳中央: 锁孔(信任 / 押金) -->
-  <circle cx="120" cy="140" r="20" fill="#fff7ed" stroke="#312e81" stroke-width="2"/>
-  <rect x="116" y="130" width="8" height="14" rx="4" fill="#4338ca"/>
-  <circle cx="120" cy="124" r="6" fill="#4338ca"/>
+  <path d="M78 120
+           Q 75 165 85 205
+           Q 120 215 155 205
+           Q 165 165 162 120
+           Q 120 108 78 120 Z"
+        fill="url(#furLight)" stroke="#92400e" stroke-width="2"/>
 
-  <!-- 前腿(抱着一个小箱子) -->
-  <ellipse cx="70"  cy="196" rx="16" ry="10" fill="url(#skin)"/>
-  <ellipse cx="170" cy="196" rx="16" ry="10" fill="url(#skin)"/>
-  <!-- 抱的小箱子(indigo+teal 顶盖) -->
-  <rect x="98" y="192" width="44" height="9" rx="3" fill="#14b8a6"/>
-  <rect x="100" y="200" width="40" height="18" rx="4" fill="#818cf8"/>
+  <path d="M96 132 Q 94 170 104 200 Q 120 208 136 200 Q 146 170 144 132
+           Q 120 124 96 132 Z"
+        fill="#fef3c7" opacity="0.9"/>
 
-  <!-- 头 -->
-  <ellipse cx="120" cy="52" rx="30" ry="22" fill="url(#skin)"/>
-  <!-- 头顶高光 -->
-  <ellipse cx="110" cy="42" rx="10" ry="5" fill="#ffffff" opacity="0.30"/>
-  <!-- 头顶三根呆毛(记忆点) -->
-  <path d="M110 30 Q108 22 112 18"  stroke="#0f766e" stroke-width="3" fill="none" stroke-linecap="round"/>
-  <path d="M120 28 L120 16"               stroke="#0f766e" stroke-width="3" fill="none" stroke-linecap="round"/>
-  <path d="M130 30 Q132 22 128 18"  stroke="#0f766e" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M88 100 L178 130" stroke="#0d9488" stroke-width="7" stroke-linecap="round"/>
+  <path d="M88 100 L178 130" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 4"/>
+  <rect x="128" y="150" width="52" height="42" rx="8" fill="url(#bag)" stroke="#0d9488" stroke-width="2"/>
+  <path d="M128 150 L128 168 L180 168 L180 150 Z" fill="#0d9488"/>
+  <rect x="148" y="164" width="12" height="10" rx="2" fill="#fbbf24" stroke="#92400e" stroke-width="1"/>
+  <circle cx="154" cy="169" r="1.6" fill="#92400e"/>
+  <rect x="158" y="176" width="16" height="11" rx="2" fill="#fff7ed" stroke="#0d9488" stroke-width="1"/>
+  <text x="166" y="184.5" text-anchor="middle" font-size="8" fill="#0d9488" font-family="Arial" font-weight="bold">¥</text>
 
-  <!-- 脸: 眼睛(大 + 高光) -->
+  <rect x="80" y="160" width="46" height="34" rx="5" fill="#818cf8" stroke="#4338ca" stroke-width="2"/>
+  <rect x="80" y="174" width="46" height="5" fill="#4338ca"/>
+  <rect x="101" y="160" width="5" height="34" fill="#4338ca"/>
+  <text x="103" y="168" text-anchor="middle" font-size="6" fill="#fff7ed" font-family="Arial" font-weight="bold">R</text>
+  <path d="M78 168 Q 74 178 78 188 L82 188 L82 168 Z" fill="url(#fur)"/>
+  <path d="M128 168 Q 132 178 128 188 L124 188 L124 168 Z" fill="url(#fur)"/>
+
+  <ellipse cx="120" cy="78" rx="42" ry="36" fill="url(#furLight)" stroke="#92400e" stroke-width="2"/>
+
+  <path d="M88 52 Q 78 28 96 32 Q 108 40 104 60 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
+  <path d="M88 50 Q 84 36 94 38 Q 100 44 98 56 Z" fill="#fef3c7"/>
+  <path d="M152 52 Q 162 28 144 32 Q 132 40 136 60 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
+  <path d="M152 50 Q 156 36 146 38 Q 140 44 142 56 Z" fill="#fef3c7"/>
+
+  <ellipse cx="98"  cy="88" rx="12" ry="14" fill="#fef3c7" opacity="0.85"/>
+  <ellipse cx="142" cy="88" rx="12" ry="14" fill="#fef3c7" opacity="0.85"/>
+
+  <path d="M82 48 Q 82 22 120 20 Q 158 22 158 48 L150 50 Q 120 44 90 50 Z" fill="url(#cap)" stroke="#1e1b4b" stroke-width="2"/>
+  <path d="M76 50 Q 120 60 164 50 L164 56 Q 120 64 76 56 Z" fill="#1e1b4b"/>
+  <circle cx="120" cy="36" r="8" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/>
+  <text x="120" y="39.5" text-anchor="middle" font-size="8" fill="#92400e" font-family="Arial" font-weight="bold">¥</text>
+
+  <ellipse cx="110" cy="60" rx="10" ry="5" fill="#ffffff" opacity="0.28"/>
   <g>
-    <circle cx="106" cy="52" r="8" fill="#ffffff"/>
-    <circle cx="134" cy="52" r="8" fill="#ffffff"/>
-    <circle cx="107" cy="53" r="4.5" fill="#1c1917"/>
-    <circle cx="135" cy="53" r="4.5" fill="#1c1917"/>
-    <circle cx="109" cy="51" r="1.8" fill="#ffffff"/>
-    <circle cx="137" cy="51" r="1.8" fill="#ffffff"/>
+    <circle cx="104" cy="80" r="8" fill="#ffffff"/>
+    <circle cx="136" cy="80" r="8" fill="#ffffff"/>
+    <circle cx="105" cy="81" r="4.8" fill="#1c1917"/>
+    <circle cx="137" cy="81" r="4.8" fill="#1c1917"/>
+    <circle cx="107" cy="79" r="1.9" fill="#ffffff"/>
+    <circle cx="139" cy="79" r="1.9" fill="#ffffff"/>
   </g>
-  <!-- 腮红 -->
-  <circle cx="92"  cy="62" r="5" fill="#fed7aa" opacity="0.95"/>
-  <circle cx="148" cy="62" r="5" fill="#fed7aa" opacity="0.95"/>
-  <!-- 微笑 -->
-  <path d="M110 66 Q120 74 130 66" fill="none" stroke="#0f766e" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="90"  cy="94" r="5.5" fill="#fed7aa" opacity="0.95"/>
+  <circle cx="150" cy="94" r="5.5" fill="#fed7aa" opacity="0.95"/>
+  <ellipse cx="120" cy="98" rx="4" ry="3" fill="#78350f"/>
+  <path d="M112 104 Q 120 112 128 104" fill="none" stroke="#78350f" stroke-width="2.4" stroke-linecap="round"/>
 
-  <!-- 围巾(橙色,绕脖一圈,尾端垂下) -->
-  <path d="M88 80 Q120 96 152 80 L150 92 Q120 106 90 92 Z" fill="url(#scarf)"/>
-  <path d="M148 82 L160 108 L152 112 L142 88 Z" fill="#f97316"/>
-  <!-- 围巾条纹 -->
-  <g stroke="#7c2d12" stroke-width="1.6" opacity="0.55">
-    <path d="M100 88 L108 94"/>
-    <path d="M120 90 L128 96"/>
-    <path d="M140 88 L148 94"/>
-  </g>
+  <line x1="120" y1="118" x2="120" y2="132" stroke="#92400e" stroke-width="2"/>
+  <circle cx="120" cy="140" r="9" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
+  <circle cx="120" cy="140" r="6" fill="#fef3c7"/>
+  <line x1="120" y1="140" x2="120" y2="136" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="120" y1="140" x2="123" y2="141" stroke="#1c1917" stroke-width="1.2" stroke-linecap="round"/>
+  <circle cx="120" cy="140" r="0.8" fill="#1c1917"/>
 
-  <!-- 钥匙挂扣(从左耳后伸出,挂扣环+柄+齿) -->
-  <line x1="92" y1="42" x2="78" y2="18" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
-  <circle cx="78" cy="14" r="7" fill="none" stroke="#f59e0b" stroke-width="4"/>
-  <rect x="76" y="30" width="5" height="8" rx="2" fill="#f59e0b"/>
-  <rect x="76" y="40" width="5" height="5" rx="1.5" fill="#f59e0b"/>
-
-  <!-- 水印 -->
-  <text x="238" y="222" text-anchor="end" fill="rgba(0,0,0,0.22)" font-size="10"
+  <text x="238" y="234" text-anchor="end" fill="rgba(0,0,0,0.22)" font-size="10"
         font-family="Arial, sans-serif">https://erik.xyz</text>
 </svg>
