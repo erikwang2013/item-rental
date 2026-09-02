@@ -21,7 +21,7 @@
 
 ## 功能特性
 
-![功能特性全景](docs/features.svg)
+<p align="center"><img src="docs/features.svg" alt="功能特性全景" width="900"></p>
 
 - **认证与账号**:手机号验证码登录(mock/真实短信)、JWT 双 Token(Access 2h + Refresh 7d 轮换)、验证码 60s 限频、用户资料/信用分/押金账户。
 - **物品与搜索**:类目体系、上下架管理、OpenSearch 全文检索、关键词×城市×类目筛选、地理位置半径检索(Haversine)。
@@ -32,7 +32,7 @@
 
 ## 技术架构
 
-![系统架构图](docs/architecture.svg)
+<p align="center"><img src="docs/architecture.svg" alt="系统架构图" width="840"></p>
 
 | 层 | 组件 |
 | --- | --- |
@@ -43,7 +43,7 @@
 
 ## 订单生命周期
 
-![订单生命周期 · 7 态状态机](docs/lifecycle.svg)
+<p align="center"><img src="docs/lifecycle.svg" alt="订单生命周期 · 7 态状态机" width="840"></p>
 
 | 状态 | 含义 | 主要动作 |
 | --- | --- | --- |
@@ -188,6 +188,7 @@ BEEGO_RUNMODE=prod ./server                 # 或容器内运行
 - [docs/plan.md](docs/plan.md) — 项目规划与路线图
 - [docs/task.md](docs/task.md) — 任务清单与状态
 - [docs/design.md](docs/design.md) — 设计决策与排查要点
+- [docs/api.md](docs/api.md) — API 接口文档(接口/请求/响应/错误码)
 - [docs/config-runbook.md](docs/config-runbook.md) — 配置键与部署手册
 - [docs/frontend-plan.md](docs/frontend-plan.md) — 前端页面规划(仅规划)
 
