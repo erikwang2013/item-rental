@@ -8,6 +8,17 @@ import (
 	_ "github.com/erikwang2013/item-rental/server/routers"
 )
 
+// 吉祥物「租租」启动横幅
+const mascotBanner = `
+   (o o)  租租
+  /  ∪ \  🗝 租赁·就爱有人借
+   〓※〓
+`
+
 func main() {
+	// 静态资源(吉祥物 etc.)→ GET /static/mascot.svg
+	web.SetStaticPath("/static", "static")
+	web.BConfig.Log.AccessLogs = false
+	print(mascotBanner)
 	web.Run()
 }

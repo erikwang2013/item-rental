@@ -9,15 +9,14 @@ import (
 	"github.com/erikwang2013/item-rental/server/models"
 )
 
-// HandleNotify 处理微信支付结果通知。
+// HandleNotify 处理微信支付/退款结果通知。
 //
 // 处理顺序（任一环节失败都返回错误，微信会重试）：
 //  1. 解析回调 XML
 //  2. 业务成功判定（return_code/result_code == SUCCESS）
 //  3. 验签：防止伪造回调
-//  4. 幂等：该 out_trade_no 已处理成功则直接返回（不重复扣款/改状态）
-//  5. 金额校验：回调金额必须等于订单应付金额，防止篡改
-//  6. 持久化支付成功 + 调用订单服务标记已支付
+//  4. 退款通知（带 refund_status）分流：SUCCESS 标记退款，CHANGE/REFUNDCLOSE 仅确认
+//  5. 支付通知：幂等 + 金额校验 + 持久化支付成功 + 调用订单服务标记已支付
 func (g *gateway) HandleNotify(rawXML []byte) error {
 	params, err := xmlToMap(rawXML)
 	if err != nil {
@@ -30,6 +29,11 @@ func (g *gateway) HandleNotify(rawXML []byte) error {
 	// 验签（签名字段不参与计算）
 	if !verifySign(params, g.cfg.MchKey, g.cfg.SignType) {
 		return errors.New("回调签名校验失败")
+	}
+
+	// 退款结果通知：带 refund_status，无 transaction_id/total_fee，走独立分支
+	if params["refund_status"] != "" {
+		return g.handleRefundNotify(params, rawXML)
 	}
 
 	outTradeNo := params["out_trade_no"]
@@ -86,6 +90,30 @@ func (g *gateway) HandleNotify(rawXML []byte) error {
 
 	// ---- 调用订单服务标记已支付（订单状态机由订单模块负责）----
 	return g.svc.MarkPaid(outTradeNo, transactionID)
+}
+
+// handleRefundNotify 处理微信退款结果通知。
+//
+// refund_status 取值：
+//   - SUCCESS：退款成功，标记支付单已退款并把订单重置回可处理状态
+//   - CHANGE：状态变更，需主动查询（本系统无部分退款，仅确认不重复重试）
+//   - REFUNDCLOSE：退款关闭（如原单未支付成功），仅确认不动状态
+func (g *gateway) handleRefundNotify(params map[string]string, rawXML []byte) error {
+	outTradeNo := params["out_trade_no"]
+	if outTradeNo == "" {
+		return errors.New("退款回调缺少 out_trade_no")
+	}
+
+	if params["refund_status"] != "SUCCESS" {
+		// CHANGE / REFUNDCLOSE：确认收到但不标记退款，避免微信无限重试
+		return nil
+	}
+
+	// 退款成功：标记支付单已退款 + 订单回到待支付（幂等）
+	if g.svc == nil {
+		return errors.New("退款服务未配置")
+	}
+	return g.svc.MarkRefunded(outTradeNo)
 }
 
 // parseFen 解析微信金额字符串（分）为 int64。

@@ -2,6 +2,8 @@
 package controllers
 
 import (
+	"errors"
+
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/erikwang2013/item-rental/server/middleware"
 	"github.com/erikwang2013/item-rental/server/models"
@@ -37,17 +39,44 @@ func (c *AuthController) SendSms() {
 		c.Fail(400, "手机号不能为空")
 		return
 	}
+	if !isValidPhone(req.Phone) {
+		c.Fail(400, "手机号格式不正确")
+		return
+	}
 
-	// 开发环境使用固定验证码 123456，不真正下发短信
-	// 生产环境接入短信网关，验证码存 Redis 并设 TTL
-	code := "123456"
+	// 发送频率限制：1 分钟 1 条（real 模式走 Redis，mock 模式不限制）
+	allowed, err := services.CheckSmsRateLimit(req.Phone)
+	if err != nil {
+		c.Fail(500, "验证码发送失败")
+		return
+	}
+	if !allowed {
+		c.Fail(429, "发送过于频繁，请稍后再试")
+		return
+	}
+
+	// 生成随机验证码并保存（real 模式存 Redis）；响应/日志绝不回显验证码
+	// 开发环境（mock）校验仍接受固定 123456
+	code := services.GenerateSmsCode()
 	if err := services.SaveSmsCode(req.Phone, code); err != nil {
 		c.Fail(500, "验证码发送失败")
 		return
 	}
 
-	// 仅返回提示，不返回验证码（生产环境）
-	c.OK(map[string]any{"msg": "验证码已发送（开发环境固定 123456）"})
+	c.OK(map[string]any{"msg": "验证码已发送"})
+}
+
+// isValidPhone 手机号校验：11 位数字且以 1 开头
+func isValidPhone(phone string) bool {
+	if len(phone) != 11 || phone[0] != '1' {
+		return false
+	}
+	for _, ch := range phone {
+		if ch < '0' || ch > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 // Login 手机号 + 验证码登录，未注册自动注册
@@ -94,6 +123,11 @@ func (c *AuthController) Login() {
 		c.Fail(500, "令牌生成失败")
 		return
 	}
+	// 注册为当前会话：单活跃会话，重新登录/刷新后旧 refresh 立即失效
+	if err := services.SaveRefreshSession(user.Id, refreshToken); err != nil {
+		c.Fail(500, "令牌生成失败")
+		return
+	}
 
 	c.OK(map[string]any{
 		"access_token":  accessToken,
@@ -102,8 +136,9 @@ func (c *AuthController) Login() {
 	})
 }
 
-// Refresh 使用 refresh token 换取新的 access token
+// Refresh 使用 refresh token 轮换换取新的 access + refresh token
 // POST /api/v1/auth/refresh  {"refresh_token":"..."}
+// 轮换语义：旧 refresh token 一次性使用，刷新后立即失效（单活跃会话）。
 func (c *AuthController) Refresh() {
 	var req refreshRequest
 	if err := c.Ctx.BindJSON(&req); err != nil || req.RefreshToken == "" {
@@ -111,20 +146,14 @@ func (c *AuthController) Refresh() {
 		return
 	}
 
-	claims, err := middleware.ParseToken(req.RefreshToken)
+	newAccess, newRefresh, err := services.RotateRefresh(req.RefreshToken)
 	if err != nil {
-		c.Fail(401, "refresh_token 无效或已过期")
+		if errors.Is(err, services.ErrRefreshRejected) {
+			c.Fail(401, "refresh_token 无效、已过期或已被轮换")
+		} else {
+			c.Fail(500, "令牌生成失败")
+		}
 		return
 	}
-	if claims.TokenTyp != "refresh" {
-		c.Fail(401, "令牌类型错误")
-		return
-	}
-
-	accessToken, err := middleware.GenerateAccessToken(claims.UserID, claims.Role)
-	if err != nil {
-		c.Fail(500, "令牌生成失败")
-		return
-	}
-	c.OK(map[string]any{"access_token": accessToken})
+	c.OK(map[string]any{"access_token": newAccess, "refresh_token": newRefresh})
 }

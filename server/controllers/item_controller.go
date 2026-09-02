@@ -9,6 +9,7 @@ import (
 	"github.com/erikwang2013/item-rental/server/middleware"
 	"github.com/erikwang2013/item-rental/server/models"
 	"github.com/erikwang2013/item-rental/server/search"
+	"github.com/erikwang2013/item-rental/server/services"
 )
 
 // ItemController 物品相关接口
@@ -25,9 +26,30 @@ type createItemRequest struct {
 	DailyPrice float64 `json:"daily_price"`
 	Deposit    float64 `json:"deposit"`
 	Stock      int     `json:"stock"`
-	City       string  `json:"city"`
-	Lat        float64 `json:"lat"`
-	Lng        float64 `json:"lng"`
+	City       string   `json:"city"`
+	Lat        *float64 `json:"lat"`
+	Lng        *float64 `json:"lng"`
+}
+
+// valueOrZero 取指针值，nil（请求未传）返回 0。
+func valueOrZero(p *float64) float64 {
+	if p == nil {
+		return 0
+	}
+	return *p
+}
+
+// buildSearchParams 组装搜索参数（纯函数，便于单测：页面入参 → search.SearchParams）。
+func buildSearchParams(q string, categoryID int64, minPrice, maxPrice float64, orderBy string, page, pageSize int) search.SearchParams {
+	return search.SearchParams{
+		Query:      q,
+		CategoryID: categoryID,
+		MinPrice:   minPrice,
+		MaxPrice:   maxPrice,
+		OrderBy:    orderBy,
+		Page:       page,
+		PageSize:   pageSize,
+	}
 }
 
 // List 物品列表（分页 + 品类过滤，仅上架）
@@ -89,8 +111,22 @@ func (c *ItemController) Create() {
 		c.Fail(400, "请求参数错误")
 		return
 	}
-	if req.Title == "" || req.DailyPrice <= 0 {
-		c.Fail(400, "标题和租金不能为空")
+	if err := services.ValidateItem(services.ItemValidateRequest{
+		Title:      req.Title,
+		Images:     req.Images,
+		DailyPrice: req.DailyPrice,
+		Deposit:    req.Deposit,
+		Stock:      req.Stock,
+		Lat:        req.Lat,
+		Lng:        req.Lng,
+	}); err != nil {
+		c.Fail(400, err.Error())
+		return
+	}
+
+	o := orm.NewOrm()
+	if err := o.Read(&models.Category{Id: req.CategoryId}); err != nil {
+		c.Fail(400, "品类不存在")
 		return
 	}
 
@@ -104,15 +140,11 @@ func (c *ItemController) Create() {
 		Deposit:    req.Deposit,
 		Stock:      req.Stock,
 		City:       req.City,
-		Lat:        req.Lat,
-		Lng:        req.Lng,
+		Lat:        valueOrZero(req.Lat),
+		Lng:        valueOrZero(req.Lng),
 		Status:     1, // 上架
 	}
-	if item.Stock <= 0 {
-		item.Stock = 1
-	}
 
-	o := orm.NewOrm()
 	if _, err := o.Insert(&item); err != nil {
 		c.Fail(500, "发布失败")
 		return
@@ -174,8 +206,28 @@ func (c *ItemController) Update() {
 	if req.City != "" {
 		item.City = req.City
 	}
-	item.Lat = req.Lat
-	item.Lng = req.Lng
+	// 仅请求显式传了 lat/lng 才覆写；同时只校验本次传入的坐标
+	var latP, lngP *float64
+	if req.Lat != nil {
+		item.Lat = *req.Lat
+		latP = req.Lat
+	}
+	if req.Lng != nil {
+		item.Lng = *req.Lng
+		lngP = req.Lng
+	}
+	if err := services.ValidateItem(services.ItemValidateRequest{
+		Title:      item.Title,
+		Images:     item.Images,
+		DailyPrice: item.DailyPrice,
+		Deposit:    item.Deposit,
+		Stock:      item.Stock,
+		Lat:        latP,
+		Lng:        lngP,
+	}); err != nil {
+		c.Fail(400, err.Error())
+		return
+	}
 
 	if _, err := o.Update(&item, "title", "desc", "images", "daily_price", "deposit", "stock", "city", "lat", "lng"); err != nil {
 		c.Fail(500, "更新失败")
@@ -218,8 +270,8 @@ func (c *ItemController) OffShelf() {
 	c.OK(map[string]any{"msg": "已下架"})
 }
 
-// Search 搜索物品（关键字/品类/价格区间/排序）
-// GET /api/v1/items/search?q=相机&category_id=5&min_price=10&max_price=100&order_by=price_asc
+// Search 搜索物品（关键字/品类/价格区间/排序/地理半径）
+// GET /api/v1/items/search?q=相机&category_id=5&min_price=10&max_price=100&order_by=price_asc&lat=39.9&lng=116.4&radius_km=50
 func (c *ItemController) Search() {
 	q := c.GetString("q")
 	categoryID, _ := c.GetInt64("category_id", 0)
@@ -229,15 +281,17 @@ func (c *ItemController) Search() {
 	page, _ := c.GetInt("page", 1)
 	pageSize, _ := c.GetInt("page_size", 20)
 
-	result, err := search.SearchItems(context.Background(), search.SearchParams{
-		Query:      q,
-		CategoryID: categoryID,
-		MinPrice:   minPrice,
-		MaxPrice:   maxPrice,
-		OrderBy:    orderBy,
-		Page:       page,
-		PageSize:   pageSize,
-	})
+	p := buildSearchParams(q, categoryID, minPrice, maxPrice, orderBy, page, pageSize)
+	// 地理半径过滤（可选）：lat/lng/radius_km 齐全时启用，缺失坐标的物品安全跳过
+	lat, _ := c.GetFloat("lat", 0)
+	lng, _ := c.GetFloat("lng", 0)
+	if radiusKm, _ := c.GetFloat("radius_km", 0); radiusKm > 0 {
+		p.Lat = lat
+		p.Lng = lng
+		p.RadiusKm = &radiusKm
+	}
+
+	result, err := search.SearchItems(context.Background(), p)
 	if err != nil {
 		c.Fail(500, "搜索失败: "+err.Error())
 		return

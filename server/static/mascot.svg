@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="租租 —— item-rental 吉祥物">
+  <defs>
+    <linearGradient id="body" x1="80" y1="80" x2="170" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+    <linearGradient id="box" x1="90" y1="185" x2="160" y2="235" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#818cf8"/>
+      <stop offset="1" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 地面阴影 -->
+  <ellipse cx="120" cy="224" rx="72" ry="9" fill="#f5f5f4" opacity="0.9"/>
+
+  <!-- 钥匙天线: 柄 + 圈 + 齿 -->
+  <line x1="120" y1="86" x2="120" y2="46" stroke="#f59e0b" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="120" cy="36" r="14" fill="none" stroke="#f59e0b" stroke-width="7"/>
+  <rect x="114" y="82" width="6" height="10" rx="3" fill="#f59e0b"/>
+
+  <!-- 耳朵 -->
+  <circle cx="70" cy="92" r="17" fill="url(#body)"/>
+  <circle cx="170" cy="92" r="17" fill="url(#body)"/>
+
+  <!-- 身体(吉祥物本体) -->
+  <ellipse cx="120" cy="140" rx="66" ry="62" fill="url(#body)"/>
+  <!-- 高光 -->
+  <ellipse cx="98" cy="100" rx="18" ry="11" fill="#ffffff" opacity="0.28"/>
+
+  <!-- 肚子 -->
+  <ellipse cx="120" cy="150" rx="46" ry="40" fill="#fff7ed"/>
+
+  <!-- 租来的小箱子(indigo, 箱盖上钥匙孔) -->
+  <g>
+    <rect x="84" y="184" width="72" height="11" rx="6" fill="#14b8a6"/>
+    <rect x="88" y="191" width="64" height="40" rx="9" fill="url(#box)"/>
+    <circle cx="120" cy="211" r="4.5" fill="#fff7ed"/>
+    <rect x="118.5" y="214" width="3" height="6" rx="1.5" fill="#fff7ed"/>
+  </g>
+
+  <!-- 手臂抱住箱子 -->
+  <g stroke="#f97316" stroke-width="13" stroke-linecap="round">
+    <line x1="62" y1="148" x2="80" y2="198"/>
+    <line x1="178" y1="148" x2="160" y2="198"/>
+  </g>
+
+  <!-- 脚 -->
+  <ellipse cx="96" cy="208" rx="16" ry="10" fill="#ea580c"/>
+  <ellipse cx="144" cy="208" rx="16" ry="10" fill="#ea580c"/>
+
+  <!-- 脸: 眼睛 -->
+  <g>
+    <circle cx="95" cy="116" r="12" fill="#ffffff"/>
+    <circle cx="145" cy="116" r="12" fill="#ffffff"/>
+    <circle cx="97" cy="118" r="6" fill="#1c1917"/>
+    <circle cx="147" cy="118" r="6" fill="#1c1917"/>
+    <circle cx="99" cy="116" r="2.2" fill="#ffffff"/>
+    <circle cx="149" cy="116" r="2.2" fill="#ffffff"/>
+  </g>
+
+  <!-- 腮红 -->
+  <circle cx="76" cy="140" r="8" fill="#fed7aa" opacity="0.9"/>
+  <circle cx="164" cy="140" r="8" fill="#fed7aa" opacity="0.9"/>
+
+  <!-- 微笑 -->
+  <path d="M106 156 Q120 170 134 156" fill="none" stroke="#431407" stroke-width="4.5" stroke-linecap="round"/>
+</svg>

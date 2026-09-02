@@ -23,6 +23,10 @@ type Config struct {
 	SignType string
 	// Timeout 下单 HTTP 超时（秒）
 	Timeout int
+	// CertFile 商户证书文件路径（退款等需双向 TLS 的接口）
+	CertFile string
+	// CertKey 商户证书私钥文件路径
+	CertKey string
 }
 
 // LoadConfig 读取支付配置。支持环境变量覆盖（与 JWT 密钥读取风格一致）。
@@ -36,6 +40,8 @@ func LoadConfig() Config {
 		NotifyURL: web.AppConfig.DefaultString("wechat_notify_url", ""),
 		SignType:  web.AppConfig.DefaultString("wechat_sign_type", "HMAC-SHA256"),
 		Timeout:   int(web.AppConfig.DefaultInt("wechat_timeout", 10)),
+		CertFile:  web.AppConfig.DefaultString("wechat_cert_file", ""),
+		CertKey:   web.AppConfig.DefaultString("wechat_cert_key", ""),
 	}
 	if env := os.Getenv("WECHAT_APPID"); env != "" {
 		cfg.AppID = env
@@ -48,6 +54,12 @@ func LoadConfig() Config {
 	}
 	if env := os.Getenv("WECHAT_NOTIFY_URL"); env != "" {
 		cfg.NotifyURL = env
+	}
+	if env := os.Getenv("WECHAT_CERT_FILE"); env != "" {
+		cfg.CertFile = env
+	}
+	if env := os.Getenv("WECHAT_CERT_KEY"); env != "" {
+		cfg.CertKey = env
 	}
 	return cfg
 }

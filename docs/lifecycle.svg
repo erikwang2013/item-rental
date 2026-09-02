@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" font-family="PingFang SC, Microsoft YaHei, sans-serif">
+  <rect width="960" height="420" fill="#ffffff"/>
+  <text x="958" y="18" text-anchor="end" fill="rgba(0,0,0,0.28)" font-size="12">https://erik.xyz</text>
+  <text x="480" y="44" text-anchor="middle" font-size="22" font-weight="bold" fill="#1f2937">订单生命周期 · 7 态状态机</text>
+
+  <!-- 主链 0 -> 1 -> 2 -> 3 -> 4 -->
+  <g>
+    <rect x="40"  y="120" width="130" height="56" rx="10" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
+    <rect x="210" y="120" width="130" height="56" rx="10" fill="#fefce8" stroke="#eab308" stroke-width="1.5"/>
+    <rect x="380" y="120" width="130" height="56" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+    <rect x="550" y="120" width="130" height="56" rx="10" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="1.5"/>
+    <rect x="720" y="120" width="200" height="56" rx="10" fill="#f0fdfa" stroke="#14b8a6" stroke-width="1.5"/>
+  </g>
+  <g text-anchor="middle" font-size="12">
+    <text x="105" y="142" font-size="15" font-weight="bold" fill="#c2410c">0 待支付</text>
+    <text x="105" y="162" fill="#9a3412">仅占位，租金未付</text>
+    <text x="275" y="142" font-size="15" font-weight="bold" fill="#a16207">1 待取</text>
+    <text x="275" y="162" fill="#713f12">租金已付(0→1)</text>
+    <text x="445" y="142" font-size="15" font-weight="bold" fill="#15803d">2 租赁中</text>
+    <text x="445" y="162" fill="#166534">押金冻结(1→2)</text>
+    <text x="615" y="142" font-size="15" font-weight="bold" fill="#0369a1">3 待归还</text>
+    <text x="615" y="162" fill="#0c4a6e">租客申请归还(2→3)</text>
+    <text x="820" y="142" font-size="15" font-weight="bold" fill="#0f766e">4 已归还</text>
+    <text x="820" y="162" fill="#134e4a">结算·押金解冻(3→4)</text>
+  </g>
+  <!-- 主链箭头 -->
+  <g stroke="#374151" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <line x1="170" y1="148" x2="206" y2="148"/>
+    <line x1="340" y1="148" x2="376" y2="148"/>
+    <line x1="510" y1="148" x2="546" y2="148"/>
+    <line x1="680" y1="148" x2="716" y2="148"/>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#374151"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ea580c"/>
+    </marker>
+  </defs>
+
+  <!-- 取消支线 0 -> 5 -->
+  <rect x="40"  y="300" width="130" height="56" rx="10" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="105" y="322" text-anchor="middle" font-size="15" font-weight="bold" fill="#374151">5 已取消</text>
+  <text x="105" y="342" text-anchor="middle" font-size="12" fill="#4b5563">退回押金并退款租金</text>
+  <g stroke="#9ca3af" stroke-width="2" fill="none">
+    <path d="M 88 178 C 60 220, 68 270, 90 296" marker-end="url(#arrow)"/>
+  </g>
+  <text x="30" y="240" font-size="12" fill="#6b7280" transform="rotate(-70 30 240)">取消(0→5)</text>
+
+  <!-- 违约支线 3 -> 6 -->
+  <rect x="550" y="300" width="130" height="56" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="615" y="322" text-anchor="middle" font-size="15" font-weight="bold" fill="#b91c1c">6 违约</text>
+  <text x="615" y="342" text-anchor="middle" font-size="12" fill="#7f1d1d">扣押金抵偿违约金</text>
+  <g stroke="#dc2626" stroke-width="2" fill="none">
+    <path d="M 650 178 C 660 220, 648 258, 630 296" marker-end="url(#arrowRed)"/>
+  </g>
+  <text x="678" y="240" font-size="12" fill="#b91c1c">违约(3→6)</text>
+
+  <text x="480" y="388" text-anchor="middle" font-size="12" fill="#6b7280">资金流：0→1 支付租金；1→2 冻结押金；3→4 解冻押金并结算租金；退款在 0→5 支线处理</text>
+</svg>

@@ -1,0 +1,139 @@
+# 多端租赁平台 —— 生产(prod)基础设施编排
+# 与 dev 版(docker-compose.yml)的区别:
+#   - 强密钥: MySQL/Redis/OpenSearch admin 密码全部从环境变量读取,缺省即启动失败(`:?` 强制),
+#     无任何弱默认口令。
+#   - OpenSearch security ON: 不设置 plugins.security.disabled,通过 OPENSEARCH_INITIAL_ADMIN_PASSWORD
+#     bootstrap admin 账号(首次启动生效,需全新数据卷)。
+#   - 端口避开宿主机占用: 3306(宿主机 mysqld)、6379(宿主机 redis)均被占用,prod 映射到
+#     MYSQL_HOST_PORT(默认3307)/ REDIS_HOST_PORT(默认16379)。
+#   - 独立项目名 item-rental-prod,容器/数据卷与 dev 完全隔离,互不影响。
+# 用法:
+#   # 方式A: 环境变量直接注入(推荐 CI/平台)
+#   MYSQL_ROOT_PASSWORD=... MYSQL_PASSWORD=... REDIS_PASSWORD=... OPENSEARCH_ADMIN_PASSWORD=... \
+#     docker compose -f docker-compose.prod.yml up -d
+#   # 方式B: --env-file(注意: 本仓库 .env* 文件被权限规则拒绝,方式A为准)
+# 说明: 本项目暂未提供 app 容器(Go server 无 Dockerfile),env 注入点见文末注释与 docs/config-runbook.md。
+
+name: item-rental-prod
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: rental-mysql-prod
+    restart: unless-stopped
+    environment:
+      # 强密码必需,未设置则启动报错(禁止弱默认值)
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD must be set}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-rental}
+      MYSQL_USER: ${MYSQL_USER:-rental}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD must be set}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+      - --max_connections=1000
+    ports:
+      # 宿主机 3306/33060 已被宿主 mysqld 占用,prod 默认映射到 3307
+      - "${MYSQL_HOST_PORT:-3307}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  opensearch:
+    image: opensearchproject/opensearch:2.14.0
+    container_name: rental-opensearch-prod
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      # security ON: 显式不设 plugins.security.disabled(镜像已带 security 发行版),
+      # 该键与 DISABLE_SECURITY_PLUGIN 同设会冲突报错(dev 版即为此崩溃原因)。
+      - DISABLE_SECURITY_PLUGIN=false
+      # 首次启动 bootstrap admin 密码(安全插件启用时必需,未设置则启动失败)
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_ADMIN_PASSWORD:?OPENSEARCH_ADMIN_PASSWORD must be set}
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "${OPENSEARCH_PORT:-9200}:9200"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    healthcheck:
+      # security ON 后为 HTTPS + 鉴权: -k 忽略自签证书, -u admin
+      test: ["CMD-SHELL", "curl -skf -u admin:$${OPENSEARCH_INITIAL_ADMIN_PASSWORD} https://localhost:9200/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 60s
+
+  redis:
+    image: redis:7-alpine
+    container_name: rental-redis-prod
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?REDIS_PASSWORD must be set}"]
+    ports:
+      # 宿主机 6379 已被宿主 redis 占用,prod 默认映射到 16379
+      - "${REDIS_HOST_PORT:-16379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ------------------------------------------------------------------
+  # 可选 app 服务(Go server 暂无 Dockerfile,默认不启动,按需取消注释启用)。
+  # 需要先在 deploy/ 提供 server 的 Dockerfile(多阶段构建)后取消注释。
+  # env 注入点(与 docs/config-runbook.md 全键表对应):
+  #   ITEM_RENTAL_JWT_SECRET  -> middleware/jwt.go    (必设,默认值会 panic)
+  #   BEEGO_RUNMODE           -> 设为 prod            (防自动建表)
+  #   OPENSEARCH_* / SCOUT_*  -> search/init.go       (仅读环境变量)
+  #   WECHAT_*                -> payments/config.go   (含证书路径)
+  #   sqlconn/redisaddr/redispass 通过 app.conf 覆盖或注入
+  # ------------------------------------------------------------------
+  # app:
+  #   image: item-rental-server:prod
+  #   container_name: rental-app-prod
+  #   restart: unless-stopped
+  #   depends_on:
+  #     mysql: { condition: service_healthy }
+  #     redis: { condition: service_healthy }
+  #     opensearch: { condition: service_healthy }
+  #   environment:
+  #     BEEGO_RUNMODE: prod
+  #     ITEM_RENTAL_JWT_SECRET: ${ITEM_RENTAL_JWT_SECRET:?ITEM_RENTAL_JWT_SECRET must be set}
+  #     ITEM_RENTAL_TRUSTED_PROXY: ${ITEM_RENTAL_TRUSTED_PROXY:-}
+  #     SCOUT_DRIVER: opensearch
+  #     OPENSEARCH_HTTP_HOST: http://opensearch:9200
+  #     OPENSEARCH_USERNAME: admin
+  #     OPENSEARCH_PASSWORD: ${OPENSEARCH_ADMIN_PASSWORD}
+  #     WECHAT_MOCK: "0"
+  #     WECHAT_APPID: ${WECHAT_APPID:-}
+  #     WECHAT_MCHID: ${WECHAT_MCHID:-}
+  #     WECHAT_MCHKEY: ${WECHAT_MCHKEY:-}
+  #     WECHAT_NOTIFY_URL: ${WECHAT_NOTIFY_URL:-}
+  #     WECHAT_CERT_FILE: /certs/apiclient_cert.pem
+  #     WECHAT_CERT_KEY: /certs/apiclient_key.pem
+  #   volumes:
+  #     # 微信商户证书: 宿主机目录只读挂载,路径对应 payments/config.go 的 CertFile/CertKey
+  #     - ${WECHAT_CERT_DIR:-/etc/wechat-certs}:/certs:ro
+  #   ports:
+  #     - "${APP_PORT:-8080}:8080"
+
+volumes:
+  mysql_data:
+  opensearch_data:
+  redis_data:

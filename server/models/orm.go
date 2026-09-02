@@ -17,7 +17,7 @@ func InitORM() {
 
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	// 注册全部模型
-	orm.RegisterModel(new(User), new(Category), new(Item), new(Order), new(Payment))
+	orm.RegisterModel(new(User), new(Category), new(Item), new(Order), new(Payment), new(Deposit))
 
 	// 连接数据库（alias "default"）
 	err := orm.RegisterDataBase("default", "mysql", sqlconn)

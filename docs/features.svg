@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="PingFang SC, Microsoft YaHei, sans-serif">
+  <rect width="960" height="560" fill="#ffffff"/>
+  <text x="958" y="18" text-anchor="end" fill="rgba(0,0,0,0.28)" font-size="12">https://erik.xyz</text>
+  <text x="480" y="44" text-anchor="middle" font-size="22" font-weight="bold" fill="#1f2937">功能特性全景</text>
+
+  <g stroke="#d1d5db" stroke-width="1.5" font-size="13">
+    <!-- 认证与账号 -->
+    <rect x="30"  y="70"  width="285" height="150" rx="10" fill="#faf5ff" stroke="#a855f7"/>
+    <text x="172" y="98"  text-anchor="middle" font-size="15" font-weight="bold" fill="#7e22ce">认证与账号</text>
+    <text x="172" y="124" text-anchor="middle" fill="#581c87">手机号验证码登录（mock / 真实短信）</text>
+    <text x="172" y="148" text-anchor="middle" fill="#581c87">JWT 双 Token：Access 2h + Refresh 7d 轮换</text>
+    <text x="172" y="172" text-anchor="middle" fill="#581c87">验证码 60s 限频、短信不返回明文验证码</text>
+    <text x="172" y="196" text-anchor="middle" fill="#581c87">用户资料、信用分、押金账户</text>
+
+    <!-- 物品与搜索 -->
+    <rect x="335" y="70"  width="285" height="150" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/>
+    <text x="477" y="98"  text-anchor="middle" font-size="15" font-weight="bold" fill="#0369a1">物品与搜索</text>
+    <text x="477" y="124" text-anchor="middle" fill="#0c4a6e">类目体系、物品上下架管理</text>
+    <text x="477" y="148" text-anchor="middle" fill="#0c4a6e">OpenSearch 全文检索 + 分页</text>
+    <text x="477" y="172" text-anchor="middle" fill="#0c4a6e">关键词 × 城市 × 类目筛选</text>
+    <text x="477" y="196" text-anchor="middle" fill="#0c4a6e">地理位置半径检索（Haversine）</text>
+
+    <!-- 安全风控 -->
+    <rect x="640" y="70"  width="290" height="150" rx="10" fill="#fff7ed" stroke="#f97316"/>
+    <text x="785" y="98"  text-anchor="middle" font-size="15" font-weight="bold" fill="#c2410c">安全与风控</text>
+    <text x="785" y="124" text-anchor="middle" fill="#7c2d12">security-go 攻击检测、IP 封禁</text>
+    <text x="785" y="148" text-anchor="middle" fill="#7c2d12">请求体大小与 Content-Type 白名单</text>
+    <text x="785" y="172" text-anchor="middle" fill="#7c2d12">系统边界输入校验（金额/坐标/长度）</text>
+    <text x="785" y="196" text-anchor="middle" fill="#7c2d12">条件更新幂等防重复回调/退款</text>
+
+    <!-- 订单与租赁 -->
+    <rect x="30"  y="240" width="285" height="150" rx="10" fill="#f0fdfa" stroke="#14b8a6"/>
+    <text x="172" y="268" text-anchor="middle" font-size="15" font-weight="bold" fill="#0f766e">订单与租赁</text>
+    <text x="172" y="294" text-anchor="middle" fill="#134e4a">订单创建：按天计价 + 押金核算</text>
+    <text x="172" y="318" text-anchor="middle" fill="#134e4a">7 态生命周期：待支付→…→已归还</text>
+    <text x="172" y="342" text-anchor="middle" fill="#134e4a">取货 / 归还申请 / 归还确认 / 违约</text>
+    <text x="172" y="366" text-anchor="middle" fill="#134e4a">租客与房东双角色权限校验</text>
+
+    <!-- 支付 -->
+    <rect x="335" y="240" width="285" height="150" rx="10" fill="#fef2f2" stroke="#ef4444"/>
+    <text x="477" y="268" text-anchor="middle" font-size="15" font-weight="bold" fill="#b91c1c">支付与退款</text>
+    <text x="477" y="294" text-anchor="middle" fill="#7f1d1d">微信支付 V3 预约预付（JSAPI）</text>
+    <text x="477" y="318" text-anchor="middle" fill="#7f1d1d">支付/退款异步回调验签处理</text>
+    <text x="477" y="342" text-anchor="middle" fill="#7f1d1d">退款（mock 短路或商户证书双证书）</text>
+    <text x="477" y="366" text-anchor="middle" fill="#7f1d1d">订单取消自动退款</text>
+
+    <!-- 押金与结算 -->
+    <rect x="640" y="240" width="290" height="150" rx="10" fill="#fefce8" stroke="#eab308"/>
+    <text x="785" y="268" text-anchor="middle" font-size="15" font-weight="bold" fill="#a16207">押金与结算</text>
+    <text x="785" y="294" text-anchor="middle" fill="#713f12">deposits 押金台账：冻结/解冻/扣款</text>
+    <text x="785" y="318" text-anchor="middle" fill="#713f12">扣押金退款租金联动</text>
+    <text x="785" y="342" text-anchor="middle" fill="#713f12">信用分与押金余额账户</text>
+    <text x="785" y="366" text-anchor="middle" fill="#713f12">（扩展预留）优惠/违约金规则</text>
+  </g>
+
+  <g stroke="#9ca3af" stroke-width="1.2" fill="none">
+    <line x1="30" y1="420" x2="930" y2="420"/>
+  </g>
+  <text x="480" y="452" text-anchor="middle" font-size="14" font-weight="bold" fill="#374151">工程化</text>
+  <text x="480" y="476" text-anchor="middle" font-size="13" fill="#4b5563">纯函数 Services 层 · 离线单元测试（无需基础设施）· Docker Compose Dev/Prod · GitHub Actions CI 覆盖率门(≥15%)</text>
+  <rect x="200" y="506" width="560" height="34" rx="8" fill="#f3f4f6" stroke="#d1d5db"/>
+  <text x="480" y="528" text-anchor="middle" font-size="14" fill="#374151">Go 1.24 · Beego v2.3 · MySQL · Redis · OpenSearch · security-go · go-scout</text>
+</svg>

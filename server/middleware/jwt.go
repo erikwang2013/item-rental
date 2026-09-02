@@ -2,7 +2,10 @@
 package middleware
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -47,6 +50,7 @@ func generateToken(userID int64, role, tokenTyp string, ttlSeconds int) (string,
 		Role:     role,
 		TokenTyp: tokenTyp,
 		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        newJTI(), // 每枚令牌唯一 jti，供 refresh 轮换时比对会话
 			ExpiresAt: jwt.NewNumericDate(now.Add(time.Duration(ttlSeconds) * time.Second)),
 			IssuedAt:  jwt.NewNumericDate(now),
 			Issuer:    "item-rental",
@@ -54,6 +58,16 @@ func generateToken(userID int64, role, tokenTyp string, ttlSeconds int) (string,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret())
+}
+
+// newJTI 生成随机 token ID（crypto/rand，碰撞概率可忽略）。
+func newJTI() string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		// 理论上不会失败；极端回退保证令牌可用
+		return fmt.Sprintf("%d", time.Now().UnixNano())
+	}
+	return hex.EncodeToString(b)
 }
 
 // GenerateAccessToken 签发 access token（默认 2 小时）

@@ -14,3 +14,4 @@ deploy/.env
 # ---- Go ----
 server/rental
 *.exe
+server/coverage.out

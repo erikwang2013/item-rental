@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" font-family="PingFang SC, Microsoft YaHei, sans-serif">
+  <rect width="960" height="640" fill="#ffffff"/>
+  <text x="958" y="18" text-anchor="end" fill="rgba(0,0,0,0.28)" font-size="12">https://erik.xyz</text>
+
+  <!-- 标题 -->
+  <text x="480" y="40" text-anchor="middle" font-size="22" font-weight="bold" fill="#1f2937">系统架构图 · 多端租赁平台</text>
+
+  <!-- 第一层：客户端 -->
+  <text x="30" y="84" font-size="14" font-weight="bold" fill="#374151">客户端</text>
+  <g fill="#eef2ff" stroke="#6366f1" stroke-width="1.5">
+    <rect x="30" y="96" width="280" height="44" rx="8"/>
+    <rect x="330" y="96" width="280" height="44" rx="8"/>
+    <rect x="630" y="96" width="300" height="44" rx="8"/>
+  </g>
+  <g fill="#4338ca" font-size="15" text-anchor="middle">
+    <text x="170" y="123">微信小程序</text>
+    <text x="470" y="123">H5 / Web</text>
+    <text x="780" y="123">管理后台</text>
+  </g>
+
+  <!-- 第二层：接入层 -->
+  <text x="30" y="172" font-size="14" font-weight="bold" fill="#374151">接入层</text>
+  <g fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5">
+    <rect x="30" y="184" width="280" height="50" rx="8"/>
+    <rect x="330" y="184" width="280" height="50" rx="8"/>
+    <rect x="630" y="184" width="300" height="50" rx="8"/>
+  </g>
+  <g fill="#15803d" font-size="14" text-anchor="middle">
+    <text x="170" y="206">Beego v2 Router</text>
+    <text x="170" y="224" font-size="12">HTTP /api/v1</text>
+    <text x="470" y="206">security-go 安全中间件</text>
+    <text x="470" y="224" font-size="12">攻击检测 · IP 封禁 · 限流</text>
+    <text x="780" y="206">JWT 双 Token 鉴权</text>
+    <text x="780" y="224" font-size="12">Access 2h + Refresh 7d 轮换</text>
+  </g>
+
+  <!-- 第三层：业务层 -->
+  <text x="30" y="266" font-size="14" font-weight="bold" fill="#374151">业务层</text>
+  <g fill="#fefce8" stroke="#eab308" stroke-width="1.5">
+    <rect x="30" y="278" width="280" height="120" rx="8"/>
+    <rect x="330" y="278" width="280" height="120" rx="8"/>
+    <rect x="630" y="278" width="300" height="120" rx="8"/>
+  </g>
+  <g font-size="14" text-anchor="middle">
+    <text x="170" y="300" font-weight="bold" fill="#854d0e">Controllers 控制器</text>
+    <text x="170" y="322" font-size="12" fill="#713f12">auth / user / categories</text>
+    <text x="170" y="340" font-size="12" fill="#713f12">items / orders</text>
+    <text x="170" y="358" font-size="12" fill="#713f12">payments</text>
+    <text x="170" y="378" font-size="12" fill="#713f12">统一 OK/Fail 响应信封</text>
+    <text x="470" y="300" font-weight="bold" fill="#854d0e">Services 纯业务逻辑</text>
+    <text x="470" y="322" font-size="12" fill="#713f12">订单计价 / 状态机迁移</text>
+    <text x="470" y="340" font-size="12" fill="#713f12">押金台账 / 退款 / 取消</text>
+    <text x="470" y="358" font-size="12" fill="#713f12">地理半径检索(Haversine)</text>
+    <text x="470" y="378" font-size="12" fill="#713f12">纯函数、可单测</text>
+    <text x="780" y="300" font-weight="bold" fill="#854d0e">集成网关</text>
+    <text x="780" y="322" font-size="12" fill="#713f12">payments/gateway 微信支付</text>
+    <text x="780" y="340" font-size="12" fill="#713f12">search/go-scout 全文检索</text>
+    <text x="780" y="358" font-size="12" fill="#713f12">models(ORM) 数据映射</text>
+    <text x="780" y="378" font-size="12" fill="#713f12">middleware 基础件</text>
+  </g>
+
+  <!-- 第四层：数据与基础设施 -->
+  <text x="30" y="430" font-size="14" font-weight="bold" fill="#374151">数据与基础设施</text>
+  <g fill="#fef2f2" stroke="#ef4444" stroke-width="1.5">
+    <rect x="30" y="442" width="210" height="74" rx="8"/>
+    <rect x="260" y="442" width="210" height="74" rx="8"/>
+    <rect x="490" y="442" width="210" height="74" rx="8"/>
+    <rect x="720" y="442" width="210" height="74" rx="8"/>
+  </g>
+  <g fill="#b91c1c" font-size="14" text-anchor="middle">
+    <text x="135" y="470">MySQL</text>
+    <text x="135" y="490" font-size="11">users/items/orders</text>
+    <text x="135" y="506" font-size="11">deposits/payments</text>
+    <text x="365" y="470">Redis</text>
+    <text x="365" y="490" font-size="11">验证码限频</text>
+    <text x="365" y="506" font-size="11">Refresh 轮换</text>
+    <text x="595" y="470">OpenSearch 2.14</text>
+    <text x="595" y="490" font-size="11">物品全文检索</text>
+    <text x="595" y="506" font-size="11">坐标索引</text>
+    <text x="825" y="470">微信支付</text>
+    <text x="825" y="490" font-size="11">商户平台</text>
+    <text x="825" y="506" font-size="11">预付/回调/退款</text>
+  </g>
+
+  <!-- 连接说明 -->
+  <g stroke="#9ca3af" stroke-width="1.5" fill="none">
+    <path d="M170 140 L170 180 M470 140 L470 180 M780 140 L780 180"/>
+    <path d="M170 234 L170 274 M470 234 L470 274 M780 234 L780 274"/>
+    <path d="M135 398 L135 438 M365 398 L365 438 M595 398 L595 438 M825 398 L825 438"/>
+  </g>
+</svg>
