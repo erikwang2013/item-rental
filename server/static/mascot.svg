@@ -42,12 +42,7 @@
     </g>
   </g>
 
-  <!-- ============ 胸前 ¥ 徽章(平台管家/押金) ============ -->
-  <circle cx="107.8" cy="150" r="17" fill="#fbbf24" stroke="#92400e" stroke-width="2"/>
-  <text x="107.8" y="156" text-anchor="middle" font-size="18" font-family="Arial, sans-serif"
-        font-weight="bold" fill="#92400e">¥</text>
-
-  <!-- ============ 怀中箱子(物品流转,indigo+teal) ============ -->
+    <!-- ============ 怀中箱子(物品流转,indigo+teal) ============ -->
   <g>
     <rect x="76" y="230" width="62" height="46" rx="7" fill="#4338ca" stroke="#312e81" stroke-width="2"/>
     <rect x="76" y="230" width="62" height="12" rx="7" fill="#4f46e5"/>
@@ -66,8 +61,10 @@
     <!-- 帽檐 -->
     <path d="M50 95 Q107.8 108 165.6 95 L165.6 101 Q107.8 114 50 101 Z"
           fill="#d97706" stroke="#92400e" stroke-width="1.5"/>
-    <!-- 帽顶钮 -->
-    <circle cx="107.8" cy="48" r="4.5" fill="#92400e"/>
+    <!-- 帽徽:¥ 徽章(押金保障) -->
+    <circle cx="107.8" cy="70" r="13" fill="#fbbf24" stroke="#92400e" stroke-width="2"/>
+    <text x="107.8" y="74.5" text-anchor="middle" font-size="14" font-family="Arial, sans-serif"
+          font-weight="bold" fill="#92400e">¥</text>
   </g>
 
   <text x="213" y="324" text-anchor="end" fill="rgba(0,0,0,0.22)" font-size="10"
