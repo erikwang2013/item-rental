@@ -1,104 +1,111 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 260" width="260" height="260" role="img" aria-label="租租松鼠 —— item-rental 吉祥物">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="租租猫 —— item-rental 吉祥物">
   <defs>
-    <linearGradient id="fur" x1="60" y1="40" x2="220" y2="240" gradientUnits="userSpaceOnUse">
+    <linearGradient id="fur" x1="50" y1="40" x2="200" y2="230" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#f59e0b"/>
       <stop offset="1" stop-color="#d97706"/>
     </linearGradient>
-    <linearGradient id="furLight" x1="90" y1="80" x2="200" y2="220" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#fbbf24"/>
-      <stop offset="1" stop-color="#f59e0b"/>
+    <linearGradient id="furDark" x1="60" y1="40" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#d97706"/>
+      <stop offset="1" stop-color="#b45309"/>
     </linearGradient>
-    <linearGradient id="cap" x1="80" y1="30" x2="200" y2="90" gradientUnits="userSpaceOnUse">
+    <linearGradient id="vest" x1="60" y1="100" x2="200" y2="220" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#4338ca"/>
       <stop offset="1" stop-color="#312e81"/>
     </linearGradient>
-    <radialGradient id="acorn" cx="0.5" cy="0.4" r="0.7">
-      <stop offset="0" stop-color="#92400e"/>
-      <stop offset="1" stop-color="#78350f"/>
-    </radialGradient>
   </defs>
 
-  <ellipse cx="130" cy="252" rx="90" ry="9" fill="#e7e5e4" opacity="0.9"/>
+  <ellipse cx="120" cy="228" rx="80" ry="8" fill="#e7e5e4" opacity="0.9"/>
 
-  <!-- ==================== 大尾巴(松鼠灵魂,从右后高高翘起) ==================== -->
-  <path d="M180 190
-           C 240 180, 258 130, 240 78
-           C 230 55, 205 48, 194 66
-           C 186 82, 200 96, 214 92
-           C 200 118, 200 160, 232 178
-           C 248 188, 228 208, 208 204 Z"
+  <!-- ============ 长尾巴(身后向上翘,橘色带虎斑) ============ -->
+  <path d="M172 195
+           C 215 190, 232 145, 214 108
+           C 206 92, 190 92, 186 108
+           C 183 122, 196 130, 208 124
+           C 194 148, 196 180, 220 196
+           C 230 202, 218 210, 205 208 Z"
         fill="url(#fur)" stroke="#92400e" stroke-width="2.5"/>
-  <path d="M228 82  Q236 74 244 82" fill="none" stroke="#fde68a" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M220 112 Q228 102 236 108" fill="none" stroke="#fde68a" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M208 150 Q216 140 224 146" fill="none" stroke="#fde68a" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M210 118 Q218 122 216 130" fill="none" stroke="#b45309" stroke-width="3" stroke-linecap="round"/>
+  <path d="M200 150 Q210 154 208 162" fill="none" stroke="#b45309" stroke-width="3" stroke-linecap="round"/>
 
-  <!-- ==================== 两条后腿(露出,脚掌深色) ==================== -->
-  <path d="M88 200 Q82 232 96 244 L116 244 Q112 224 108 200 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
-  <path d="M164 200 Q170 232 156 244 L136 244 Q140 224 144 200 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
-  <ellipse cx="102" cy="246" rx="16" ry="7" fill="#78350f"/>
-  <ellipse cx="146" cy="246" rx="16" ry="7" fill="#78350f"/>
-  <circle cx="94"  cy="243" r="2.2" fill="#92400e"/>
-  <circle cx="104" cy="244" r="2.2" fill="#92400e"/>
-  <circle cx="114" cy="243" r="2.2" fill="#92400e"/>
-  <circle cx="140" cy="243" r="2.2" fill="#92400e"/>
-  <circle cx="150" cy="244" r="2.2" fill="#92400e"/>
-  <circle cx="160" cy="243" r="2.2" fill="#92400e"/>
+  <!-- ============ 两只后腿(露出,带脚掌) ============ -->
+  <path d="M80 188 Q72 220 88 232 L112 232 Q108 216 104 188 Z" fill="url(#furDark)" stroke="#92400e" stroke-width="2"/>
+  <path d="M160 188 Q168 220 152 232 L128 232 Q132 216 136 188 Z" fill="url(#furDark)" stroke="#92400e" stroke-width="2"/>
+  <ellipse cx="96"  cy="234" rx="14" ry="6" fill="#1c1917"/>
+  <ellipse cx="144" cy="234" rx="14" ry="6" fill="#1c1917"/>
+  <circle cx="88"  cy="231" r="1.8" fill="#78350f"/>
+  <circle cx="96"  cy="232" r="1.8" fill="#78350f"/>
+  <circle cx="104" cy="231" r="1.8" fill="#78350f"/>
+  <circle cx="136" cy="231" r="1.8" fill="#78350f"/>
+  <circle cx="144" cy="232" r="1.8" fill="#78350f"/>
+  <circle cx="152" cy="231" r="1.8" fill="#78350f"/>
 
-  <!-- ==================== 身体(椭圆,肚子浅色) ==================== -->
-  <ellipse cx="122" cy="170" rx="42" ry="52" fill="url(#furLight)" stroke="#92400e" stroke-width="2.5"/>
-  <ellipse cx="122" cy="178" rx="26" ry="40" fill="#fef3c7"/>
+  <!-- ============ 身体(椭圆) + indigo 小马甲(管家制服) ============ -->
+  <ellipse cx="120" cy="170" rx="44" ry="54" fill="url(#fur)" stroke="#92400e" stroke-width="2.5"/>
+  <!-- 马甲 -->
+  <path d="M82 148 Q82 200 100 218 L140 218 Q158 200 158 148
+           L148 138 L120 130 L92 138 Z"
+        fill="url(#vest)" stroke="#1e1b4b" stroke-width="2"/>
+  <!-- 马甲纽扣 -->
+  <circle cx="120" cy="158" r="3" fill="#fbbf24"/>
+  <circle cx="120" cy="178" r="3" fill="#fbbf24"/>
+  <circle cx="120" cy="198" r="3" fill="#fbbf24"/>
+  <!-- 肚子浅色(马甲下摆露出) -->
+  <path d="M100 218 L140 218 Q132 228 120 230 Q108 228 100 218 Z" fill="#fef3c7"/>
 
-  <!-- ==================== 两条前臂(从身体两侧伸出,抱着坚果) ==================== -->
-  <path d="M84 150 Q70 172 78 200 L96 200 Q92 178 100 158 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
-  <path d="M160 150 Q174 172 166 200 L148 200 Q152 178 144 158 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2"/>
+  <!-- ============ 胸牌(平台管家:¥+钥匙) ============ -->
+  <rect x="98" y="148" width="24" height="14" rx="2" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/>
+  <text x="110" y="158.5" text-anchor="middle" font-size="9" fill="#92400e" font-family="Arial, sans-serif" font-weight="bold">¥</text>
 
-  <!-- ==================== 抱的大坚果(松鼠标志物,替代包裹) ==================== -->
-  <path d="M112 132 L132 132 L128 128 Q122 122 116 128 Z" fill="#92400e" stroke="#78350f" stroke-width="2"/>
-  <ellipse cx="122" cy="176" rx="22" ry="26" fill="url(#acorn)" stroke="#78350f" stroke-width="2"/>
-  <path d="M122 152 Q120 176 122 200" stroke="#92400e" stroke-width="2" fill="none"/>
-  <path d="M112 168 Q122 172 132 168" fill="none" stroke="#fde68a" stroke-width="2" opacity="0.6"/>
+  <!-- ============ 两只前臂(从马甲两侧伸出,右手握钥匙) ============ -->
+  <path d="M78 148 Q62 178 72 210 L88 210 Q84 184 92 158 Z" fill="url(#furDark)" stroke="#92400e" stroke-width="2"/>
+  <path d="M162 148 Q178 178 168 210 L152 210 Q156 184 148 158 Z" fill="url(#furDark)" stroke="#92400e" stroke-width="2"/>
+  <!-- 右手钥匙 -->
+  <circle cx="176" cy="208" r="6" fill="none" stroke="#fbbf24" stroke-width="3"/>
+  <rect x="179" y="196" width="4" height="14" rx="1.5" fill="#fbbf24"/>
+  <rect x="179" y="206" width="3" height="3" rx="1" fill="#fbbf24"/>
+  <rect x="183" y="202" width="3" height="2" rx="1" fill="#fbbf24"/>
 
-  <!-- ==================== 头部(圆,居中) ==================== -->
-  <circle cx="122" cy="100" r="40" fill="url(#furLight)" stroke="#92400e" stroke-width="2.5"/>
+  <!-- ============ 头部(圆脸) ============ -->
+  <circle cx="120" cy="92" r="42" fill="url(#fur)" stroke="#92400e" stroke-width="2.5"/>
 
-  <!-- 脸颊白毛 -->
-  <ellipse cx="104" cy="112" rx="11" ry="13" fill="#fef3c7" opacity="0.85"/>
-  <ellipse cx="140" cy="112" rx="11" ry="13" fill="#fef3c7" opacity="0.85"/>
+  <!-- ============ 两只大三角耳(猫的灵魂,内侧粉) ============ -->
+  <path d="M84 62 L74 26 L108 50 Z" fill="url(#furDark)" stroke="#92400e" stroke-width="2.5"/>
+  <path d="M86 58 L80 38 L102 52 Z" fill="#fda4af"/>
+  <path d="M156 62 L166 26 L132 50 Z" fill="url(#furDark)" stroke="#92400e" stroke-width="2.5"/>
+  <path d="M154 58 L160 38 L138 52 Z" fill="#fda4af"/>
 
-  <!-- ==================== 两只大尖耳(松鼠第二标志) ==================== -->
-  <path d="M92 74 Q76 40 100 50 Q114 60 108 82 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2.5"/>
-  <path d="M94 70 Q84 52 98 58 Q106 66 102 78 Z" fill="#fef3c7"/>
-  <path d="M152 74 Q168 40 144 50 Q130 60 136 82 Z" fill="url(#fur)" stroke="#92400e" stroke-width="2.5"/>
-  <path d="M150 70 Q160 52 146 58 Q138 66 142 78 Z" fill="#fef3c7"/>
+  <!-- ============ 头顶 + 脸颊虎斑纹 ============ -->
+  <path d="M118 58 L114 68 M122 58 L126 68" stroke="#92400e" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M96 78 L92 84 M100 74 L98 82"  stroke="#92400e" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M144 78 L148 84 M140 74 L142 82" stroke="#92400e" stroke-width="2" stroke-linecap="round" fill="none"/>
 
-  <!-- ==================== 小邮差帽(不遮耳,帽顶+帽檐) ==================== -->
-  <path d="M92 70 Q92 42 122 40 Q152 42 152 70 L146 72 Q122 66 98 72 Z" fill="url(#cap)" stroke="#1e1b4b" stroke-width="2"/>
-  <path d="M88 72 Q122 82 156 72 L156 78 Q122 86 88 78 Z" fill="#1e1b4b"/>
-  <circle cx="122" cy="56" r="7" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/>
-  <text x="122" y="59.5" text-anchor="middle" font-size="7" fill="#92400e" font-family="Arial, sans-serif" font-weight="bold">¥</text>
-
-  <!-- ==================== 脸(眼睛/腮红/鼻/笑) ==================== -->
+  <!-- ============ 脸(大眼睛/鼻/嘴/胡须) ============ -->
   <g>
-    <circle cx="108" cy="98" r="8" fill="#ffffff"/>
-    <circle cx="136" cy="98" r="8" fill="#ffffff"/>
-    <circle cx="109" cy="99" r="4.8" fill="#1c1917"/>
-    <circle cx="137" cy="99" r="4.8" fill="#1c1917"/>
-    <circle cx="111" cy="97" r="1.9" fill="#ffffff"/>
-    <circle cx="139" cy="97" r="1.9" fill="#ffffff"/>
+    <circle cx="104" cy="92" r="8" fill="#ffffff"/>
+    <circle cx="136" cy="92" r="8" fill="#ffffff"/>
+    <circle cx="105" cy="93" r="5" fill="#1c1917"/>
+    <circle cx="137" cy="93" r="5" fill="#1c1917"/>
+    <circle cx="107" cy="91" r="2" fill="#ffffff"/>
+    <circle cx="139" cy="91" r="2" fill="#ffffff"/>
   </g>
-  <circle cx="96"  cy="110" r="5" fill="#fed7aa" opacity="0.95"/>
-  <circle cx="148" cy="110" r="5" fill="#fed7aa" opacity="0.95"/>
-  <ellipse cx="122" cy="118" rx="4" ry="3" fill="#78350f"/>
-  <path d="M114 124 Q122 130 130 124" fill="none" stroke="#78350f" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="90"  cy="106" r="5" fill="#fed7aa" opacity="0.9"/>
+  <circle cx="150" cy="106" r="5" fill="#fed7aa" opacity="0.9"/>
+  <!-- 鼻(倒三角,猫鼻特征) -->
+  <path d="M116 104 L124 104 L120 110 Z" fill="#f472b6" stroke="#92400e" stroke-width="1"/>
+  <!-- 嘴(W 形) -->
+  <path d="M120 110 L120 116" stroke="#92400e" stroke-width="2" fill="none"/>
+  <path d="M120 116 Q113 122 108 116" stroke="#92400e" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M120 116 Q127 122 132 116" stroke="#92400e" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- 胡须(左3 右3,白) -->
+  <g stroke="#ffffff" stroke-width="1.6" stroke-linecap="round">
+    <line x1="92"  y1="108" x2="60" y2="104"/>
+    <line x1="90"  y1="114" x2="58" y2="114"/>
+    <line x1="92"  y1="120" x2="62" y2="126"/>
+    <line x1="148" y1="108" x2="180" y2="104"/>
+    <line x1="150" y1="114" x2="182" y2="114"/>
+    <line x1="148" y1="120" x2="178" y2="126"/>
+  </g>
 
-  <!-- ==================== 怀表(胸前,按时归还) ==================== -->
-  <line x1="122" y1="200" x2="122" y2="212" stroke="#92400e" stroke-width="2"/>
-  <circle cx="122" cy="220" r="9" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
-  <circle cx="122" cy="220" r="6" fill="#fef3c7"/>
-  <line x1="122" y1="220" x2="122" y2="216" stroke="#1c1917" stroke-width="1.4" stroke-linecap="round"/>
-  <line x1="122" y1="220" x2="125" y2="221" stroke="#1c1917" stroke-width="1.2" stroke-linecap="round"/>
-  <circle cx="122" cy="220" r="0.8" fill="#1c1917"/>
-
-  <text x="258" y="254" text-anchor="end" fill="rgba(0,0,0,0.22)" font-size="10"
+  <text x="238" y="234" text-anchor="end" fill="rgba(0,0,0,0.22)" font-size="10"
         font-family="Arial, sans-serif">https://erik.xyz</text>
 </svg>
