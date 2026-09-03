@@ -76,7 +76,7 @@ class ApiClient {
           final lock = _refreshing ?? _refresh();
           _refreshing = lock;
           await lock;
-          return _send(method, path, query: query, body: body, auth: auth, allowRetry: false);
+          return await _send(method, path, query: query, body: body, auth: auth, allowRetry: false);
         } on ApiError {
           rethrow;
         } finally {
@@ -121,7 +121,7 @@ class ApiClient {
           final lock = _refreshing ?? _refresh();
           _refreshing = lock;
           await lock;
-          return postMultipart(path,
+          return await postMultipart(path,
               bytes: bytes,
               filename: filename,
               field: field,
