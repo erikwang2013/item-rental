@@ -43,6 +43,12 @@ func SecurityFilter(ctx *context.Context) {
 	// (SeverityCritical) 导致所有鉴权端点一律 403。攻击检测不需要 Authorization 头。
 	scanReq := ctx.Request.Clone(ctx.Request.Context())
 	scanReq.Header.Del("Authorization")
+	// 文件上传的 Content-Type(multipart/form-data; boundary=…) 会被 mail_header
+	// 检测器误判为邮件头注入(SeverityCritical)导致一切上传 403；
+	// 引擎不扫请求体(检测输入仅 URL/Query/Header/Cookie),剥离该头不影响检测能力。
+	if strings.HasPrefix(scanReq.Header.Get("Content-Type"), "multipart/form-data") {
+		scanReq.Header.Del("Content-Type")
+	}
 	results := sec.Engine.DetectRequest(scanReq)
 	attacked := false
 	for _, r := range results {

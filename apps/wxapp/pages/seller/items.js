@@ -1,11 +1,8 @@
 const itemApi = require('../../api/item')
+const userApi = require('../../api/user')
 const categoryApi = require('../../api/category')
 const util = require('../../utils/util')
 const { isLoggedIn } = require('../../utils/request')
-
-// ponytail: 后端无"我发布的物品"列表接口(GET /items 仅公开上架列表,无 owner 过滤),
-// 本页记录本设备发布过的 item_id 于本地存储,再逐条拉公开详情展示(含下架态)。
-const MY_IDS_KEY = 'my_item_ids'
 
 Page({
   data: {
@@ -25,22 +22,14 @@ Page({
   },
   onPullDownRefresh() { this.reload().then(() => wx.stopPullDownRefresh()) },
 
-  myIds() { return wx.getStorageSync(MY_IDS_KEY) || [] },
-
   reload() {
-    const ids = this.myIds()
-    if (!ids.length) { this.setData({ items: [] }); return Promise.resolve() }
-    // 逐条取公开详情;404/删除的静默丢弃
-    return Promise.all(ids.map(id =>
-      itemApi.detail(id).then(it =>
+    // 我的物品:先取本人 uid,再拉 owner 视图(含下架态)
+    return userApi.profile().then(u => itemApi.mine(u.id)).then(list => {
+      const items = (list || []).map(it =>
         Object.assign({}, it, { cover: util.splitImages(it.images)[0] || '', stText: it.status === 1 ? '上架中' : '已下架' })
-      ).catch(() => null)
-    )).then(list => {
-      const items = list.filter(Boolean)
+      )
       this.setData({ items })
-      const alive = items.map(i => i.id)
-      wx.setStorageSync(MY_IDS_KEY, alive)
-    })
+    }).catch(() => {})
   },
 
   loadCategories() {
@@ -79,9 +68,7 @@ Page({
       city: f.city.trim(),
       images: f.images.trim(),
       desc: f.desc.trim()
-    }).then(it => {
-      const ids = this.myIds()
-      if (ids.indexOf(it.id) < 0) wx.setStorageSync(MY_IDS_KEY, [it.id].concat(ids))
+    }).then(() => {
       this.setData({ saving: false, showForm: false })
       wx.showToast({ title: '发布成功' })
       this.reload()

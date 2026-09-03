@@ -82,6 +82,61 @@ func TestHighSeverityPayloadStillBlocked(t *testing.T) {
 	}
 }
 
+// TestProfileNoToken401 回归：profile 路由已挂 JWTAuth，无 token 请求应 401。
+//（此前该路由漏挂鉴权过滤器，controller 内 GetUserID 恒空、鉴权语义失效。）
+func TestProfileNoToken401(t *testing.T) {
+	t.Setenv("ITEM_RENTAL_JWT_SECRET", "regression-test-secret-x9k2")
+	ctx, rec := makeCtx("GET", "/api/v1/user/profile", "", "", nil)
+	defer func() {
+		if v := recover(); v != nil {
+			if rec.Code != 401 {
+				t.Errorf("无 token 的 profile 请求应 401，实际 %d (panic=%v)", rec.Code, v)
+			}
+		}
+	}()
+	JWTAuth(ctx)
+	if rec.Code != 401 {
+		t.Errorf("无 token 的 profile 请求应 401，实际 %d", rec.Code)
+	}
+}
+
+// TestProfileWithTokenOK 带合法 access token 时 JWTAuth 放行并注入 uid。
+func TestProfileWithTokenOK(t *testing.T) {
+	t.Setenv("ITEM_RENTAL_JWT_SECRET", "regression-test-secret-x9k2")
+	access, err := GenerateAccessToken(1, "user")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, _ := makeCtx("GET", "/api/v1/user/profile", "", "", map[string]string{
+		"Authorization": "Bearer " + access,
+	})
+	JWTAuth(ctx)
+	uid, ok := GetUserID(ctx)
+	if !ok || uid != 1 {
+		t.Errorf("带 token 的 profile 请求应注入 uid=1，实际 (%d,%v)", uid, ok)
+	}
+}
+
+// TestMultipartUploadNotBlocked 回归：multipart/form-data 上传的 Content-Type
+// 含 boundary=…，会被 mail_header 检测器误判为邮件头注入(SeverityCritical)而 403。
+// 安全中间件应在扫描副本中剥离该头（引擎不扫请求体，剥离不影响检测能力）。
+func TestMultipartUploadNotBlocked(t *testing.T) {
+	security.InitEngine()
+	ctx, rec := makeCtx("POST", "/api/v1/user/avatar", "fake-image-bytes",
+		"multipart/form-data; boundary=----WebKitFormBoundaryXyZ12", nil)
+	defer func() {
+		if v := recover(); v != nil {
+			if rec.Code == 403 {
+				t.Errorf("multipart 上传被误拦 403 (panic=%v)", v)
+			}
+		}
+	}()
+	SecurityFilter(ctx)
+	if rec.Code == 403 {
+		t.Errorf("multipart 上传请求应放行，实际 403: %s", rec.Body.String())
+	}
+}
+
 func secDetectAll(r *http.Request) []*secgo.Result {
 	return security.Engine.DetectRequest(r)
 }

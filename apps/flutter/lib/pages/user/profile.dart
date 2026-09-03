@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../api/endpoints.dart';
 import '../../core/format.dart';
 import '../../models/user.dart';
 import '../../stores/user_store.dart';
 import '../../widgets/commons.dart';
 
-/// 编辑资料:昵称 / 头像 URL(服务端 PUT 仅落 nickname/avatar 两列)。
+/// 编辑资料:头像(选图上传,服务端直接落库)+ 昵称(PUT /user/profile 仅落 nickname)。
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -16,32 +18,52 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _nick = TextEditingController();
-  final _avatar = TextEditingController();
+  String _avatarUrl = '';
   bool _saving = false;
+  bool _uploading = false;
 
   @override
   void initState() {
     super.initState();
     final p = context.read<UserStore>().profile;
     _nick.text = p?.nickname ?? '';
-    _avatar.text = p?.avatar ?? '';
+    _avatarUrl = p?.avatar ?? '';
   }
 
   @override
   void dispose() {
     _nick.dispose();
-    _avatar.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAvatar() async {
+    final XFile? f;
+    try {
+      f = await ImagePicker().pickImage(source: ImageSource.gallery);
+    } catch (_) {
+      return toast('无法打开相册');
+    }
+    if (f == null || !mounted) return;
+    setState(() => _uploading = true);
+    try {
+      final url = await api.uploadAvatar(f);
+      if (!mounted) return;
+      setState(() => _avatarUrl = url);
+      context.read<UserStore>().loadProfile(); // 同步我的页头像
+      toast('头像已更新');
+    } catch (e) {
+      toast(e);
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
   }
 
   Future<void> _save() async {
     final nick = _nick.text.trim();
-    final avatar = _avatar.text.trim();
     if (nick.isEmpty) return toast('昵称不能为空');
     setState(() => _saving = true);
     try {
-      await context.read<UserStore>().updateProfile(
-          nickname: nick, avatar: avatar.isEmpty ? null : avatar);
+      await context.read<UserStore>().updateProfile(nickname: nick);
       if (!mounted) return;
       toast('保存成功');
       Navigator.of(context).pop();
@@ -59,21 +81,39 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(title: const Text('编辑资料')),
       body: ListView(padding: const EdgeInsets.all(16), children: [
         Center(
-          child: CircleAvatar(
-            radius: 40,
-            backgroundColor: kGreen,
-            backgroundImage: _avatar.text.isNotEmpty ? NetworkImage(_avatar.text) : null,
-            child: _avatar.text.isEmpty
-                ? const Icon(Icons.person, color: Colors.white, size: 44)
-                : null,
-          ),
+          child: Column(children: [
+            Stack(children: [
+              CircleAvatar(
+                radius: 40,
+                backgroundColor: kGreen,
+                backgroundImage:
+                    _avatarUrl.isNotEmpty ? NetworkImage(_avatarUrl) : null,
+                child: _avatarUrl.isEmpty
+                    ? const Icon(Icons.person, color: Colors.white, size: 44)
+                    : null,
+              ),
+              if (_uploading)
+                const Positioned.fill(
+                  child: ColoredBox(
+                    color: Colors.black38,
+                    child: Center(
+                        child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))),
+                  ),
+                ),
+            ]),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: _uploading ? null : _pickAvatar,
+              icon: const Icon(Icons.photo_library_outlined, size: 18),
+              label: const Text('更换头像'),
+            ),
+          ]),
         ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _avatar,
-          decoration: const InputDecoration(labelText: '头像 URL'),
-        ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         TextField(
           controller: _nick,
           maxLength: 20,

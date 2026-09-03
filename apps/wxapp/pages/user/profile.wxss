@@ -1,3 +1,7 @@
 .form { margin-top: 24rpx; padding: 8rpx 24rpx; }
 .note { margin: 16rpx 32rpx; }
 .save { margin: 40rpx 24rpx; }
+.avatar-row { align-items: center; }
+.avatar-row .avatar { width: 96rpx; height: 96rpx; border-radius: 50%; background: #e8f5e9; flex-shrink: 0; }
+.avatar-row .avatar.guest { line-height: 96rpx; text-align: center; font-size: 44rpx; }
+.avatar-row .btn-sm { margin-left: 24rpx; }

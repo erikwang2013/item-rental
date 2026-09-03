@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../api/endpoints.dart';
 import '../../models/category.dart';
 import '../../models/item.dart';
+import '../../stores/user_store.dart';
 import '../../widgets/commons.dart';
 import '../../widgets/routes.dart';
 import '../items/detail.dart';
 
-/// 我的物品:发布 + 列表 + 下架。
-/// ponytail: 后端无「按 owner 列出我发布物品」的端点(uni-app 同样只能列全量),
-/// 列表显示的是平台上架物品;对非本人物品点下架会得到 403 提示。加 owner 过滤时需后端支持。
+/// 我的物品:发布 + 列表(owner 视图,含下架)+ 下架。
 class SellerItemsPage extends StatefulWidget {
   const SellerItemsPage({super.key});
 
@@ -20,6 +20,7 @@ class SellerItemsPage extends StatefulWidget {
 class _SellerItemsPageState extends State<SellerItemsPage> {
   final List<Item> _items = [];
   bool _loading = true;
+  bool _needLogin = false;
 
   @override
   void initState() {
@@ -29,12 +30,16 @@ class _SellerItemsPageState extends State<SellerItemsPage> {
 
   Future<void> _load() async {
     try {
-      final d = await api.items(pageSize: 50);
+      final s = context.read<UserStore>();
+      if (s.uid == null) await s.loadProfile(); // 已登录时补拉 uid
+      final uid = s.uid;
+      final d = uid == null ? null : await api.items(pageSize: 100, ownerId: uid);
       if (mounted) {
         setState(() {
+          _needLogin = uid == null;
           _items
             ..clear()
-            ..addAll(parseItemList(d));
+            ..addAll(d == null ? const [] : parseItemList(d));
         });
       }
     } catch (e) {
@@ -88,9 +93,11 @@ class _SellerItemsPageState extends State<SellerItemsPage> {
         child: _loading
             ? const StatusBox(loading: true)
             : _items.isEmpty
-                ? ListView(children: const [
-                    SizedBox(height: 180),
-                    StatusBox(emptyText: '还没有物品,点右下角发布')
+                ? ListView(children: [
+                    const SizedBox(height: 180),
+                    StatusBox(
+                        emptyText:
+                            _needLogin ? '未登录,请先登录' : '还没有物品,点右下角发布')
                   ])
                 : ListView.builder(
                     padding: const EdgeInsets.only(bottom: 90),

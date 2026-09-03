@@ -13,6 +13,7 @@
 | POST | /auth/logout | JWT | 登出:当前用户 refresh 会话失效 |
 | GET | /user/profile | JWT | 获取用户资料 |
 | PUT | /user/profile | JWT | 更新用户资料 |
+| POST | /user/avatar | JWT | 头像上传(multipart 字段 file,jpg/jpeg/png/webp ≤4MB),直落库返回 {avatar: URL} |
 
 ### POST /auth/sms
 
@@ -45,6 +46,10 @@
 
 PUT 请求体可选:`nickname | avatar | real_name | phone`。
 
+### POST /user/avatar
+
+`multipart/form-data`,字段 `file`;扩展名白名单 jpg/jpeg/png/webp,≤4MB。成功后**直接更新 user.avatar** 并返回 `{code:0, data:{avatar: "http://<host>/static/uploads/avatars/<uid>_<ts>.<ext>"}}`,无需再走 PUT profile 传头像。
+
 ## 2. 类目
 
 | 方法 | 路径 | 鉴权 | 说明 |
@@ -55,7 +60,7 @@ PUT 请求体可选:`nickname | avatar | real_name | phone`。
 
 | 方法 | 路径 | 鉴权 | 说明 |
 | --- | --- | --- | --- |
-| GET | /items | 公开 | 分页列表,可带 category_id(**不支持 city**,城市过滤走 /items/search) |
+| GET | /items | 公开 | 分页列表,可带 category_id(**不支持 city**,城市过滤走 /items/search);带 owner_id 为「我的物品」视图(JWT 本人,含下架) |
 | GET | /items/search | 公开 | 关键词搜索(q)+ 城市/价格过滤 + 半径检索 |
 | GET | /items/:id | 公开 | 物品详情 |
 | POST | /items | JWT | 发布物品 |
@@ -65,6 +70,7 @@ PUT 请求体可选:`nickname | avatar | real_name | phone`。
 ### GET /items 查询参数
 
 `page=1&page_size=20&category_id=1`(分页参数为 page_size;GET /items 无 city 过滤)
+`owner_id=<uid>`:「我的物品」视图 — 需 JWT 且 owner_id 等于本人 uid(未登录 401、非本人 403),**包含下架物品**(无 status 过滤),分页/品类过滤同公开列表;不带 owner_id 行为不变(公开仅上架)。
 
 ### GET /items/search 查询参数
 
@@ -142,6 +148,8 @@ PUT 请求体可选:`nickname | avatar | real_name | phone`。
 ### POST /pay/notify
 
 微信支付回调。验签 → 解析 trade_state/refund_status → 订单迁移(已付 / 已退款)。XML 响应:`<xml><return_code><![CDATA[SUCCESS]]></return_code></xml>`。
+
+mock/dev 模式(`WECHAT_MOCK=1`,商户密钥为空串):回调仍需按 V2 规则签名(HMAC-SHA256,参数按字典序拼 `k=v&...&key=`),字段需 return_code/result_code=SUCCESS、out_trade_no(支付单号)、非空 transaction_id、total_fee(分,须等于支付金额)。
 
 ## 6. 站内消息(全部 JWT)
 

@@ -59,11 +59,6 @@ func (g *gateway) HandleNotify(rawXML []byte) error {
 		}
 		return err
 	}
-	// 已成功：重复回调，直接返回成功（幂等，不重复处理）
-	if pay.Status == models.PaymentStatusSuccess {
-		return nil
-	}
-
 	// ---- 金额校验 ----
 	// 回调金额必须等于支付单应付金额（防止金额被篡改）
 	if fen(pay.Amount) != callbackFen {
@@ -71,25 +66,29 @@ func (g *gateway) HandleNotify(rawXML []byte) error {
 	}
 
 	// ---- 持久化支付成功（幂等）----
-	// 条件更新：仅当 status=0（待支付）时置为成功，并发/重复回调下第二次不会生效
-	n, err := o.QueryTable(new(models.Payment)).
+	// 条件更新：仅当 status=0（待支付）时置为成功，并发/重复回调下第二次不生效
+	if _, err := o.QueryTable(new(models.Payment)).
 		Filter("id", pay.Id).
 		Filter("status", models.PaymentStatusPending).
 		Update(map[string]any{
 			"status":         models.PaymentStatusSuccess,
 			"transaction_id": transactionID,
 			"raw_callback":   string(rawXML),
-		})
-	if err != nil {
+		}); err != nil {
 		return err
-	}
-	// n==0 说明状态已被其他并发回调改为成功，幂等返回成功
-	if n == 0 {
-		return nil
 	}
 
 	// ---- 调用订单服务标记已支付（订单状态机由订单模块负责）----
-	return g.svc.MarkPaid(outTradeNo, transactionID)
+	// 必须用支付单关联订单的 order_no（ORD 前缀）定位订单：out_trade_no 是
+	// RENT 前缀的支付单号，直接传给按 order_no 查单的 MarkPaid 会查无此单，
+	// 而支付已落库成功、重试又走幂等早退，订单将永远停在待支付。
+	// 故此处不设"支付已成功则早退"：MarkPaid 自身幂等（订单非待支付直接成功），
+	// 重试/历史卡单场景下执行可自愈。
+	order := &models.Order{Id: pay.OrderId}
+	if err := o.Read(order); err != nil {
+		return fmt.Errorf("支付单关联订单不存在: %d", pay.OrderId)
+	}
+	return g.svc.MarkPaid(order.OrderNo, transactionID)
 }
 
 // handleRefundNotify 处理微信退款结果通知。

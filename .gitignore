@@ -94,3 +94,4 @@ apps/harmonyos/hvigorw.bat
 # SDK build artifacts
 __pycache__/
 sdk/rust/target
+server/static/uploads/

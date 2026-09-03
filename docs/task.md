@@ -81,4 +81,16 @@ uni-app(`apps/web`)作废删除;并行重建 **Flutter 主App**(`apps/flutter`)+
 
 **验证**:`flutter analyze` 零 issue;wxapp `node --check` 全过;`go build && go vet && go test ./...` 后端回归不受前端改动影响。
 
-**已知缺口(记录在案,后端补齐后两端统一)**:无 `GET /items?owner_id=` → seller「我的物品」两端为降级实现;无头像上传端点(仅 URL 输入)。
+**已知缺口**:已由阶段D D1/D2 闭环,见 §9。
+
+## 9. 阶段D — 后端缺口补齐 + 双端换真 + profile 鉴权闭环 + 联调冒烟(✅ 本轮完成)
+
+- [x] **D1 按 owner 列物品** — `GET /items?owner_id=`(JWT 本人校验:未登录 401/非本人 403;owner 视图含下架、无 status 过滤);纯函数 `resolveItemOwnerScope` + 4 单测;两端 seller「我的物品」删降级实现换真。
+- [x] **D2 头像上传** — `POST /user/avatar`(JWT,multipart file,jpg/jpeg/png/webp ≤4MB),落 `static/uploads/avatars/<uid>_<ts>.<ext>` 直写 user.avatar 返回 `{avatar: URL}`;`services.ValidateAvatarName` 单测;两端 profile 换「选图→上传→显示 URL」。
+- [x] **D3 profile 鉴权挂载(残 401 闭环)** — router 补 JWTAuth InsertFilter(此前 profile 路由漏挂,GetUserID 恒空);profile_403_test.go 扩展无 token 401 / 带 token 放行。
+- [x] **D4 docs** — api.md(owner_id 语义、POST /user/avatar、notify mock 验签)与本节。
+- [x] **D5 真实链路联调冒烟** — 起后端(ITEM_RENTAL_JWT_SECRET + WECHAT_MOCK=1),curl E2E 两轮:首轮打穿 3 个 A 级缺陷,修复后复跑**全断言 PASS**;脚本/断言/复跑命令见 `docs/e2e-smoke-d.md`。
+  - 冒烟打穿并修复:A① owner 视图恒 401(GET 公开挂载、JWTAuth 不执行 → List 内 owner_id>0 时显式鉴权);A② WAF `mail_header` 误判 multipart Content-Type → 一切上传 403(扫描副本剥离该头 + `TestMultipartUploadNotBlocked` 回归);A③ notify→MarkPaid 传错标识符(RENT out_trade_no 传给按 ORD order_no 查单)→ 订单永久卡待支付(改经 pay.OrderId 定位订单,移除幂等早退,自愈历史卡单)。
+  - 残余观察:登录冷启动后 1-2 分钟窗口内偶发业务 400(绑定读空 body),随后长期稳定,未定位、非本阶段范围,已记入 e2e-smoke-d.md。
+
+**验证**:`go build && go vet && go test ./...` 全绿(新增单测离线);flutter analyze/test/build web 零告警;wxapp node --check 全过;冒烟脚本全断言 PASS。

@@ -57,9 +57,14 @@ func init() {
 	web.InsertFilter("/api/v1/auth/logout", web.BeforeRouter, middleware.JWTAuth)
 	web.Router("/api/v1/auth/logout", &controllers.AuthController{}, "post:Logout")
 
-	// 用户信息（需登录）
+	// 用户信息（需登录；GET 也非公开——仅本人可见自己的资料）
+	web.InsertFilter("/api/v1/user/profile", web.BeforeRouter, middleware.JWTAuth)
 	web.Router("/api/v1/user/profile", &controllers.UserController{}, "get:Profile")
 	web.Router("/api/v1/user/profile", &controllers.UserController{}, "put:UpdateProfile")
+
+	// 头像上传（需登录）
+	web.InsertFilter("/api/v1/user/avatar", web.BeforeRouter, middleware.JWTAuth)
+	web.Router("/api/v1/user/avatar", &controllers.UserController{}, "post:UploadAvatar")
 
 	// 品类（公开读取）
 	web.Router("/api/v1/categories", &controllers.CategoryController{}, "get:List")

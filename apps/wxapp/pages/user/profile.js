@@ -13,8 +13,29 @@ Page({
 
   onNick(e) { this.setData({ nickname: e.detail.value }) },
   onReal(e) { this.setData({ realName: e.detail.value }) },
-  // 服务端无图片上传接口,avatar 仅展示(URL 需 http 域名);后端字段支持传入 URL
-  onAvatarUrl(e) { this.setData({ avatar: e.detail.value }) },
+
+  // 选图上传头像(后端直落库),成功后刷新本地展示
+  chooseAvatar() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      success: res => {
+        const fp = res.tempFiles[0].tempFilePath
+        wx.showLoading({ title: '上传中' })
+        userApi.uploadAvatar(fp).then(d => {
+          this.setData({ avatar: d.avatar || '' })
+          return userApi.profile()
+        }).then(u => {
+          wx.setStorageSync('user', u)
+          wx.hideLoading()
+          wx.showToast({ title: '头像已更新' })
+        }).catch(e => {
+          wx.hideLoading()
+          wx.showToast({ title: (e && e.msg) || '上传失败', icon: 'none' })
+        })
+      }
+    })
+  },
 
   save() {
     const nickname = this.data.nickname.trim()
@@ -24,7 +45,6 @@ Page({
     const data = {}
     if (nickname) data.nickname = nickname
     if (this.data.realName.trim()) data.real_name = this.data.realName.trim()
-    if (this.data.avatar.trim()) data.avatar = this.data.avatar.trim()
     userApi.updateProfile(data).then(u => {
       wx.setStorageSync('user', u)
       wx.showToast({ title: '已保存' })

@@ -53,12 +53,31 @@ func buildSearchParams(q string, categoryID int64, minPrice, maxPrice float64, o
 	}
 }
 
-// List 物品列表（分页 + 品类过滤，仅上架）
+// resolveItemOwnerScope 解析 owner_id 查询语义（纯函数，便于单测）。
+// ownerID<=0 → 公开模式，返回 (0,0)；
+// ownerID>0（「我的物品」视图）→ 需登录且为本人才返回 (ownerID,0)，否则返回 (0,401/403)。
+func resolveItemOwnerScope(ownerID int64, authed bool, uid int64) (int64, int) {
+	if ownerID <= 0 {
+		return 0, 0
+	}
+	if !authed {
+		return 0, 401
+	}
+	if uid != ownerID {
+		return 0, 403
+	}
+	return ownerID, 0
+}
+
+// List 物品列表（分页 + 品类过滤）。
+// 公开视图（无 owner_id）：仅上架；owner 视图（owner_id=本人 uid）：「我的物品」，含下架。
 // GET /api/v1/items?page=1&page_size=20&category_id=1
+// GET /api/v1/items?owner_id=<uid>&page=1&page_size=20
 func (c *ItemController) List() {
 	page, _ := c.GetInt("page", 1)
 	pageSize, _ := c.GetInt("page_size", 20)
 	categoryID, _ := c.GetInt64("category_id", 0)
+	ownerID, _ := c.GetInt64("owner_id", 0)
 	if page <= 0 {
 		page = 1
 	}
@@ -66,8 +85,29 @@ func (c *ItemController) List() {
 		pageSize = 20
 	}
 
+	// owner 视图需登录：GET /items 公开挂载,JWTAuth 过滤器不会执行,
+	// 带 owner_id 时在 controller 内显式鉴权(未带/无效 token → 401 Abort)。
+	if ownerID > 0 {
+		middleware.JWTAuth(c.Ctx)
+	}
+	uid, authed := middleware.GetUserID(c.Ctx)
+	scopeOwner, code := resolveItemOwnerScope(ownerID, authed, uid)
+	if code != 0 {
+		if code == 401 {
+			c.Fail(401, "未登录")
+		} else {
+			c.Fail(403, "无权查看他人物品")
+		}
+		return
+	}
+
 	o := orm.NewOrm()
-	qs := o.QueryTable(new(models.Item)).Filter("status", 1)
+	qs := o.QueryTable(new(models.Item))
+	if scopeOwner > 0 {
+		qs = qs.Filter("owner_id", scopeOwner)
+	} else {
+		qs = qs.Filter("status", 1)
+	}
 	if categoryID > 0 {
 		qs = qs.Filter("category_id", categoryID)
 	}

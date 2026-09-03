@@ -102,6 +102,37 @@ class ApiClient {
   Future<dynamic> post(String path, {Map<String, dynamic>? body, bool auth = true}) =>
       _send('POST', path, body: body, auth: auth);
 
+  /// multipart 上传(multipart 字段名 file;头像用)。
+  /// 401 刷新后重发原请求一次,语义与 _send 一致。
+  Future<dynamic> postMultipart(String path,
+      {required List<int> bytes,
+      required String filename,
+      bool auth = true,
+      bool allowRetry = true}) async {
+    final tk = auth ? await TokenStorage.access : null;
+    final req = http.MultipartRequest('POST', Uri.parse('$baseUrl$path'));
+    if (tk != null && tk.isNotEmpty) req.headers['Authorization'] = 'Bearer $tk';
+    req.files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
+    final res = await http.Response.fromStream(await req.send());
+    if (res.statusCode == 401 || _codeOf(res.body) == 401) {
+      if (auth && allowRetry) {
+        try {
+          final lock = _refreshing ?? _refresh();
+          _refreshing = lock;
+          await lock;
+          return postMultipart(path,
+              bytes: bytes, filename: filename, auth: auth, allowRetry: false);
+        } on ApiError {
+          rethrow;
+        } finally {
+          _refreshing = null;
+        }
+      }
+      throw ApiError(401, '登录已失效,请重新登录');
+    }
+    return _unwrap(res.body);
+  }
+
   Future<dynamic> put(String path, {Map<String, dynamic>? body, bool auth = true}) =>
       _send('PUT', path, body: body, auth: auth);
 }

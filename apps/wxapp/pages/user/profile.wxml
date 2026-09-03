@@ -7,10 +7,12 @@
     <text class="label">真实姓名</text>
     <input maxlength="64" placeholder="选填" value="{{realName}}" bindinput="onReal" />
   </view>
-  <view class="form-item">
-    <text class="label">头像 URL</text>
-    <input placeholder="https://… 选填,服务端暂无上传接口" value="{{avatar}}" bindinput="onAvatarUrl" />
+  <view class="form-item avatar-row">
+    <text class="label">头像</text>
+    <image wx:if="{{avatar}}" class="avatar" src="{{avatar}}" mode="aspectFill" />
+    <view wx:else class="avatar guest">👤</view>
+    <button class="btn-sm" bindtap="chooseAvatar">选择图片</button>
   </view>
 </view>
-<view class="muted note">头像需为可访问的图片 URL</view>
+<view class="muted note">jpg/jpeg/png/webp,≤4MB</view>
 <button class="btn btn-primary save" bindtap="save" disabled="{{saving}}">保存</button>
