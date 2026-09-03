@@ -15,20 +15,21 @@
 
 ## 项目介绍
 
-一个面向**小程序 / H5 / 管理后台**的 P2P 物品租赁平台后端。房东发布闲置物品,按天计价并收取押金;租客搜索、下单、支付租金、取件使用、按约归还;平台以 7 态订单状态机贯穿租赁全流程,配套押金台账与退款/违约处置。
+一个面向 **Flutter 主App / 微信原生小程序**的 P2P 物品租赁平台。房东发布闲置物品,按天计价并收取押金;租客搜索、下单、支付租金、取件使用、按约归还;平台以 7 态订单状态机贯穿租赁全流程,配套押金台账、信用分、站内消息与退款/违约处置。
 
-技术底座:Go 1.24 + Beego v2.3(MVC)+ MySQL + Redis + OpenSearch,接入微信支付 V3(JSAPI 预付/回调/退款),并以 security-go 中间件做攻击检测与 IP 封禁。
+技术底座:Go 1.24 + Beego v2.3(MVC)+ MySQL + Redis + OpenSearch;**主键 bwmarrin/snowflake**(JSON 字符串输出,JS 安全);phone 哈希 + 实名加密存储(ITEM_RENTAL_PII_KEY);微信支付网关抽象(默认 mock 预支付/验签回调/退款,商户凭据就绪即可切真);security-go 攻击检测 + IP 封禁(文件持久化)。双端前端:`apps/flutter`(13 页)与 `apps/wxapp`(13 页 ×4 件套,微信原生)。
 
 ## 功能特性
 
 <p align="center"><img src="docs/features.svg" alt="功能特性全景" width="900"></p>
 
-- **认证与账号**:手机号验证码登录(mock/真实短信)、JWT 双 Token(Access 2h + Refresh 7d 轮换)、验证码 60s 限频、用户资料/信用分/押金账户。
-- **物品与搜索**:类目体系、上下架管理、OpenSearch 全文检索、关键词×城市×类目筛选、地理位置半径检索(Haversine)。
-- **安全与风控**:security-go 攻击检测、统一边界输入校验(金额/坐标/长度)、条件更新幂等防重复回调/退款。
-- **订单与租赁**:按天计价 + 押金核算、7 态生命周期、取货/归还申请/归还确认/违约、租客与房东双角色权限。
-- **支付与退款**:微信支付 V3 预付(JSAPI)、异步回调验签、退款(mock/商户证书)、订单取消自动退款。
-- **押金与结算**:deposits 押金台账(冻结/解冻/扣款)、扣押金退租金联动。
+- **认证与账号**:手机号验证码登录(mock/真实短信)、JWT 双 Token(Access 2h + Refresh 7d **多端并存、单端登出**轮换)、验证码 60s 限频、用户资料/信用分/押金账户/实名(加密存储)。
+- **物品与发布**:类目体系、上下架、**多图上传**(POST /items/upload,≤9×4MB)、详情 owner 公开信息富化(昵称/头像/信用分)。
+- **搜索**:OpenSearch 全文检索、关键词×城市×类目筛选、**精确地理位置距离检索**(geo_point + WhereGeoDistance;无 OS 时 Haversine 兜底)。
+- **订单与租赁**:按天计价 + 押金核算、7 态生命周期、取货/归还申请/归还确认/违约、**信用分履约联动**(归还 +5/违约 -30/已付取消 -10,credit_events 流水)、**站内消息**(支付/退款/归还/违约/取消事件)。
+- **支付与退款**:微信支付网关抽象(mock 预付/回调验签/退款;真商户就绪即切)、订单取消自动退款、**退款状态守卫**(仅待取可退,租赁中 409)。
+- **押金与结算**:deposits 台账(冻结/解冻/扣款)、违约扣押金入物主账、`o.Raw` 精确落库(阶段E 修复)。
+- **安全与隐私**:security-go 攻击检测 + **IP 封禁文件持久化**、统一边界校验、**主键 snowflake 字符串契约**(JS 安全)、phone sha256 + real_name AES-GCM(密钥 fail-fast)。
 
 ## 技术架构
 
@@ -36,7 +37,7 @@
 
 | 层 | 组件 |
 | --- | --- |
-| 客户端 | 微信小程序 · H5/Web · 管理后台 |
+| 客户端 | Flutter 主App(移动/Web)· 微信原生小程序(13 页 ×4 件套) |
 | 接入层 | Beego Router(方法感知鉴权) · security-go · JWT 双 Token |
 | 业务层 | Controllers(统一信封) · Services(纯业务逻辑) · 集成网关(payments/search/models/middleware) |
 | 数据与基础设施 | MySQL · Redis · OpenSearch 2.14 · 微信支付商户平台 |
@@ -67,16 +68,19 @@ item-rental/
 │   ├── routers/router.go    # 路由与方法感知鉴权
 │   ├── controllers/         # 控制器(统一 OK/Fail 信封)
 │   ├── services/            # 纯业务逻辑(单据/计价/状态机,可单测)
-│   ├── models/              # ORM 模型 users/items/orders/deposits/payments
-│   ├── payments/            # 微信支付网关(预付/回调/退款/签名)
-│   ├── search/              # go-scout 检索(索引/删除/半径)
-│   ├── middleware/          # JWT 双 Token、security-go
-│   ├── static/              # 静态资源(吉祥物 mascot.svg, GET /static/mascot.svg)
+│   ├── models/              # ORM 模型 users/items/orders/deposits/payments/messages/credit_events(snowflake 主键)
+│   ├── payments/            # 支付网关抽象(预付/回调验签/退款,mock 默认)
+│   ├── search/              # go-scout 检索(索引/geo mapping/半径)
+│   ├── middleware/          # JWT 双 Token、security-go(IP 封禁文件持久化)
+│   ├── services/            # 纯业务 + snowid/信用分/pii 等
+│   ├── static/              # 静态资源(吉祥物 mascot.svg, GET /static/mascot.svg;uploads/ 上传目录)
 │   └── *_test.go            # 离线单测,免基建
+├── apps/flutter             # Flutter 主App(13 页)
+├── apps/wxapp               # 微信原生小程序(13 页 ×4 件套)
 ├── deploy/                  # Docker Compose(dev/prod)、Schema、镜像
 ├── docs/                    # 架构/功能/生命周期 SVG、支付码、配置与规划文档
-├── scripts/push-release.sh  # 推送规则:增量 tag + GitHub Release
-└── .github/workflows/ci.yml # CI: lint + build + vet + test + 覆盖率门
+├── scripts/                 # push-release.sh(增量 tag + Release)、e2e-smoke.sh(E2E 冒烟真源)
+└── .github/workflows/       # ci.yml(lint/test/flutter-gate)、nightly.yml(每日 E2E,mysql service)
 ```
 
 ## 使用说明
@@ -93,7 +97,8 @@ item-rental/
 docker compose -f deploy/docker-compose.yml up -d
 
 # 2. 起服务(dev 自动建表 + 启动重建索引;OpenSearch 不可用也不崩)
-cd server && go run .
+#    必设 env:JWT 密钥 + PII 密钥(缺失 fail-fast panic);mock 支付/验证码可带 WECHAT_MOCK=1
+cd server && ITEM_RENTAL_JWT_SECRET=<强随机串> ITEM_RENTAL_PII_KEY=<64hex> WECHAT_MOCK=1 go run .
 ```
 
 冒烟验证(短信为 mock,验证码 `123456`):
@@ -121,11 +126,11 @@ cd server && go build ./... && go vet ./... && go test ./... -count=1   # 离线
 ### 生产部署
 
 ```bash
-cp deploy/.env.example deploy/.env          # 强密钥/商户证书路径(必设)
 docker compose -f deploy/docker-compose.prod.yml up -d   # 端口覆盖 3307/16379/9200
 BEEGO_RUNMODE=prod ./server                 # 或容器内运行
 ```
 
+> 必设密钥/env(缺失即 fail-fast):`ITEM_RENTAL_JWT_SECRET`、`ITEM_RENTAL_PII_KEY`、`WECHAT_MOCK=0` + 商户配置、`SCOUT_DRIVER=opensearch` + `OPENSEARCH_*`、`ITEM_RENTAL_TRUSTED_PROXY`(反代后)——完整键表与启动前必检见 [docs/config-runbook.md](docs/config-runbook.md);上线前置 gate 清单见 [docs/task.md §11](docs/task.md)。
 > 端口占用与 OpenSearch 安全配置等坑位详见 [docs/design.md](docs/design.md) 排查要点。
 
 ### 推送与版本发布(推送规则)

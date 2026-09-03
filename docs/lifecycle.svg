@@ -45,7 +45,7 @@
   <!-- 取消支线 0 -> 5 -->
   <rect x="40"  y="300" width="130" height="56" rx="10" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
   <text x="105" y="322" text-anchor="middle" font-size="15" font-weight="bold" fill="#374151">5 已取消</text>
-  <text x="105" y="342" text-anchor="middle" font-size="12" fill="#4b5563">退回押金并退款租金</text>
+  <text x="105" y="342" text-anchor="middle" font-size="12" fill="#4b5563">已支付先自动退款；押金未冻结</text>
   <g stroke="#9ca3af" stroke-width="2" fill="none">
     <path d="M 88 178 C 60 220, 68 270, 90 296" marker-end="url(#arrow)"/>
   </g>
@@ -54,11 +54,11 @@
   <!-- 违约支线 3 -> 6 -->
   <rect x="550" y="300" width="130" height="56" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
   <text x="615" y="322" text-anchor="middle" font-size="15" font-weight="bold" fill="#b91c1c">6 违约</text>
-  <text x="615" y="342" text-anchor="middle" font-size="12" fill="#7f1d1d">扣押金抵偿违约金</text>
+  <text x="615" y="342" text-anchor="middle" font-size="12" fill="#7f1d1d">押金全额扣罚归物主</text>
   <g stroke="#dc2626" stroke-width="2" fill="none">
     <path d="M 650 178 C 660 220, 648 258, 630 296" marker-end="url(#arrowRed)"/>
   </g>
   <text x="678" y="240" font-size="12" fill="#b91c1c">违约(3→6)</text>
 
-  <text x="480" y="388" text-anchor="middle" font-size="12" fill="#6b7280">资金流：0→1 支付租金；1→2 冻结押金；3→4 解冻押金并结算租金；退款在 0→5 支线处理</text>
+  <text x="480" y="388" text-anchor="middle" font-size="12" fill="#6b7280">资金流：0→1 支付租金；1→2 冻结押金；3→4 解冻押金并结算租金；退款在 0→5 支线处理；违约 3→6 押金入物主</text>
 </svg>

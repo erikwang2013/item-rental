@@ -45,6 +45,7 @@
 | 33 | `pii_key` | `ITEM_RENTAL_PII_KEY` | 空 | PII 加密密钥(AES-256,64 hex;phone sha256 + real_name 加密);env 优先 | **是** | **是(必设)** — 缺失/非 64 hex fail-fast panic(services/pii.go) |
 | 34 | `ipban_file` | — | `data/ipban.json` | IP 封禁记录持久化文件(security-go storage.NewFile,30s 自动落盘) | 否 | 否(重启丢失可接受则留空也可;默认已持久化) |
 | 35 | `cors_allow_origins` | — | `*` | CORS 允许来源(dev 联调用 *;**生产收紧为具体域名**) | 否 | 生产建议收紧 |
+| 36 | `snowflake_node` | — | `1` | snowflake 节点号(0-1023);**多实例部署每实例须唯一**,否则跨实例同毫秒可能撞号 | 否 | 多实例部署必设(services/snowid.go) |
 
 ## 环境变量读取陷阱(重要)
 

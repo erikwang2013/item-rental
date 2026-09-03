@@ -8,14 +8,12 @@
   <!-- 第一层：客户端 -->
   <text x="30" y="84" font-size="14" font-weight="bold" fill="#374151">客户端</text>
   <g fill="#eef2ff" stroke="#6366f1" stroke-width="1.5">
-    <rect x="30" y="96" width="280" height="44" rx="8"/>
-    <rect x="330" y="96" width="280" height="44" rx="8"/>
-    <rect x="630" y="96" width="300" height="44" rx="8"/>
+    <rect x="30" y="96" width="450" height="44" rx="8"/>
+    <rect x="500" y="96" width="430" height="44" rx="8"/>
   </g>
   <g fill="#4338ca" font-size="15" text-anchor="middle">
-    <text x="170" y="123">微信小程序</text>
-    <text x="470" y="123">H5 / Web</text>
-    <text x="780" y="123">管理后台</text>
+    <text x="255" y="123">Flutter 主App（Web / 移动）13 页</text>
+    <text x="715" y="123">微信原生小程序 · 13 页</text>
   </g>
 
   <!-- 第二层：接入层 -->
@@ -44,18 +42,18 @@
   <g font-size="14" text-anchor="middle">
     <text x="170" y="300" font-weight="bold" fill="#854d0e">Controllers 控制器</text>
     <text x="170" y="322" font-size="12" fill="#713f12">auth / user / categories</text>
-    <text x="170" y="340" font-size="12" fill="#713f12">items / orders</text>
-    <text x="170" y="358" font-size="12" fill="#713f12">payments</text>
-    <text x="170" y="378" font-size="12" fill="#713f12">统一 OK/Fail 响应信封</text>
+    <text x="170" y="340" font-size="12" fill="#713f12">items / orders / payments</text>
+    <text x="170" y="358" font-size="12" fill="#713f12">messages / uploads(头像·物品图)</text>
+    <text x="170" y="378" font-size="12" fill="#713f12">统一 OK/Fail 信封 · owner 富化</text>
     <text x="470" y="300" font-weight="bold" fill="#854d0e">Services 纯业务逻辑</text>
-    <text x="470" y="322" font-size="12" fill="#713f12">订单计价 / 状态机迁移</text>
-    <text x="470" y="340" font-size="12" fill="#713f12">押金台账 / 退款 / 取消</text>
-    <text x="470" y="358" font-size="12" fill="#713f12">地理半径检索(Haversine)</text>
-    <text x="470" y="378" font-size="12" fill="#713f12">纯函数、可单测</text>
+    <text x="470" y="322" font-size="12" fill="#713f12">订单计价 / 状态机 / 押金台账</text>
+    <text x="470" y="340" font-size="12" fill="#713f12">信用分 / 站内消息 / 退款取消</text>
+    <text x="470" y="358" font-size="12" fill="#713f12">geo 距离检索(engine · Haversine 兜底)</text>
+    <text x="470" y="378" font-size="12" fill="#713f12">snowflake 主键 · PII 加密 · 可单测</text>
     <text x="780" y="300" font-weight="bold" fill="#854d0e">集成网关</text>
-    <text x="780" y="322" font-size="12" fill="#713f12">payments/gateway 微信支付</text>
-    <text x="780" y="340" font-size="12" fill="#713f12">search/go-scout 全文检索</text>
-    <text x="780" y="358" font-size="12" fill="#713f12">models(ORM) 数据映射</text>
+    <text x="780" y="322" font-size="12" fill="#713f12">payments/gateway 微信支付(mock)</text>
+    <text x="780" y="340" font-size="12" fill="#713f12">search/go-scout 全文 + geo_point</text>
+    <text x="780" y="358" font-size="12" fill="#713f12">models(ORM) · bwmarrin/snowflake</text>
     <text x="780" y="378" font-size="12" fill="#713f12">middleware 基础件</text>
   </g>
 
@@ -73,19 +71,19 @@
     <text x="135" y="506" font-size="11">deposits/payments</text>
     <text x="365" y="470">Redis</text>
     <text x="365" y="490" font-size="11">验证码限频</text>
-    <text x="365" y="506" font-size="11">Refresh 轮换</text>
+    <text x="365" y="506" font-size="11">Refresh 多端会话(per-jti)</text>
     <text x="595" y="470">OpenSearch 2.14</text>
     <text x="595" y="490" font-size="11">物品全文检索</text>
-    <text x="595" y="506" font-size="11">坐标索引</text>
-    <text x="825" y="470">微信支付</text>
-    <text x="825" y="490" font-size="11">商户平台</text>
-    <text x="825" y="506" font-size="11">预付/回调/退款</text>
+    <text x="595" y="506" font-size="11">geo_point 距离索引</text>
+    <text x="825" y="470">支付网关</text>
+    <text x="825" y="490" font-size="11">mock 优先(留位真接入)</text>
+    <text x="825" y="506" font-size="11">预付/回调验签/退款</text>
   </g>
 
   <!-- 连接说明 -->
   <g stroke="#9ca3af" stroke-width="1.5" fill="none">
-    <path d="M170 140 L170 180 M470 140 L470 180 M780 140 L780 180"/>
-    <path d="M170 234 L170 274 M470 234 L470 274 M780 234 L780 274"/>
+    <path d="M255 140 L255 180 M715 140 L715 180"/>
+    <path d="M255 234 L255 274 M715 234 L715 274"/>
     <path d="M135 398 L135 438 M365 398 L365 438 M595 398 L595 438 M825 398 L825 438"/>
   </g>
 </svg>

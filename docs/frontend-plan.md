@@ -181,7 +181,7 @@
 | 字段 | 说明 |
 |------|------|
 | `user.deposit_bal` | 押金余额（冻结/解冻/扣款后实时反映） |
-| `user.credit_score` | 信用分（默认 100；见 §6：当前无变动来源） |
+| `user.credit_score` | 信用分（注册 100；履约变动:归还 +5/违约 -30/已付取消 -10,clamp 0-100;credit_events 流水) |
 | `item.images` | **JSON 数组串**（服务端校验 ≤9 张，如 `"[\"https://x.jpg\"]"`；展示前先 `JSON.parse`，失败回退 `split(',')` 容错）。发布 = 先逐张传 `POST /items/upload`（字段 `files`）收 URL，再拼数组串提交 |
 | `item.city` / `lat` / `lng` | 地理信息（`city` 参与 `/items/search` 精确过滤；`/items` 不读 city） |
 | 金额单位 | 浮点元（`daily_price`/`deposit`/`rent_amount` 均为 float 元，**非分**） |
@@ -189,6 +189,7 @@
 | `payment.status` | 0 待支付 / 1 成功 / 2 失败 / 3 已退款 |
 | `order.pay_trade_no` | 关联支付单号（取 `payments.out_trade_no`） |
 | 订单号格式 | `ORD+时间戳+8位随机`；支付单 `RENT+时间戳+订单ID`；退款单 `REF+时间戳+订单ID` |
+| 主键 id(阶段G) | **snowflake 字符串契约**:users/items/orders/payments/deposits/messages/credit_events 的 `id` 及引用域(`owner_id`/`renter_id`/`item_id`/`order_id`/`user_id`/owner·renter 子对象 `id`)在 JSON 中一律为**字符串**(>2^53 超 JS Number 安全整数);客户端不得 `Number()/parseInt()` 强转,比较用字符串等值;请求体 `item_id`/`order_id` 传字符串。`category_id` 等枚举仍为数字。flutter 端 Dart int64 安全,`int.tryParse` 双形态容错 |
 
 ---
 
@@ -199,8 +200,8 @@
 | 项 | 现状 | 前端方案 |
 |----|------|---------|
 | 登出接口 | ✅ **已实现** `POST /auth/logout`（JWT，使 refresh 会话失效） | 登出 = 清本地令牌 + 调 logout；调 `auth/refresh` 前若已登出会返回失败 |
-| 信用分展示源 | `credit_score` 仅默认 100，无变动逻辑 | 「我的」页**占位展示**（读 `user/profile` 字段），标注「敬请期待」 |
-| 信用分变动 / 违约扣分 | 违约仅扣押金，无扣分 | 占位；后端定稿后接入 |
+| 信用分展示源 | ✅ **已实现**(阶段E E3):注册 100 + 履约公式(按时归还 +5/违约 -30/已支付后取消 -10,clamp 0-100,credit_events 流水) | 「我的」/详情页读 `credit_score` 直接展示 |
+| 信用分变动 / 违约扣分 | ✅ **已实现**:扣分挂在状态迁移(orderflow/cancel),无「敬请期待」占位 | 两端「我的」页已展示;物品/订单详情经 owner/renter 富化展示对方信用分(阶段F) |
 | PII 加密下发 | 手机号、实名、身份证加密存储，`phone` 不下发 | 不做明文展示；如需展示需后端新接口 |
 | 退款通知 | ✅ **已实现**：退款成功写入站内消息（`type=payment_refunded`） | 通过消息中心 / 订单轮询感知 |
 | 支付成功回调后即时态 | ✅ **已实现**：回调异步写入站内消息（`type=payment_success`） | 支付页轮询 `orders/:id` + 消息中心确认 |
