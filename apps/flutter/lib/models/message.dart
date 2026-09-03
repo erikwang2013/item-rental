@@ -17,7 +17,7 @@ class Msg {
   });
 
   factory Msg.fromJson(Map<String, dynamic> j) => Msg(
-        id: j['id'] as int? ?? 0,
+        id: int.tryParse('${j['id']}') ?? 0,
         type: j['type'] as String? ?? '',
         title: j['title'] as String? ?? '',
         content: j['content'] as String? ?? '',

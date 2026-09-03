@@ -11,6 +11,7 @@ import (
 func Send(userID int64, typ, title, content string) error {
 	o := orm.NewOrm()
 	msg := &models.Message{
+		Id:      NextID(),
 		UserID:  userID,
 		Type:    typ,
 		Title:   title,

@@ -15,15 +15,16 @@ Page({
   data: { order: null, item: null, busy: false },
 
   onLoad(options) {
-    this.id = Number(options.id)
+    this.id = options.id // snowflake id 字符串透传,勿 Number 化
     this.load()
   },
   onShow() { if (this.id) this.load() },
 
   load() {
     orderApi.detail(this.id).then(o => {
-      const uid = Number((wx.getStorageSync('user') || {}).id)
-      const isRenter = !!uid && uid === o.renter_id
+      const uid = (wx.getStorageSync('user') || {}).id
+      // uid/renter_id 均字符串化比较:新数据为 snowflake 字符串,兼容旧数字缓存
+      const isRenter = !!uid && String(uid) === String(o.renter_id)
       // 对方信息(服务端富化 owner/renter;按角色取对面)
       const counterpart = uid ? (isRenter ? o.owner : o.renter) : null
       this.setData({ order: o, isRenter, counterpart })

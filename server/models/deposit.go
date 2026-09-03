@@ -7,9 +7,9 @@ import (
 
 // Deposit 押金流水：type 1冻结 2解冻 3扣款
 type Deposit struct {
-	Id        int64     `orm:"column(id);auto" json:"id"`
-	OrderId   int64     `orm:"column(order_id)" json:"order_id"`
-	UserId    int64     `orm:"column(user_id)" json:"user_id"`
+	Id        int64     `orm:"column(id)" json:"id,string"`
+	OrderId   int64     `orm:"column(order_id)" json:"order_id,string"`
+	UserId    int64     `orm:"column(user_id)" json:"user_id,string"`
 	Amount    float64   `orm:"column(amount);digits(12);decimals(2)" json:"amount"`
 	Type      int       `orm:"column(type)" json:"type"` // 1冻结 2解冻 3扣款
 	Ref       string    `orm:"column(ref);size(64)" json:"ref"`

@@ -19,7 +19,7 @@ class UserProfile {
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> j) => UserProfile(
-        id: j['id'] as int? ?? 0,
+        id: int.tryParse('${j['id']}') ?? 0,
         nickname: j['nickname'] as String? ?? '',
         avatar: j['avatar'] as String? ?? '',
         realName: j['real_name'] as String? ?? '',

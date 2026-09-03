@@ -39,11 +39,11 @@ class Order {
   });
 
   factory Order.fromJson(Map<String, dynamic> j) => Order(
-        id: j['id'] as int? ?? 0,
+        id: int.tryParse('${j['id']}') ?? 0,
         orderNo: j['order_no'] as String? ?? '',
-        itemId: j['item_id'] as int? ?? 0,
-        renterId: j['renter_id'] as int? ?? 0,
-        ownerId: j['owner_id'] as int? ?? 0,
+        itemId: int.tryParse('${j['item_id']}') ?? 0,
+        renterId: int.tryParse('${j['renter_id']}') ?? 0,
+        ownerId: int.tryParse('${j['owner_id']}') ?? 0,
         owner: j['owner'] is Map<String, dynamic>
             ? UserProfile.fromJson(j['owner'] as Map<String, dynamic>)
             : null,

@@ -2,6 +2,7 @@
 
 > Base URL: `/api/v1`。除标注「公开」外均需 `Authorization: Bearer <AccessToken>`。
 > 响应信封:`{"code":0,"msg":"ok","data":...}`;失败:`{"code":401|403|404|422,"msg":"..."}`。
+> **主键说明**:users/items/orders/payments/deposits/messages/credit_events 主键为 **snowflake id**,JSON 中一律以**字符串**输出(如 `"id":"1943…"`),数值超过 JS `Number.MAX_SAFE_INTEGER(2^53)`,客户端必须按字符串处理(不得 Number/parseInt 强转)。引用型字段(owner_id/renter_id/item_id/order_id/user_id 及 owner/renter 子对象 id)同规则;category_id 等枚举仍为数字。下单请求体 `item_id` 传字符串。
 
 ## 1. 认证 / 用户
 

@@ -81,6 +81,7 @@ func (c *PaymentController) UnifiedOrder() {
 		// 新建支付单
 		outTradeNo = genTradeNo(order.Id)
 		pay := &models.Payment{
+			Id:         services.NextID(),
 			OrderId:    order.Id,
 			OutTradeNo: outTradeNo,
 			Channel:    "wechat",
@@ -117,8 +118,9 @@ func (c *PaymentController) UnifiedOrder() {
 }
 
 // refundRequest 退款请求
+// OrderId 为 snowflake 字符串形态(snowflake id > 2^53,JS 数字不安全,契约与 item_id 一致)
 type refundRequest struct {
-	OrderId      int64  `json:"order_id"`      // 订单ID
+	OrderId      string `json:"order_id"`      // 订单ID(snowflake 字符串)
 	RefundReason string `json:"refund_reason"` // 退款原因（可选）
 }
 
@@ -134,13 +136,18 @@ func (c *PaymentController) Refund() {
 	}
 
 	var req refundRequest
-	if err := c.Ctx.BindJSON(&req); err != nil || req.OrderId <= 0 {
+	if err := c.Ctx.BindJSON(&req); err != nil {
+		c.Fail(400, "参数错误")
+		return
+	}
+	orderId, err := strconv.ParseInt(req.OrderId, 10, 64)
+	if err != nil || orderId <= 0 {
 		c.Fail(400, "参数错误")
 		return
 	}
 
 	o := orm.NewOrm()
-	order := &models.Order{Id: req.OrderId}
+	order := &models.Order{Id: orderId}
 	if err := o.Read(order); err != nil {
 		c.Fail(404, "订单不存在")
 		return

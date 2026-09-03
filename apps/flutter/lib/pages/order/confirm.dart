@@ -49,12 +49,14 @@ class _OrderConfirmPageState extends State<OrderConfirmPage> {
     setState(() => _creating = true);
     try {
       final o = await api.createOrder(
-          itemId: widget.item.id,
+          itemId: widget.item.id.toString(),
           startDate: toDateStr(_start!),
           endDate: toDateStr(_end!));
       if (!mounted) return;
       await Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (_) => PayPage(orderNo: o['order_no'] as String? ?? '', orderId: o['id'] as int? ?? 0)));
+          builder: (_) => PayPage(
+              orderNo: o['order_no'] as String? ?? '',
+              orderId: int.tryParse('${o['id']}') ?? 0)));
     } catch (e) {
       toast(e);
     } finally {

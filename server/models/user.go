@@ -5,7 +5,7 @@ import "time"
 
 // User 用户表结构
 type User struct {
-	Id          int64     `orm:"column(id);auto" json:"id"`
+	Id          int64     `orm:"column(id)" json:"id,string"`
 	Phone       string    `orm:"column(phone);size(64);unique" json:"-"` // sha256(hex)，非明文
 	Nickname    string    `orm:"column(nickname);size(64)" json:"nickname"`
 	Avatar      string    `orm:"column(avatar);size(255)" json:"avatar"`
@@ -25,7 +25,7 @@ func (u *User) TableName() string {
 // UserPublic 对外公开的用户精简视图（物品/订单详情中的 owner/renter 信息）。
 // 仅暴露昵称/头像/信用分，严禁携带 phone/real_name/deposit_bal/status 等 PII 或私密字段。
 type UserPublic struct {
-	Id          int64  `json:"id"`
+	Id          int64  `json:"id,string"`
 	Nickname    string `json:"nickname"`
 	Avatar      string `json:"avatar"`
 	CreditScore int    `json:"credit_score"`

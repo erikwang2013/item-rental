@@ -94,7 +94,7 @@ class Api {
 
   // ---- 订单 ----
   Future<Map<String, dynamic>> createOrder(
-          {required int itemId,
+          {required String itemId,
           required String startDate,
           required String endDate}) async =>
       (await c.post('/orders',

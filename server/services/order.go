@@ -59,6 +59,7 @@ func BuildOrder(item *models.Item, renterID int64, start, end string) (*models.O
 	}
 
 	return &models.Order{
+		Id:         NextID(),
 		OrderNo:    GenerateOrderNo(),
 		ItemId:     item.Id,
 		RenterId:   renterID,

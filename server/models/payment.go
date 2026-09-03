@@ -8,8 +8,8 @@ import "time"
 //
 //	0 待支付 1 成功 2 失败 3 已退款
 type Payment struct {
-	Id            int64     `orm:"column(id);auto" json:"id"`
-	OrderId       int64     `orm:"column(order_id)" json:"order_id"`
+	Id            int64     `orm:"column(id)" json:"id,string"`
+	OrderId       int64     `orm:"column(order_id)" json:"order_id,string"`
 	OutTradeNo    string    `orm:"column(out_trade_no);size(64);unique" json:"out_trade_no"` // 商户订单号
 	TransactionId string    `orm:"column(transaction_id);size(64)" json:"transaction_id"`    // 微信支付单号
 	Channel       string    `orm:"column(channel);size(16)" json:"channel"`                  // 支付渠道 wechat

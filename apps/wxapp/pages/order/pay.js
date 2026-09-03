@@ -6,7 +6,7 @@ Page({
   data: { order: null, statusText: '', paying: false, polled: false },
 
   onLoad(options) {
-    this.orderId = Number(options.order_id)
+    this.orderId = options.order_id // snowflake id 字符串透传,勿 Number 化
     this.orderNo = options.order_no || ''
     this.load()
   },

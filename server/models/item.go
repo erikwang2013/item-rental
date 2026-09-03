@@ -9,8 +9,8 @@ import (
 
 // Item 租赁物品表结构
 type Item struct {
-	Id         int64     `orm:"column(id);auto" json:"id"`
-	OwnerId    int64     `orm:"column(owner_id)" json:"owner_id"`
+	Id         int64     `orm:"column(id)" json:"id,string"`
+	OwnerId    int64     `orm:"column(owner_id)" json:"owner_id,string"`
 	CategoryId int64     `orm:"column(category_id)" json:"category_id"`
 	Title      string    `orm:"column(title);size(128)" json:"title"`
 	Desc       string    `orm:"column(desc);type(text)" json:"desc"`

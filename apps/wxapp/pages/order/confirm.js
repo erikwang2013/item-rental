@@ -12,7 +12,8 @@ Page({
   },
 
   onLoad(options) {
-    this.itemId = Number(options.item_id)
+    // snowflake id 超出 JS Number 安全整数,全程按字符串透传
+    this.itemId = options.item_id
     if (!util.requireLogin()) return
     itemApi.detail(this.itemId).then(it => {
       if (it.status !== 1) {

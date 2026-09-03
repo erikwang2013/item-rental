@@ -39,8 +39,8 @@ class Item {
   });
 
   factory Item.fromJson(Map<String, dynamic> j) => Item(
-        id: j['id'] as int? ?? 0,
-        ownerId: j['owner_id'] as int? ?? 0,
+        id: int.tryParse('${j['id']}') ?? 0,
+        ownerId: int.tryParse('${j['owner_id']}') ?? 0,
         owner: j['owner'] is Map<String, dynamic>
             ? UserProfile.fromJson(j['owner'] as Map<String, dynamic>)
             : null,

@@ -5,8 +5,8 @@ import "time"
 
 // CreditEvent 信用分变动流水（审计用）：正值加分、负值扣分
 type CreditEvent struct {
-	Id        int64     `orm:"column(id);auto" json:"id"`
-	UserId    int64     `orm:"column(user_id)" json:"user_id"`
+	Id        int64     `orm:"column(id)" json:"id,string"`
+	UserId    int64     `orm:"column(user_id)" json:"user_id,string"`
 	Change    int       `orm:"column(change)" json:"change"`
 	Reason    string    `orm:"column(reason);size(32)" json:"reason"` // return_on_time / breach / cancel_after_paid
 	Ref       string    `orm:"column(ref);size(64)" json:"ref"`       // 关联订单号

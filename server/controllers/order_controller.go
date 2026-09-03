@@ -4,6 +4,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/erikwang2013/item-rental/server/middleware"
@@ -19,7 +20,7 @@ type OrderController struct {
 
 // createOrderRequest 创建订单请求
 type createOrderRequest struct {
-	ItemId    int64  `json:"item_id"`
+	ItemId    string `json:"item_id"`
 	StartDate string `json:"start_date"` // YYYY-MM-DD
 	EndDate   string `json:"end_date"`   // YYYY-MM-DD
 }
@@ -39,8 +40,14 @@ func (c *OrderController) Create() {
 		return
 	}
 
+	// item_id 为 snowflake 字符串(JS 安全);解析失败按参数错误处理
+	itemID, err := strconv.ParseInt(req.ItemId, 10, 64)
+	if err != nil {
+		c.Fail(400, "参数错误")
+		return
+	}
 	o := orm.NewOrm()
-	item := models.Item{Id: req.ItemId}
+	item := models.Item{Id: itemID}
 	if err := o.Read(&item); err != nil {
 		c.Fail(404, "物品不存在")
 		return

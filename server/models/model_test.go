@@ -107,7 +107,7 @@ func TestItemOwnerOmitEmpty(t *testing.T) {
 		t.Fatalf("marshal: %v", err)
 	}
 	s := string(with)
-	for _, want := range []string{`"owner":{`, `"id":7`, `"nickname":"房东"`, `"avatar":"http://x/a.png"`, `"credit_score":90`} {
+	for _, want := range []string{`"owner":{`, `"id":"7"`, `"nickname":"房东"`, `"avatar":"http://x/a.png"`, `"credit_score":90`} {
 		if !strings.Contains(s, want) {
 			t.Errorf("owner 对象缺 %q: %s", want, s)
 		}
@@ -129,7 +129,7 @@ func TestOrderCounterpartyOmitEmpty(t *testing.T) {
 		t.Fatalf("marshal: %v", err)
 	}
 	s := string(with)
-	if !strings.Contains(s, `"owner":{"id":2,"nickname":"房东"`) || !strings.Contains(s, `"renter":{"id":3,"nickname":"租客"`) {
+	if !strings.Contains(s, `"owner":{"id":"2","nickname":"房东"`) || !strings.Contains(s, `"renter":{"id":"3","nickname":"租客"`) {
 		t.Errorf("owner/renter 对象不符: %s", s)
 	}
 }

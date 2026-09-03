@@ -5,7 +5,7 @@ Page({
   data: { item: null, images: [] },
 
   onLoad(options) {
-    this.id = Number(options.id)
+    this.id = options.id // snowflake id 字符串透传,勿 Number 化
     this.load()
   },
 

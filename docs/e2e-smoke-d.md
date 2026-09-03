@@ -102,3 +102,10 @@ curl -s http://127.0.0.1:8080/health   # {"code":0,"msg":"ok"}
 
 - 登录冷启动 400:阶段E 加 CopyBody 兜底后未再复现(两轮 20 连发 0 失败),观察中。
 - 删除已上传图片仅移本地引用,服务器文件留待清理(dev 可接受)。
+
+## 阶段G 复跑结果(snowflake 主键)
+
+- 链 1+2 **9/9 PASS**(新增「snowflake id ≥17 位字符串」断言:发布返回 data.id 为纯数字字符串 ≥17 位,证明 >2^53 JS 安全域)。
+- 下单 body item_id 已字符串化(3 处),全链(owner 视图/头像/notify→pickup→return/消息/退款 409/押金入账/信用)随字符串 id 全通。
+- owner 富化/旧数据兼容正常(存量小 id 数字行与 snowflake 字符串混存,list/detail 断言均过)。
+- root 空密码已还原验证;服务已停。

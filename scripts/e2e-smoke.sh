@@ -100,6 +100,8 @@ http POST /items -H "Authorization: Bearer $A" -H 'Content-Type: application/jso
   -d "$(mkbody "冒烟-相机-$RANDOM" "$IMG1")"
 [ "$(code_of "$RES")" = 0 ] || die "带图发布失败(契约): $RES"
 ID_UI=$(jget "$RES" data.id)
+python3 -c "import sys;v=sys.argv[1];assert v.isdigit() and len(v)>=17, v" "$ID_UI" || die "id 非 snowflake 字符串: $ID_UI"
+ok 'snowflake id ≥17 位字符串'
 ok '发布(images JSON 数组文本)'
 
 # 3 owner 视图 4 语义(list 断言走 python,JSON 键与空格不敏感)
@@ -138,7 +140,7 @@ http POST /items -H "Authorization: Bearer $A" -H 'Content-Type: application/jso
 ID=$(jget "$RES" data.id)
 S=$(date -d '+3 days' +%F); E=$(date -d '+6 days' +%F)
 http POST /orders -H "Authorization: Bearer $B2" -H 'Content-Type: application/json' \
-  -d "{\"item_id\":$ID,\"start_date\":\"$S\",\"end_date\":\"$E\"}"
+  -d "{\"item_id\":\"$ID\",\"start_date\":\"$S\",\"end_date\":\"$E\"}"
 [ "$(code_of "$RES")" = 0 ] || die "下单失败: $RES"
 OID=$(jget "$RES" data.id); ONO=$(jget "$RES" data.order_no)
 http POST /pay/unifiedorder -H "Authorization: Bearer $B2" -H 'Content-Type: application/json' \
@@ -177,13 +179,13 @@ http POST /items -H "Authorization: Bearer $A" -H 'Content-Type: application/jso
   -d '{"title":"冒烟-cancel-'$RANDOM'","category_id":1,"daily_price":30,"deposit":200,"stock":1,"city":"上海"}'
 ID=$(jget "$RES" data.id)
 http POST /orders -H "Authorization: Bearer $C" -H 'Content-Type: application/json' \
-  -d "{\"item_id\":$ID,\"start_date\":\"$S\",\"end_date\":\"$E\"}"
+  -d "{\"item_id\":\"$ID\",\"start_date\":\"$S\",\"end_date\":\"$E\"}"
 OID=$(jget "$RES" data.id); ONO=$(jget "$RES" data.order_no)
 http POST /pay/unifiedorder -H "Authorization: Bearer $C" -H 'Content-Type: application/json' \
   -d "{\"order_no\":\"$ONO\",\"channel\":\"native\"}"
 OTN=$(jget "$RES" data.out_trade_no); FEN=$(python3 -c "print(int(float('$(jget "$RES" data.amount)')*100+0.5))")
 notify_xml "$OTN" "$FEN"
-http POST /pay/refund -H "Authorization: Bearer $C" -H 'Content-Type: application/json' -d "{\"order_id\":$OID}"
+http POST /pay/refund -H "Authorization: Bearer $C" -H 'Content-Type: application/json' -d "{\"order_id\":\"$OID\"}"
 [ "$(code_of "$RES")" = 0 ] || die "退款失败: $RES"
 http GET "/orders/$OID" -H "Authorization: Bearer $C"
 [ "$(jget "$RES" data.status)" = 0 ] || die "退款后应回 status=0"
@@ -202,13 +204,13 @@ http POST /items -H "Authorization: Bearer $A" -H 'Content-Type: application/jso
   -d '{"title":"冒烟-breach-'$RANDOM'","category_id":1,"daily_price":30,"deposit":200,"stock":1,"city":"上海"}'
 ID=$(jget "$RES" data.id)
 http POST /orders -H "Authorization: Bearer $C" -H 'Content-Type: application/json' \
-  -d "{\"item_id\":$ID,\"start_date\":\"$S\",\"end_date\":\"$E\"}"
+  -d "{\"item_id\":\"$ID\",\"start_date\":\"$S\",\"end_date\":\"$E\"}"
 OID=$(jget "$RES" data.id); ONO=$(jget "$RES" data.order_no)
 http POST /pay/unifiedorder -H "Authorization: Bearer $C" -H 'Content-Type: application/json' \
   -d "{\"order_no\":\"$ONO\",\"channel\":\"native\"}"
 notify_xml "$(jget "$RES" data.out_trade_no)" "$(python3 -c "print(int(float('$(jget "$RES" data.amount)')*100+0.5))")"
 http POST "/orders/$OID/pickup" -H "Authorization: Bearer $C" >/dev/null || die pickup
-http POST /pay/refund -H "Authorization: Bearer $C" -H 'Content-Type: application/json' -d "{\"order_id\":$OID}"
+http POST /pay/refund -H "Authorization: Bearer $C" -H 'Content-Type: application/json' -d "{\"order_id\":\"$OID\"}"
 [ "$(code_of "$RES")" = 409 ] || die "租赁中退款应 409,实际 $(code_of "$RES")"
 http POST "/orders/$OID/return_request" -H "Authorization: Bearer $C" >/dev/null || die return_request
 http POST "/orders/$OID/breach" -H "Authorization: Bearer $A" >/dev/null || die breach

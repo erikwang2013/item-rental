@@ -208,6 +208,7 @@ func (s *defaultOrderStore) TransitionOrder(id int64, from, to int) (int64, erro
 }
 
 func (s *defaultOrderStore) InsertDeposit(d *models.Deposit) error {
+	d.Id = NextID()
 	_, err := s.o.Insert(d)
 	return err
 }
@@ -230,6 +231,7 @@ func (s *defaultOrderStore) AdjustCredit(userID int64, delta int) error {
 }
 
 func (s *defaultOrderStore) InsertCreditEvent(e *models.CreditEvent) error {
+	e.Id = NextID()
 	_, err := s.o.Insert(e)
 	return err
 }

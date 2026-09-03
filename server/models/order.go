@@ -8,11 +8,11 @@ import "time"
 //
 //	0待支付 1待取(已付租金) 2租赁中(押金冻结) 3待归还 4已归还(结算) 5已取消 6违约(扣押金)
 type Order struct {
-	Id           int64     `orm:"column(id);auto" json:"id"`
+	Id           int64     `orm:"column(id)" json:"id,string"`
 	OrderNo      string    `orm:"column(order_no);size(64);unique" json:"order_no"` // 订单号
-	ItemId       int64     `orm:"column(item_id)" json:"item_id"`
-	RenterId     int64     `orm:"column(renter_id)" json:"renter_id"` // 租客用户ID
-	OwnerId      int64     `orm:"column(owner_id)" json:"owner_id"`   // 房东用户ID
+	ItemId       int64     `orm:"column(item_id)" json:"item_id,string"`
+	RenterId     int64     `orm:"column(renter_id)" json:"renter_id,string"` // 租客用户ID
+	OwnerId      int64     `orm:"column(owner_id)" json:"owner_id,string"`   // 房东用户ID
 	StartDate    string    `orm:"column(start_date);type(date)" json:"start_date"`
 	EndDate      string    `orm:"column(end_date);type(date)" json:"end_date"`
 	Days         int       `orm:"column(days)" json:"days"` // 租赁天数

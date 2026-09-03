@@ -133,3 +133,11 @@ uni-app(`apps/web`)作废删除;并行重建 **Flutter 主App**(`apps/flutter`)+
 | prod compose 全栈验证 | 上线窗口 | deploy/.prod.yml + config-runbook |
 
 **验证**:go 9 包全绿;flutter analyze 零 issue;geo 半径断言 PASS;F1 富化 shape 无 PII 泄漏断言;root 空密码还原确认。
+## 12. 阶段G — 主键切 bwmarrin/snowflake(✅ 本轮完成)
+
+- [x] **G1 snowflake 主键** — 8 个生成表(user/item/order/payment/deposit/message/credit_event)主键从 AUTO_INCREMENT 切 `bwmarrin/snowflake`(`services/snowid.go` 包级单例,`snowflake_node` 默认 1,越界 fail-fast);Insert 前置赋值收敛于 chokepoint(BuildOrder/Send/InsertDeposit/InsertCreditEvent + 3 controller 字面量);DDL 不动(BIGINT 显式插入兼容,存量小 id 与新 id 混存无碰撞);category 静态 seed 保持 AUTO_INCREMENT。
+- [x] **G2 JSON 字符串契约(JS 安全)** — snowflake 域 id(id/owner_id/renter_id/item_id/order_id/user_id/UserPublic.id)全部 `json:",string"` 输出(>2^53 超 JS Number 安全整数);纯数值域(category_id/days/status/stock/金额)保持数字;下单/退款请求体 item_id/order_id 收字符串(A1:退款结构原漏网,int64 绑定必 400,已镜像修复+脚本引号化)。
+- [x] **G3 两端适配** — flutter 模型 `int.tryParse('${j[id]}')` 双形态容错(Dart int64 安全),下单 body 字符串;wxapp id 域零 Number/parseInt 强制,uid/renter_id 比较 String() 双形态兼容。
+- [x] **G4 验证** — go 9 包全绿(模型断言字符串化);flutter analyze/test/build web;wxapp node --check;e2e 链 1+2 全 PASS(发布 id ≥17 位字符串断言 >2^53 实证;旧数据混存兼容);root 还原。
+
+**验证**:`go build && go vet && go test ./...` 全绿;flutter 三门;wxapp node --check;`scripts/e2e-smoke.sh` 全断言 PASS。

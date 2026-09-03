@@ -107,7 +107,7 @@ func (c *AuthController) Login() {
 
 	if err == orm.ErrNoRows {
 		// 自动注册（昵称取末 4 位用原始明文，先取后覆写）
-		user = models.User{Phone: phoneHash, Nickname: "用户" + req.Phone[len(req.Phone)-4:], Status: 1, CreditScore: 100}
+		user = models.User{Id: services.NextID(), Phone: phoneHash, Nickname: "用户" + req.Phone[len(req.Phone)-4:], Status: 1, CreditScore: 100}
 		if _, err := o.Insert(&user); err != nil {
 			c.Fail(500, "注册失败")
 			return

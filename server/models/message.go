@@ -5,8 +5,8 @@ import "time"
 
 // Message 站内消息
 type Message struct {
-	Id        int64     `orm:"column(id);auto" json:"id"`
-	UserID    int64     `orm:"column(user_id)" json:"user_id"`
+	Id        int64     `orm:"column(id)" json:"id,string"`
+	UserID    int64     `orm:"column(user_id)" json:"user_id,string"`
 	Type      string    `orm:"column(type);size(32)" json:"type"`
 	Title     string    `orm:"column(title);size(128)" json:"title"`
 	Content   string    `orm:"column(content);size(512)" json:"content"`

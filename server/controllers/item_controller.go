@@ -181,6 +181,7 @@ func (c *ItemController) Create() {
 	}
 
 	item := models.Item{
+		Id:         services.NextID(),
 		OwnerId:    uid,
 		CategoryId: req.CategoryId,
 		Title:      req.Title,

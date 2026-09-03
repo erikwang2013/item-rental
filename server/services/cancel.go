@@ -120,6 +120,7 @@ func (s *defaultCancelStore) AdjustCredit(userID int64, delta int) error {
 }
 
 func (s *defaultCancelStore) InsertCreditEvent(e *models.CreditEvent) error {
+	e.Id = NextID()
 	_, err := s.o.Insert(e)
 	return err
 }
