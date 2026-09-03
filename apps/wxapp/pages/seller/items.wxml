@@ -1,0 +1,57 @@
+<view wx:if="{{loggedIn}}">
+  <button class="btn btn-primary add" bindtap="toggleForm">{{showForm ? '收起发布' : '+ 发布物品'}}</button>
+
+  <view class="card" wx:if="{{showForm}}">
+    <view class="form-item">
+      <text class="label">标题</text>
+      <input maxlength="128" placeholder="一句话描述物品" value="{{form.title}}" data-k="title" bindinput="onField" />
+    </view>
+    <view class="form-item">
+      <text class="label">类目</text>
+      <picker range="{{categories}}" range-key="name" bindchange="onCategory">
+        <view class="pval {{form.category_id ? '' : 'ph'}}">{{form.categoryName || '请选择'}}</view>
+      </picker>
+    </view>
+    <view class="form-item">
+      <text class="label">日租金(元)</text>
+      <input type="digit" placeholder="如 30" value="{{form.daily_price}}" data-k="daily_price" bindinput="onField" />
+    </view>
+    <view class="form-item">
+      <text class="label">押金(元)</text>
+      <input type="digit" placeholder="如 200" value="{{form.deposit}}" data-k="deposit" bindinput="onField" />
+    </view>
+    <view class="form-item">
+      <text class="label">库存</text>
+      <input type="number" placeholder="1-999" value="{{form.stock}}" data-k="stock" bindinput="onField" />
+    </view>
+    <view class="form-item">
+      <text class="label">城市</text>
+      <input placeholder="如 上海" value="{{form.city}}" data-k="city" bindinput="onField" />
+    </view>
+    <view class="form-item col">
+      <text class="label">图片 URL</text>
+      <textarea class="ta" maxlength="1000" auto-height placeholder="多张用逗号分隔 https://a.jpg,https://b.jpg" value="{{form.images}}" data-k="images" bindinput="onField" />
+    </view>
+    <view class="form-item col">
+      <text class="label">描述</text>
+      <textarea class="ta" maxlength="512" auto-height placeholder="成色、配件等" value="{{form.desc}}" data-k="desc" bindinput="onField" />
+    </view>
+    <button class="btn btn-primary pub" bindtap="publish" disabled="{{saving}}">发布</button>
+  </view>
+
+  <view class="row-card" wx:for="{{items}}" wx:key="id">
+    <image class="thumb" src="{{item.cover}}" mode="aspectFill" />
+    <view class="flex1 info">
+      <view class="title1 t">{{item.title}}</view>
+      <view class="muted">{{fmtMoney(item.daily_price)}}/天 · 押金 {{fmtMoney(item.deposit)}} · {{item.city}}</view>
+      <view class="st {{item.status === 1 ? 'on' : ''}}">{{item.stText}}</view>
+    </view>
+    <button wx:if="{{item.status === 1}}" class="btn-sm btn-primary off" data-id="{{item.id}}" bindtap="offshelf">下架</button>
+  </view>
+  <view class="empty" wx:if="{{!items.length && !showForm}}">还没发布过物品,点上方按钮发布</view>
+</view>
+
+<view class="empty" wx:else>
+  <view>登录后才能管理你的物品</view>
+  <button class="btn btn-primary lg" bindtap="goLogin">去登录</button>
+</view>

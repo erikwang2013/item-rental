@@ -1,0 +1,11 @@
+.top { display: flex; justify-content: space-between; padding: 20rpx 32rpx; }
+.t-left { color: #666; font-size: 26rpx; }
+.t-right { color: #2e7d32; font-size: 26rpx; }
+.msg { background: #fff; border-radius: 16rpx; margin: 0 24rpx 16rpx; padding: 24rpx; }
+.msg.read { opacity: 0.7; }
+.m-head { display: flex; justify-content: space-between; align-items: center; }
+.m-type { color: #2e7d32; font-size: 24rpx; }
+.dot { color: #e53935; font-size: 20rpx; }
+.m-title { font-size: 30rpx; font-weight: 600; margin: 10rpx 0 6rpx; }
+.m-content { color: #666; font-size: 26rpx; line-height: 1.5; }
+.m-time { margin-top: 12rpx; }

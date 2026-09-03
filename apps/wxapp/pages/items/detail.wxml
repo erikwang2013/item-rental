@@ -1,0 +1,30 @@
+<view wx:if="{{item}}">
+  <swiper class="gallery" indicator-dots autoplay circular wx:if="{{images.length}}">
+    <swiper-item wx:for="{{images}}" wx:key="*this">
+      <image class="g-img" src="{{item}}" mode="aspectFill" />
+    </swiper-item>
+  </swiper>
+  <view class="card">
+    <view class="price big">{{fmtMoney(item.daily_price)}}<text class="unit">/天</text></view>
+    <view class="title1 t">{{item.title}}</view>
+    <view class="muted row-gap">{{item.city}} · 库存 {{item.stock}}</view>
+  </view>
+
+  <view class="card" wx:if="{{item.desc}}">
+    <view class="kv"><text class="k">物品描述</text></view>
+    <text class="desc">{{item.desc}}</text>
+  </view>
+
+  <view class="card">
+    <view class="kv"><text class="k">押金</text><text class="price">{{fmtMoney(item.deposit)}}</text></view>
+    <view class="kv"><text class="k">租期计价</text><text>按天计价,归还结算后退押金</text></view>
+  </view>
+</view>
+
+<view class="footer safe-bottom" wx:if="{{item}}">
+  <view class="f-price">
+    <text class="price">{{fmtMoney(item.daily_price)}}</text>
+    <text class="f-unit">/天</text>
+  </view>
+  <button class="btn btn-primary f-btn" bindtap="rent" disabled="{{item.status !== 1}}">{{item.status === 1 ? '立即租用' : '已下架'}}</button>
+</view>

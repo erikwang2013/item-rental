@@ -1,0 +1,4 @@
+.list { padding-top: 16rpx; }
+.info { margin-left: 20rpx; }
+.t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.unit { font-size: 22rpx; font-weight: 400; color: #e53935; }

@@ -1,0 +1,45 @@
+<view wx:if="{{order}}">
+  <view class="st-bar st-{{order.status}}">
+    <text>{{order.status === 0 ? '待支付' : order.status === 1 ? '待取货' : order.status === 2 ? '租赁中' : order.status === 3 ? '待归还' : order.status === 4 ? '已归还' : order.status === 5 ? '已取消' : '违约'}}</text>
+  </view>
+
+  <view class="row-card" wx:if="{{item}}" bindtap="goItem">
+    <image class="thumb" src="{{item.cover || ''}}" mode="aspectFill" />
+    <view class="flex1 info">
+      <view class="title1 t">{{item.title}}</view>
+      <view class="muted">点击查看物品详情</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="kv"><text class="k">订单号</text><text class="no">{{order.order_no}}</text></view>
+    <view class="kv"><text class="k">租期</text><text>{{order.start_date}} ~ {{order.end_date}}</text></view>
+    <view class="kv"><text class="k">天数</text><text>{{order.days}} 天</text></view>
+    <view class="kv"><text class="k">租金</text><text class="price">{{fmtMoney(order.rent_amount)}}</text></view>
+    <view class="kv"><text class="k">押金</text><text>{{fmtMoney(order.deposit)}}</text></view>
+    <view class="kv" wx:if="{{order.cancel_reason}}"><text class="k">取消原因</text><text>{{order.cancel_reason}}</text></view>
+  </view>
+
+  <view class="acts">
+    <!-- 待支付:租客 去支付/取消 -->
+    <block wx:if="{{order.status === 0}}">
+      <button class="btn btn-primary w45" bindtap="goPay" disabled="{{busy}}">去支付</button>
+      <button class="btn btn-danger w45" data-action="cancel" bindtap="act" disabled="{{busy}}">取消订单</button>
+    </block>
+    <!-- 待取货:租客 确认取货 -->
+    <button wx:if="{{order.status === 1 && isRenter}}" class="btn btn-primary wide" data-action="pickup" bindtap="act" disabled="{{busy}}">确认取货</button>
+    <!-- 租赁中:租客 申请归还 -->
+    <button wx:if="{{order.status === 2 && isRenter}}" class="btn btn-primary wide" data-action="return_request" bindtap="act" disabled="{{busy}}">申请归还</button>
+    <!-- 待归还:房东 确认归还/判定违约 -->
+    <block wx:if="{{order.status === 3 && !isRenter}}">
+      <button class="btn btn-primary w45" data-action="return_confirm" bindtap="act" disabled="{{busy}}">确认归还</button>
+      <button class="btn btn-danger w45" data-action="breach" bindtap="act" disabled="{{busy}}">判定违约</button>
+    </block>
+    <!-- 待归还:租客 仅提示 -->
+    <view wx:if="{{order.status === 3 && isRenter}}" class="muted wait">已申请归还,等待房东确认</view>
+    <!-- 已取消/违约:申请退款(mock 直接成功) -->
+    <block wx:if="{{order.status === 5 || order.status === 6}}">
+      <button class="btn btn-danger wide" bindtap="refund" disabled="{{busy}}">申请退款</button>
+    </block>
+  </view>
+</view>

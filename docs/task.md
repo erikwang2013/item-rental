@@ -68,3 +68,17 @@
 - [x] **B4 city 搜索接线** — `GET /items/search?city=` 透传至 OpenSearch 精确过滤(engine 已有 `Where("city", q.City)`)。
 
 **验证**:`go build ./... && go vet ./... && go test ./... -count=1` 全绿,聚合覆盖率 26.0%(CI 门 ≥15%)。
+
+## 8. 阶段C — 双端全量重建前端(✅ 本轮完成)
+
+uni-app(`apps/web`)作废删除;并行重建 **Flutter 主App**(`apps/flutter`)+ **微信原生小程序**(`apps/wxapp`),页面映射与契约要点见 [frontend-plan.md §7](frontend-plan.md)。
+
+- [x] **C1 删除 apps/web** — `git rm -r apps/web`(已 staged,随本阶段提交)。
+- [x] **C2 Flutter 主App** — models×5 + 13 页 + 主题 #2E7D32 + tabBar;`flutter analyze` 零告警、`flutter test` 3/3、`flutter build web` 成功。
+- [x] **C3 wxapp 小程序** — request 封装(信封/401 双 token 刷新单锁)+ api×6 + 13 页四件套;`node --check` 24 JS 全过、JSON 全合法。
+- [x] **C4 契约核对(reviewer 独立复核)** — 以 server/ 源码为真源抽查 13 页 API 调用;两端一致,PASS-with-notes。
+- [x] **C5 契约偏差处置** — ①前端修正:Flutter `/items` city 参数无效→城市过滤改走 `/items/search`;②文档修正(docs/api.md + frontend-plan.md):`keyword→q`、`size→page_size`、unifiedorder `order_id→order_no+channel`、`/items` 无 city、images 逗号分隔 string、金额为 float 元。
+
+**验证**:`flutter analyze` 零 issue;wxapp `node --check` 全过;`go build && go vet && go test ./...` 后端回归不受前端改动影响。
+
+**已知缺口(记录在案,后端补齐后两端统一)**:无 `GET /items?owner_id=` → seller「我的物品」两端为降级实现;无头像上传端点(仅 URL 输入)。

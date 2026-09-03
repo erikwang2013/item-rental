@@ -1,0 +1,21 @@
+<view class="bar">
+  <input class="kw" placeholder="关键词,如「相机」" confirm-type="search" value="{{keyword}}" bindinput="onKw" bindconfirm="doSearch" />
+  <view class="city-box">
+    <input class="city" placeholder="城市" value="{{city}}" bindinput="onCity" />
+    <text wx:if="{{city}}" class="x" bindtap="clearCity">×</text>
+  </view>
+  <text class="go" bindtap="doSearch">搜索</text>
+</view>
+
+<view wx:if="{{items.length}}">
+  <view class="row" wx:for="{{items}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
+    <image class="thumb" src="{{item.cover}}" mode="aspectFill" />
+    <view class="flex1 info">
+      <view class="title1 t">{{item.title}}</view>
+      <view class="muted">{{item.city}} · 押金 {{fmtMoney(item.deposit)}}</view>
+      <view class="price">{{fmtMoney(item.daily_price)}}<text class="unit">/天</text></view>
+    </view>
+  </view>
+</view>
+<view class="empty" wx:elif="{{searched}}">未找到相关物品,试试换关键词</view>
+<view class="empty" wx:else>输入关键词 + 城市(可选)搜索可租物品</view>

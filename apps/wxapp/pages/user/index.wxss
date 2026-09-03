@@ -1,0 +1,15 @@
+.mine { padding-top: 16rpx; }
+.head { display: flex; align-items: center; }
+.avatar { width: 110rpx; height: 110rpx; border-radius: 50%; background: #e8f5e9; margin-right: 24rpx; flex-shrink: 0; }
+.avatar.guest { line-height: 110rpx; text-align: center; font-size: 52rpx; }
+.menu { background: #fff; border-radius: 16rpx; margin: 16rpx 24rpx; overflow: hidden; }
+.mi { display: flex; align-items: center; padding: 28rpx 24rpx; border-bottom: 1rpx solid #f5f5f5; }
+.mi:last-child { border-bottom: none; }
+.mi-ico { font-size: 34rpx; margin-right: 20rpx; }
+.mi-name { flex: 1; font-size: 30rpx; }
+.badge {
+  background: #e53935; color: #fff; font-size: 20rpx; border-radius: 20rpx;
+  padding: 2rpx 14rpx; margin-right: 10rpx;
+}
+.arrow { color: #ccc; font-size: 34rpx; }
+.logout { margin: 60rpx 24rpx 0; color: #e53935; border-color: #e53935; }

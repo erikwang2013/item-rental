@@ -3,6 +3,8 @@
 > 依据后端现状（`server/routers/router.go`、`server/controllers/`、`server/services/`、`server/middleware/`、`server/models/`）编写。
 > 覆盖：页面地图、API 依赖、鉴权与令牌、状态机对照、契约要点、未实现/待办。
 
+**实现落地（阶段C，2026-09）**：原规划为 uni-app(`apps/web`,已删除作废)。现按 §7 落地为两个平行实现——`apps/flutter`(Flutter 主App)与 `apps/wxapp`(微信原生小程序),页面路径映射见 [§7](#7-实现落地阶段c),页面功能与 API 调用以两处实现为基准。
+
 ---
 
 ## 1. 页面地图
@@ -158,18 +160,18 @@
 ### 5.3 分页
 
 - 列表接口统一参数：`page`（默认 1）、`page_size`（默认 20，上限 100）。
-- 响应 `data` 内返回 `list` + `total`；前端据此渲染分页/触底加载。
+- 响应 `data` 内返回 `items` + `total` + `page`（`/items` 与 `/items/search` 同构）；前端据此渲染分页/触底加载。
 
 ### 5.4 搜索参数（`GET /api/v1/items/search`）
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
-| `keyword` | string | 关键字（标题/描述） |
+| `q` | string | 关键字（标题/描述）——**注意是 `q`，不是 `keyword`** |
 | `category_id` | int | 品类过滤 |
 | `min_price` / `max_price` | float | 日租金区间 |
-| `order_by` | string | 排序：`latest`（默认）/ `price_asc` / `price_desc` |
+| `order_by` | string | 排序：空（默认最新）/ `price_asc` / `price_desc` |
 | `lat` / `lng` / `radius_km` | float | 地理搜索：三者同时传才生效；Haversine 半径过滤，**缺坐标的物品会被跳过** |
-| `city` | string | 城市（见 §6：控制器当前未读取，暂不依赖） |
+| `city` | string | 城市精确过滤（`/items/search` 已接线；`/items` 不支持 city） |
 | `page` / `page_size` | int | 分页 |
 
 > ⚠️ 地理过滤为惰性后置过滤：命中总数可能小于返回条数，分页体验需接受「某页不满」；当搜索降级（引擎未配置）时地理过滤不生效，前端需兜底提示。
@@ -180,8 +182,9 @@
 |------|------|
 | `user.deposit_bal` | 押金余额（冻结/解冻/扣款后实时反映） |
 | `user.credit_score` | 信用分（默认 100；见 §6：当前无变动来源） |
-| `item.images` | 图片 URL 数组（JSON） |
-| `item.city` / `lat` / `lng` | 地理信息（`city` 现未参与搜索） |
+| `item.images` | **逗号分隔的 URL 字符串**（展示前 `split(',')`；非 JSON 数组） |
+| `item.city` / `lat` / `lng` | 地理信息（`city` 参与 `/items/search` 精确过滤；`/items` 不读 city） |
+| 金额单位 | 浮点元（`daily_price`/`deposit`/`rent_amount` 均为 float 元，**非分**） |
 | `order.status` | 订单状态（见 §4） |
 | `payment.status` | 0 待支付 / 1 成功 / 2 失败 / 3 已退款 |
 | `order.pay_trade_no` | 关联支付单号（取 `payments.out_trade_no`） |
@@ -204,3 +207,27 @@
 | `city` 搜索参数 | ✅ **已实现**：`GET /items/search?city=北京` 已接线（OpenSearch 精确过滤） | 搜索页可提供城市维度筛选 |
 | 消息 / 通知中心 | ✅ **已实现**：`messages` 表 + `GET /messages` + `POST /messages/:id/read` + 未读数 | 前端可做消息入口 + 未读角标 |
 | 优惠券 / 积分 / 钱包充值 | 后端无对应模块 | 不在本期范围 |
+
+---
+
+## 7. 实现落地（阶段C）
+
+13 页（+ 消息中心）双端落地映射。两端与 server 契约偏差全部以 server 源码为准（见 task.md 阶段C 记录）：
+
+| # | 页面 | Flutter(`apps/flutter/lib/pages/`) | wxapp(`apps/wxapp/pages/`) |
+|---|------|-----------------------------------|---------------------------|
+| 1 | 登录 | auth/login | auth/login |
+| 2 | 首页 | home/index | home/index |
+| 3 | 物品列表 | items/list | items/list |
+| 4 | 搜索(q+city) | items/search | items/search |
+| 5 | 物品详情 | items/detail | items/detail |
+| 6 | 下单确认 | order/confirm | order/confirm |
+| 7 | 支付(mock 轮询) | order/pay | order/pay |
+| 8 | 订单列表(7 态 tab) | order/list | order/list |
+| 9 | 订单详情(流转 5 操作) | order/detail | order/detail |
+| 10 | 我的(资料/物品/登出) | user/index | user/index |
+| 11 | 编辑资料 | user/profile | user/profile |
+| 12 | 我的物品(发布/下架) | seller/items | seller/items |
+| 13 | 消息中心(角标/已读) | messages/index | messages/index |
+
+> 已知缺口：无 `GET /items?owner_id=` 端点 → seller「我的物品」两端均为降级实现（wxapp 本地记录发布 id；flutter 列全部上架物品靠 403 拦截），补该端点后两端可换真列表。

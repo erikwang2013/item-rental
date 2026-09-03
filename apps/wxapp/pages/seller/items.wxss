@@ -1,0 +1,13 @@
+.add { margin: 24rpx 24rpx 8rpx; }
+.pval { min-height: 60rpx; line-height: 60rpx; }
+.ph { color: #bbb; }
+.form-item.col { flex-direction: column; align-items: stretch; }
+.form-item.col .label { margin-bottom: 12rpx; }
+.ta { width: 100%; min-height: 80rpx; font-size: 26rpx; }
+.pub { margin-top: 24rpx; }
+.info { margin-left: 20rpx; }
+.t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st { display: inline-block; font-size: 22rpx; color: #999; margin-top: 6rpx; }
+.st.on { color: #2e7d32; }
+.off { margin-left: 16rpx; flex-shrink: 0; }
+.lg { width: 300rpx; margin: 40rpx auto; }

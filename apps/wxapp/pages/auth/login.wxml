@@ -1,0 +1,21 @@
+<view class="wrap">
+  <view class="logo">闲租</view>
+  <view class="sub">手机号验证码登录,新用户自动注册</view>
+
+  <view class="card">
+    <view class="form-item">
+      <text class="label">手机号</text>
+      <input type="number" maxlength="11" placeholder="请输入手机号" value="{{phone}}" bindinput="onPhone" />
+    </view>
+    <view class="form-item">
+      <text class="label">验证码</text>
+      <input type="number" maxlength="6" placeholder="请输入验证码" value="{{code}}" bindinput="onCode" />
+      <text class="send {{countdown > 0 ? 'muted' : ''}}" bindtap="sendSms">
+        {{countdown > 0 ? countdown + 's 后重发' : (sending ? '发送中' : '获取验证码')}}
+      </text>
+    </view>
+  </view>
+
+  <view class="tip">开发环境验证码固定 123456</view>
+  <button class="btn btn-primary go" bindtap="login" disabled="{{sending}}">登录</button>
+</view>

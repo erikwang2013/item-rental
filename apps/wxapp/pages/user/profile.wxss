@@ -1,0 +1,3 @@
+.form { margin-top: 24rpx; padding: 8rpx 24rpx; }
+.note { margin: 16rpx 32rpx; }
+.save { margin: 40rpx 24rpx; }

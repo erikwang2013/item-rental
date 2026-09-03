@@ -1,0 +1,17 @@
+.tabs { background: #fff; position: sticky; top: 0; z-index: 5; }
+.tabs scroll-view { white-space: nowrap; }
+.tab { display: inline-block; padding: 24rpx 30rpx; font-size: 28rpx; color: #666; border-bottom: 4rpx solid transparent; }
+.tab.on { color: #2e7d32; font-weight: 600; border-bottom-color: #2e7d32; }
+.od { background: #fff; border-radius: 16rpx; margin: 16rpx 24rpx; padding: 24rpx; }
+.od-head { display: flex; justify-content: space-between; align-items: center; }
+.od-no { font-size: 22rpx; color: #999; }
+.od-st { font-size: 26rpx; color: #666; }
+.st-0 { color: #fb8c00; }
+.st-1, .st-2, .st-3 { color: #2e7d32; }
+.st-4 { color: #2e7d32; }
+.st-5 { color: #999; }
+.st-6 { color: #e53935; }
+.od-body { display: flex; flex-direction: column; margin: 16rpx 0; }
+.od-item { font-size: 30rpx; font-weight: 600; margin-bottom: 8rpx; }
+.od-foot { display: flex; justify-content: space-between; align-items: center; }
+.lg { width: 300rpx; margin: 40rpx auto; }

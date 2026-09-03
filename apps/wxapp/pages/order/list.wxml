@@ -1,0 +1,29 @@
+<view class="tabs" wx:if="{{loggedIn}}">
+  <scroll-view scroll-x>
+    <view class="tab {{active === index ? 'on' : ''}}" wx:for="{{tabs}}" wx:key="status"
+          data-i="{{index}}" bindtap="onTab">{{item.label}}</view>
+  </scroll-view>
+</view>
+
+<view wx:if="{{loggedIn}}">
+  <view class="od" wx:for="{{orders}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
+    <view class="od-head">
+      <text class="od-no">{{item.order_no}}</text>
+      <text class="od-st st-{{item.status}}">{{item.stText}}</text>
+    </view>
+    <view class="od-body">
+      <text class="od-item">{{item.item_title || '…'}}</text>
+      <text class="muted">{{item.start_date}} ~ {{item.end_date}} · {{item.days}}天</text>
+    </view>
+    <view class="od-foot">
+      <text class="price">{{fmtMoney(item.rent_amount)}}</text>
+      <text class="muted">押金 {{fmtMoney(item.deposit)}}</text>
+    </view>
+  </view>
+  <view class="empty" wx:if="{{!orders.length && !loading}}">暂无订单</view>
+</view>
+
+<view class="empty" wx:else>
+  <view>登录后查看你的订单</view>
+  <button class="btn btn-primary lg" bindtap="goLogin">去登录</button>
+</view>

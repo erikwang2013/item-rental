@@ -1,0 +1,9 @@
+.pay { padding: 60rpx 24rpx 0; text-align: center; }
+.amount { font-size: 72rpx; font-weight: 700; color: #e53935; }
+.st { margin: 12rpx 0 30rpx; color: #999; font-size: 28rpx; }
+.st.ok { color: #2e7d32; }
+.meta { text-align: left; }
+.no { font-size: 24rpx; color: #666; word-break: break-all; }
+.tip { margin: 24rpx; font-size: 22rpx; line-height: 1.6; text-align: left; }
+.acts { margin-top: 40rpx; }
+.wide { margin-bottom: 24rpx; }

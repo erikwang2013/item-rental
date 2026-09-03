@@ -55,8 +55,8 @@ PUT 请求体可选:`nickname | avatar | real_name | phone`。
 
 | 方法 | 路径 | 鉴权 | 说明 |
 | --- | --- | --- | --- |
-| GET | /items | 公开 | 分页列表,可带 city/category |
-| GET | /items/search | 公开 | 关键词搜索 + 半径检索 |
+| GET | /items | 公开 | 分页列表,可带 category_id(**不支持 city**,城市过滤走 /items/search) |
+| GET | /items/search | 公开 | 关键词搜索(q)+ 城市/价格过滤 + 半径检索 |
 | GET | /items/:id | 公开 | 物品详情 |
 | POST | /items | JWT | 发布物品 |
 | PUT | /items/:id | JWT(owner) | 修改物品 |
@@ -64,11 +64,11 @@ PUT 请求体可选:`nickname | avatar | real_name | phone`。
 
 ### GET /items 查询参数
 
-`page=1&size=20&city=上海&category_id=1`
+`page=1&page_size=20&category_id=1`(分页参数为 page_size;GET /items 无 city 过滤)
 
 ### GET /items/search 查询参数
 
-`keyword=相机&lat=31.2&lng=121.4&radius_km=10` — 边界盒 + Go Haversine 精滤。
+`q=相机&city=上海&category_id=1&min_price=10&max_price=100&order_by=&page=1&page_size=20` — 关键词参数为 `q`;另支持 `lat&lng&radius_km` 半径检索(边界盒 + Go Haversine 精滤)。
 
 ### POST /items 请求体
 
@@ -133,7 +133,7 @@ PUT 请求体可选:`nickname | avatar | real_name | phone`。
 
 ### POST /pay/unifiedorder 请求体
 
-`{"order_id":1}` — 成功返回微信 JSAPI pay_params。
+`{"order_no":"ORD...","channel":"native"}`(order_no 为订单号字符串,channel=native/jsapi)— 成功返回微信 JSAPI pay_params;mock 模式客户端轮询订单状态。
 
 ### POST /pay/refund 请求体
 

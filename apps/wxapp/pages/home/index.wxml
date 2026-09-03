@@ -1,0 +1,26 @@
+<view class="home">
+  <view class="search-bar" bindtap="goSearch">
+    <text class="s-ico">🔍</text>
+    <text class="s-ph">搜索物品,如「相机」…</text>
+  </view>
+
+  <scroll-view scroll-x class="cats" wx:if="{{categories.length}}">
+    <view class="cat" wx:for="{{categories}}" wx:key="id" data-id="{{item.id}}" data-name="{{item.name}}" bindtap="goCategory">
+      <text class="cat-ico">{{item.icon || item.name[0]}}</text>
+      <text class="cat-name">{{item.name}}</text>
+    </view>
+  </scroll-view>
+
+  <view class="sec-title">推荐好物</view>
+  <view class="grid">
+    <view class="cell" wx:for="{{items}}" wx:key="id" data-id="{{item.id}}" bindtap="goDetail">
+      <image class="img" src="{{item.cover}}" mode="aspectFill" lazy-load />
+      <view class="c-title">{{item.title}}</view>
+      <view class="c-foot">
+        <text class="price">{{fmtMoney(item.daily_price)}}/天</text>
+        <text class="c-city muted">{{item.city}}</text>
+      </view>
+    </view>
+  </view>
+  <view class="empty" wx:if="{{!items.length && !loading}}">暂无物品</view>
+</view>

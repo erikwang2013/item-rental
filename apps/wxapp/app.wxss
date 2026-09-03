@@ -1,0 +1,43 @@
+/* 全局样式:主题绿 #2E7D32,与 Flutter/旧 uni-app 一致 */
+page {
+  background: #f5f6f8;
+  font-size: 28rpx;
+  color: #222;
+}
+
+button::after { border: none; }
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  margin: 16rpx 24rpx;
+  padding: 24rpx;
+}
+.row-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin: 0 24rpx 16rpx;
+}
+.flex { display: flex; align-items: center; }
+.flex1 { flex: 1; min-width: 0; }
+.thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #f0f0f0; flex-shrink: 0; }
+.price { color: #e53935; font-weight: 600; }
+.muted { color: #999; font-size: 24rpx; }
+.title1 { font-size: 30rpx; font-weight: 600; }
+.btn { height: 88rpx; line-height: 88rpx; text-align: center; border-radius: 44rpx; font-size: 32rpx; padding: 0; margin: 0; }
+.btn::after { border: none; }
+.btn-primary { background: #2e7d32; color: #fff; }
+.btn-orange { background: #fb8c00; color: #fff; }
+.btn-ghost { background: #fff; color: #666; border: 1rpx solid #ddd; }
+.btn-danger { background: #fff; color: #e53935; border: 1rpx solid #e53935; }
+.btn-sm { height: 60rpx; line-height: 60rpx; font-size: 26rpx; padding: 0 28rpx; border-radius: 30rpx; display: inline-block; }
+.btn-sm.btn-primary { color: #fff; }
+.empty { text-align: center; color: #999; font-size: 26rpx; padding: 120rpx 0; }
+.form-item { display: flex; align-items: center; padding: 24rpx; background: #fff; border-bottom: 1rpx solid #f2f2f2; }
+.form-item .label { width: 180rpx; color: #666; font-size: 28rpx; }
+.form-item input, .form-item textarea { flex: 1; font-size: 28rpx; }
+.kv { display: flex; justify-content: space-between; padding: 18rpx 0; font-size: 28rpx; }
+.kv .k { color: #999; }

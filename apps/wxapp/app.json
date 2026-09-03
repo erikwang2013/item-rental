@@ -1,0 +1,37 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/order/list",
+    "pages/user/index",
+    "pages/auth/login",
+    "pages/items/list",
+    "pages/items/search",
+    "pages/items/detail",
+    "pages/order/confirm",
+    "pages/order/pay",
+    "pages/order/detail",
+    "pages/user/profile",
+    "pages/seller/items",
+    "pages/messages/index"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#2E7D32",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "闲租",
+    "backgroundColor": "#f5f6f8",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#2E7D32",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/home/index", "text": "首页" },
+      { "pagePath": "pages/order/list", "text": "订单" },
+      { "pagePath": "pages/user/index", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

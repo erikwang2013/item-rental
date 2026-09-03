@@ -1,0 +1,16 @@
+<view class="top">
+  <text class="t-left">未读 {{unread}} 条</text>
+  <text class="t-right" bindtap="toggleFilter">{{onlyUnread ? '只看未读 ✓' : '只看未读'}}</text>
+</view>
+
+<view class="msg {{item.read ? 'read' : ''}}" wx:for="{{msgs}}" wx:key="id"
+      data-id="{{item.id}}" bindtap="onTap">
+  <view class="m-head">
+    <text class="m-type">{{item.typeText}}</text>
+    <text wx:if="{{!item.read}}" class="dot">●</text>
+  </view>
+  <view class="m-title">{{item.title}}</view>
+  <view class="m-content">{{item.content}}</view>
+  <view class="m-time muted">{{item.timeText}}</view>
+</view>
+<view class="empty" wx:if="{{!msgs.length && !loading}}">暂无消息</view>

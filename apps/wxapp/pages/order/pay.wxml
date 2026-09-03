@@ -1,0 +1,20 @@
+<view class="pay" wx:if="{{order}}">
+  <view class="amount"><text class="a">{{fmtMoney(order.rent_amount)}}</text></view>
+  <view class="st {{order.status === 0 ? '' : 'ok'}}">{{statusText}}</view>
+
+  <view class="card meta">
+    <view class="kv"><text class="k">订单号</text><text class="no">{{order.order_no}}</text></view>
+    <view class="kv"><text class="k">租期</text><text>{{order.start_date}} ~ {{order.end_date}}({{order.days}}天)</text></view>
+    <view class="kv"><text class="k">押金</text><text>{{fmtMoney(order.deposit)}}</text></view>
+  </view>
+
+  <view class="tip muted" wx:if="{{order.status === 0}}">
+    mock 支付环境:发起后轮询订单状态;若停在待支付,说明服务端未收到模拟回调,下拉订单列表稍后刷新
+  </view>
+
+  <view class="acts">
+    <button wx:if="{{order.status === 0}}" class="btn btn-primary wide" bindtap="pay" disabled="{{paying}}">去支付</button>
+    <button wx:else class="btn btn-primary wide" bindtap="goDetail">查看订单</button>
+    <button class="btn btn-ghost wide" bindtap="goList">返回订单列表</button>
+  </view>
+</view>

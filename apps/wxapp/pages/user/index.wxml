@@ -1,0 +1,42 @@
+<view class="mine">
+  <!-- 未登录 -->
+  <block wx:if="{{!user}}">
+    <view class="card head" bindtap="goLogin">
+      <view class="avatar guest">👤</view>
+      <view class="flex1">
+        <view class="title1">点击登录</view>
+        <view class="muted">登录后可下单、管理物品</view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 已登录 -->
+  <block wx:else>
+    <view class="card head">
+      <image wx:if="{{user.avatar}}" class="avatar" src="{{user.avatar}}" mode="aspectFill" />
+      <view wx:else class="avatar guest">👤</view>
+      <view class="flex1">
+        <view class="title1">{{user.nickname || user.real_name || '闲租用户'}}</view>
+        <view class="muted">信用分 {{user.credit_score || 0}} · 押金余额 {{user.deposit_bal || 0}}</view>
+      </view>
+    </view>
+
+    <view class="menu">
+      <view class="mi" bindtap="goMessages">
+        <text class="mi-ico">💬</text><text class="mi-name">消息中心</text>
+        <text class="badge" wx:if="{{unread > 0}}">{{unread > 99 ? '99+' : unread}}</text>
+        <text class="arrow">›</text>
+      </view>
+      <view class="mi" bindtap="goSeller">
+        <text class="mi-ico">📦</text><text class="mi-name">我的物品</text>
+        <text class="arrow">›</text>
+      </view>
+      <view class="mi" bindtap="goProfile">
+        <text class="mi-ico">✏️</text><text class="mi-name">编辑资料</text>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+
+    <button class="btn btn-ghost logout" bindtap="logout">退出登录</button>
+  </block>
+</view>

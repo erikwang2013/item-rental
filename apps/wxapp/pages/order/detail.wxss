@@ -1,0 +1,11 @@
+.st-bar { text-align: center; font-size: 40rpx; font-weight: 700; padding: 40rpx 0 20rpx; color: #fb8c00; }
+.st-1, .st-2, .st-3, .st-4 { color: #2e7d32; }
+.st-5 { color: #999; }
+.st-6 { color: #e53935; }
+.info { margin-left: 20rpx; }
+.t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.no { font-size: 24rpx; color: #666; word-break: break-all; text-align: right; }
+.acts { display: flex; flex-wrap: wrap; gap: 20rpx; padding: 20rpx 24rpx; }
+.w45 { width: 45%; }
+.wide { width: 100%; }
+.wait { width: 100%; text-align: center; }

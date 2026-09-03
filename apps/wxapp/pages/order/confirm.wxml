@@ -1,0 +1,27 @@
+<view wx:if="{{item}}">
+  <view class="row-card">
+    <image class="thumb" src="{{item.cover}}" mode="aspectFill" />
+    <view class="flex1 info">
+      <view class="title1 t">{{item.title}}</view>
+      <view class="muted">{{item.city}} · 押金 {{fmtMoney(item.deposit)}}</view>
+      <view class="price">{{fmtMoney(item.daily_price)}}/天</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <picker mode="date" value="{{startDate}}" bindchange="onStart">
+      <view class="kv"><text class="k">开始日期</text><text>{{startDate}}</text></view>
+    </picker>
+    <picker mode="date" value="{{endDate}}" start="{{startDate}}" bindchange="onEnd">
+      <view class="kv"><text class="k">结束日期</text><text>{{endDate}}</text></view>
+    </picker>
+    <view class="kv"><text class="k">租期</text><text>{{days}} 天</text></view>
+    <view class="kv"><text class="k">租金合计</text><text class="price">{{fmtMoney(rent)}}</text></view>
+  </view>
+  <view class="muted tip">押金在取货时冻结,归还确认后原路退还</view>
+
+  <view class="footer safe-bottom">
+    <view class="f-price"><text class="price">{{fmtMoney(rent)}}</text></view>
+    <button class="btn btn-primary f-btn" bindtap="submit">提交订单</button>
+  </view>
+</view>

@@ -1,0 +1,10 @@
+.info { margin-left: 20rpx; }
+.t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tip { margin: 0 24rpx; }
+.footer {
+  position: fixed; left: 0; right: 0; bottom: 0; display: flex; align-items: center;
+  background: #fff; padding: 16rpx 24rpx; border-top: 1rpx solid #eee;
+}
+.f-price { margin-right: 32rpx; font-size: 40rpx; }
+.f-btn { flex: 1; }
+page { padding-bottom: 140rpx; }

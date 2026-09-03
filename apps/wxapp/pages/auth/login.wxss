@@ -1,0 +1,8 @@
+.wrap { padding: 80rpx 48rpx; }
+.logo { text-align: center; font-size: 72rpx; font-weight: 700; color: #2e7d32; letter-spacing: 8rpx; }
+.sub { text-align: center; color: #999; font-size: 24rpx; margin: 16rpx 0 60rpx; }
+.card { background: #fff; border-radius: 16rpx; padding: 8rpx 24rpx; }
+.send { color: #2e7d32; font-size: 26rpx; }
+.send.muted { color: #bbb; }
+.tip { text-align: center; color: #c2a53b; font-size: 22rpx; margin: 24rpx 0; }
+.go { margin-top: 40rpx; }
