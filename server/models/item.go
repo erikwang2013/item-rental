@@ -24,6 +24,8 @@ type Item struct {
 	Lng        float64   `orm:"column(lng);digits(10);decimals(7)" json:"lng"`
 	CreatedAt  time.Time `orm:"column(created_at);auto_now_add;type(datetime)" json:"created_at"`
 	UpdatedAt  time.Time `orm:"column(updated_at);auto_now;type(datetime)" json:"updated_at"`
+	// Owner 房东公开信息；仅详情接口填充（orm 不持久化），列表为空不输出
+	Owner *UserPublic `orm:"-" json:"owner,omitempty"`
 }
 
 // TableName 指定表名

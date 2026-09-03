@@ -23,13 +23,21 @@ Page({
   load() {
     orderApi.detail(this.id).then(o => {
       const uid = Number((wx.getStorageSync('user') || {}).id)
-      this.setData({ order: o, isRenter: !!uid && uid === o.renter_id })
+      const isRenter = !!uid && uid === o.renter_id
+      // 对方信息(服务端富化 owner/renter;按角色取对面)
+      const counterpart = uid ? (isRenter ? o.owner : o.renter) : null
+      this.setData({ order: o, isRenter, counterpart })
       // 补物品标题(订单接口不含物品冗余)
       itemApi.detail(o.item_id).then(it => {
         const cover = util.splitImages(it.images)[0] || ''
         this.setData({ item: Object.assign({}, it, { cover }) })
       }).catch(() => {})
     }).catch(() => {})
+  },
+
+  // 对方头像加载失败 → 回落 👤 占位
+  onCpImgErr() {
+    if (this.data.counterpart) this.setData({ 'counterpart.avatar': '' })
   },
 
   // 流转操作:均需 confirm 弹窗

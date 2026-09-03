@@ -19,6 +19,11 @@ Page({
     })
   },
 
+  // 房东头像加载失败 → 回落 👤 占位(置空 avatar 触发 wx:else)
+  onOwnerImgErr() {
+    if (this.data.item && this.data.item.owner) this.setData({ 'item.owner.avatar': '' })
+  },
+
   // 物品下架/不存在时兜底
   rent() {
     if (!this.data.item) return

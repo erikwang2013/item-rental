@@ -111,3 +111,25 @@ uni-app(`apps/web`)作废删除;并行重建 **Flutter 主App**(`apps/flutter`)+
 **验证**:`go build && go vet && go test ./...` 9 包全绿;flutter analyze 零告警/test/build web;wxapp node --check 全过;`bash scripts/e2e-smoke.sh` 链 1+2 全断言 PASS(含退款 409、押金入物主账、credit 精确值、消息×N)。
 
 **已知边界(记录在案)**:信用/通知/台账与状态迁移非同一事务(与既有押金写法一致,故障下可经 credit_events/deposits 台账人工对账);EnsureGeoIndex 每次启动删索引重建(单实例可接受,多实例需查 mapping 存在性);dev 库重建后旧明文 phone 会注册为新账号(上线侧迁移脚本为范围外待办)。
+
+## 11. 阶段F — 对方信息富化 + 验证三连(远端CI/真浏览器/geo)+ 上线前置清单(✅ 本轮完成)
+
+- [x] **F1 对方信息富化** — 新 `UserPublic` 精简视图(id/nickname/avatar/credit_score,严禁 PII,marhsal 零泄露断言在案);物品详情响应 + `owner`、订单详情 + `owner/renter`(`orm:"-"` + omitempty,列表零影响无 N+1);孤儿 owner 行容错 nil;两端详情页加房东行/对方行(头像加载失败 errorBuilder 兜底回落 👤)。
+- [x] **F2 远端 CI 修复** — ci.yml `submint/flutter-action` → `subosito/flutter-action`(拼写错致 v1.2.0 push 起 main 红,Go 双侧一直绿);修复后远端三 job(lint/test/flutter-gate)全绿。
+- [x] **F3 flutter web 真浏览器** — headless Chrome 渲染成功(应用真实启动,截图在案);CORS GET echo + OPTIONS 200 非 403;HTTP 层全链 PASS(含富化 shape:owner={id,nickname,avatar,credit_score} 无 PII 泄漏)。**交互层缺口**:本环境无 playwright 桥、headless 无输入驱动 → UI 点击链(登录页→发布→详情断言)留待 devtools/带桥环境人工补。
+- [x] **F4 geo 手动链** — rental OpenSearch 2.14.0 实起(`DISABLE_SECURITY_PLUGIN=true` 无安全模式 + `--network host`);EnsureGeoIndex mapping `geo_point` 实测生效;radius_km=100 上海查询只回近件、北京远件被排除 → WhereGeoDistance engine 分支真索引验证 PASS。
+- **冷启动 400 澄清**:§9 残余观察主因 = **冒烟脚本自身 bug**(登录 body 手机号无引号,数字进 string 字段 → 400「手机号不能为空」),非服务端问题;服务端 CopyBody 兜底保留(防御性、幂等、回归测试在案);OS 负载下早期窗口偶发 400 与脚本修正后未再触发。
+
+**上线前置 gate 清单(资质/工具就位即解锁,无代码任务)**:
+
+| 前置项 | 阻塞凭证 | 就绪面 |
+|---|---|---|
+| 真微信支付 | 微信商户号 + API 密钥/证书 | gateway 抽象现成(mock 短路),config.go 注释在案 |
+| 支付宝接入 | 独立立项 + 商户资质 | 无实现(OUT-OF-SCOPE 记录在案) |
+| wxapp 真机/体验版 | 微信开发者工具 + 真实 appid + HTTPS 合法域名 | 现 touristappid 游客模式;devtools「不校验合法域名」 |
+| flutter 远程部署 | 部署域 + 反代/同源;baseUrl 需 kIsWeb/构建期注入分支 | 本机直连可用,CORS `*` 已开 |
+| PII 合规审计 | 合规要求触发 | 列宽/schema/密钥已就位(ITEM_RENTAL_PII_KEY) |
+| 备份策略 | 上线决策 | deploy compose 现成 |
+| prod compose 全栈验证 | 上线窗口 | deploy/.prod.yml + config-runbook |
+
+**验证**:go 9 包全绿;flutter analyze 零 issue;geo 半径断言 PASS;F1 富化 shape 无 PII 泄漏断言;root 空密码还原确认。

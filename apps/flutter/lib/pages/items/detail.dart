@@ -81,6 +81,42 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                               Text(item.city, style: TextStyle(color: Colors.grey.shade700)),
                             ]),
                           ),
+                        if (item.owner != null && item.owner!.id != 0)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Row(children: [
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  shape: BoxShape.circle,
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: item.owner!.avatar.isEmpty
+                                    ? const Icon(Icons.person, size: 18, color: Colors.grey)
+                                    : Image.network(item.owner!.avatar,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, _, _) => const Icon(
+                                            Icons.person, size: 18, color: Colors.grey)),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(item.owner!.nickname,
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: kGreen.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text('信用分 ${item.owner!.creditScore}',
+                                    style: const TextStyle(fontSize: 11, color: kGreen)),
+                              ),
+                              const Spacer(),
+                              Text('房东', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                            ]),
+                          ),
                         const Divider(height: 28),
                         Text('物品描述', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 8),

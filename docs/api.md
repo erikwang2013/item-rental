@@ -78,6 +78,10 @@ PUT 请求体可选:`nickname | avatar | real_name | phone`。`real_name` 明文
 `page=1&page_size=20&category_id=1`(分页参数为 page_size;GET /items 无 city 过滤)
 `owner_id=<uid>`:「我的物品」视图 — 需 JWT 且 owner_id 等于本人 uid(未登录 401、非本人 403),**包含下架物品**(无 status 过滤),分页/品类过滤同公开列表;不带 owner_id 行为不变(公开仅上架)。
 
+### GET /items/:id 详情响应富化
+
+详情在物品字段外附带房东公开信息(可选,列表不含):`"owner": {"id": 7, "nickname": "房东", "avatar": "http://...", "credit_score": 90}`。owner 仅含昵称/头像/信用分,**不含 phone/real_name/deposit_bal/status 等任何 PII 或私密字段**;房东行缺失(孤儿数据)时该键省略。
+
 ### GET /items/search 查询参数
 
 `q=相机&city=上海&category_id=1&min_price=10&max_price=100&order_by=&page=1&page_size=20` — 关键词参数为 `q`;另支持 `lat&lng&radius_km` 半径检索(边界盒 + Go Haversine 精滤)。
@@ -119,6 +123,10 @@ PUT 请求体可选:`nickname | avatar | real_name | phone`。`real_name` 明文
 | POST | /orders/:id/return_confirm | 确认归还(3→4,解冻+结算) |
 | POST | /orders/:id/breach | 违约(3→6,扣押金) |
 | POST | /orders/:id/cancel | 取消(0→5,退租金) |
+
+### GET /orders/:id 详情响应富化
+
+详情在订单字段外附带双方公开信息(可选,列表不含):`"owner": {...}`(房东)与 `"renter": {...}`(租客),子对象字段同物品详情 owner 形态(id/nickname/avatar/credit_score,不含 PII)。仅租客或房东本人可看,客户端按自身角色读取对方。
 
 ### POST /orders 请求体
 

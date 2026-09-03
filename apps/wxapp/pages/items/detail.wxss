@@ -5,6 +5,10 @@
 .t { margin: 8rpx 0; }
 .row-gap { margin-top: 6rpx; }
 .desc { color: #555; font-size: 26rpx; line-height: 1.6; }
+.owner-row { display: flex; align-items: center; }
+.owner-avatar { width: 88rpx; height: 88rpx; border-radius: 50%; background: #e8f5e9; margin-right: 20rpx; flex-shrink: 0; }
+.owner-avatar.guest { line-height: 88rpx; text-align: center; font-size: 44rpx; }
+.owner-meta { flex: 1; }
 .footer {
   position: fixed; left: 0; right: 0; bottom: 0; display: flex; align-items: center;
   background: #fff; padding: 16rpx 24rpx; border-top: 1rpx solid #eee;

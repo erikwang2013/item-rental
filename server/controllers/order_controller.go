@@ -117,6 +117,20 @@ func (c *OrderController) Detail() {
 		c.Fail(403, "无权查看该订单")
 		return
 	}
+	// 富化双方公开信息(昵称/头像/信用分),客户端按自身角色读取对方;缺失容错为 nil
+	for _, u := range []struct {
+		id     int64
+		target **models.UserPublic
+	}{{order.OwnerId, &order.Owner}, {order.RenterId, &order.Renter}} {
+		user := models.User{Id: u.id}
+		if err := o.Read(&user); err == nil {
+			pub := user.ToPublic()
+			*u.target = &pub
+		} else if err != orm.ErrNoRows {
+			c.Fail(500, "查询订单失败")
+			return
+		}
+	}
 	c.OK(order)
 }
 

@@ -1,3 +1,5 @@
+import 'user.dart';
+
 /// Order 模型,字段对齐 server/models/order.go。
 class Order {
   final int id;
@@ -5,6 +7,8 @@ class Order {
   final int itemId;
   final int renterId;
   final int ownerId;
+  final UserProfile? owner; // 详情接口富化:房东公开信息(列表不含)
+  final UserProfile? renter; // 详情接口富化:租客公开信息(列表不含)
   final String startDate;
   final String endDate;
   final int days;
@@ -21,6 +25,8 @@ class Order {
     required this.itemId,
     required this.renterId,
     required this.ownerId,
+    this.owner,
+    this.renter,
     required this.startDate,
     required this.endDate,
     required this.days,
@@ -38,6 +44,12 @@ class Order {
         itemId: j['item_id'] as int? ?? 0,
         renterId: j['renter_id'] as int? ?? 0,
         ownerId: j['owner_id'] as int? ?? 0,
+        owner: j['owner'] is Map<String, dynamic>
+            ? UserProfile.fromJson(j['owner'] as Map<String, dynamic>)
+            : null,
+        renter: j['renter'] is Map<String, dynamic>
+            ? UserProfile.fromJson(j['renter'] as Map<String, dynamic>)
+            : null,
         startDate: j['start_date'] as String? ?? '',
         endDate: j['end_date'] as String? ?? '',
         days: j['days'] as int? ?? 0,

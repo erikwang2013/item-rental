@@ -135,6 +135,15 @@ func (c *ItemController) Detail() {
 		c.Fail(404, "物品不存在")
 		return
 	}
+	// 富化房东公开信息(昵称/头像/信用分);owner 行缺失(孤儿数据)容错为 nil 不 500
+	owner := models.User{Id: item.OwnerId}
+	if err := o.Read(&owner); err == nil {
+		pub := owner.ToPublic()
+		item.Owner = &pub
+	} else if err != orm.ErrNoRows {
+		c.Fail(500, "查询物品失败")
+		return
+	}
 	c.OK(item)
 }
 

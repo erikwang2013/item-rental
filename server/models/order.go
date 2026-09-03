@@ -23,6 +23,9 @@ type Order struct {
 	CancelReason string    `orm:"column(cancel_reason);size(255)" json:"cancel_reason"`
 	CreatedAt    time.Time `orm:"column(created_at);auto_now_add;type(datetime)" json:"created_at"`
 	UpdatedAt    time.Time `orm:"column(updated_at);auto_now;type(datetime)" json:"updated_at"`
+	// Owner/Renter 双方公开信息；仅详情接口填充（orm 不持久化），列表为空不输出
+	Owner  *UserPublic `orm:"-" json:"owner,omitempty"`
+	Renter *UserPublic `orm:"-" json:"renter,omitempty"`
 }
 
 // TableName 指定表名

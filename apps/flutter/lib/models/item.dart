@@ -1,9 +1,12 @@
 import 'dart:convert';
 
+import 'user.dart';
+
 /// Item 模型,json 字段对齐 server/models/item.go。
 class Item {
   final int id;
   final int ownerId;
+  final UserProfile? owner; // 详情接口富化:房东公开信息(列表不含)
   final int categoryId;
   final String title;
   final String desc;
@@ -20,6 +23,7 @@ class Item {
   Item({
     required this.id,
     required this.ownerId,
+    this.owner,
     required this.categoryId,
     required this.title,
     required this.desc,
@@ -37,6 +41,9 @@ class Item {
   factory Item.fromJson(Map<String, dynamic> j) => Item(
         id: j['id'] as int? ?? 0,
         ownerId: j['owner_id'] as int? ?? 0,
+        owner: j['owner'] is Map<String, dynamic>
+            ? UserProfile.fromJson(j['owner'] as Map<String, dynamic>)
+            : null,
         categoryId: j['category_id'] as int? ?? 0,
         title: j['title'] as String? ?? '',
         desc: j['desc'] as String? ?? '',

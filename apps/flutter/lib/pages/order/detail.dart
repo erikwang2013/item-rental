@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../api/endpoints.dart';
 import '../../core/format.dart';
 import '../../models/order.dart';
+import '../../models/user.dart';
 import '../../stores/user_store.dart';
 import '../../widgets/commons.dart';
 import 'pay.dart';
@@ -111,6 +112,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     _row('租金', '¥${fmtMoney(o.rentAmount)}'),
                     _row('押金', '¥${fmtMoney(o.deposit)}'),
                     _row('角色', _isOwner ? '我是出租方' : (_isRenter ? '我是租客' : '')),
+                    ..._counterpartRows(o),
                     if (o.payTradeNo.isNotEmpty) _row('支付流水', o.payTradeNo),
                     _row('下单时间', fmtDate(o.createdAt)),
                   ]),
@@ -127,6 +129,50 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           Expanded(child: Text(v, textAlign: TextAlign.right)),
         ]),
       );
+
+  // 详情富化:显示对方(我是房东→租客,我是租客→房东)公开信息;缺失隐藏。
+  List<Widget> _counterpartRows(Order o) {
+    final UserProfile? p = _isOwner
+        ? o.renter
+        : (_isRenter ? o.owner : null);
+    if (p == null || p.id == 0) return const [];
+    return [
+      Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Row(children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              shape: BoxShape.circle,
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: p.avatar.isEmpty
+                ? const Icon(Icons.person, size: 15, color: Colors.grey)
+                : Image.network(p.avatar,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) =>
+                        const Icon(Icons.person, size: 15, color: Colors.grey)),
+          ),
+          const SizedBox(width: 8),
+          Text(p.nickname, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+            decoration: BoxDecoration(
+              color: kGreen.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text('信用分 ${p.creditScore}',
+                style: const TextStyle(fontSize: 11, color: kGreen)),
+          ),
+          const Spacer(),
+          Text(_isOwner ? '租客' : '房东', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+        ]),
+      ),
+    ];
+  }
 
   Widget? _actions(Order o) {
     final List<Widget> btns = [];

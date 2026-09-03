@@ -15,6 +15,18 @@
     <text class="desc">{{item.desc}}</text>
   </view>
 
+  <view class="card" wx:if="{{item.owner}}">
+    <view class="kv"><text class="k">房东</text></view>
+    <view class="owner-row">
+      <image wx:if="{{item.owner.avatar}}" class="owner-avatar" src="{{item.owner.avatar}}" mode="aspectFill" binderror="onOwnerImgErr" />
+      <view wx:else class="owner-avatar guest">👤</view>
+      <view class="owner-meta">
+        <view class="t">{{item.owner.nickname || '闲租用户'}}</view>
+        <view class="muted">信用分 {{item.owner.credit_score || 0}}</view>
+      </view>
+    </view>
+  </view>
+
   <view class="card">
     <view class="kv"><text class="k">押金</text><text class="price">{{fmtMoney(item.deposit)}}</text></view>
     <view class="kv"><text class="k">租期计价</text><text>按天计价,归还结算后退押金</text></view>

@@ -20,6 +20,18 @@
     <view class="kv" wx:if="{{order.cancel_reason}}"><text class="k">取消原因</text><text>{{order.cancel_reason}}</text></view>
   </view>
 
+  <view class="card" wx:if="{{counterpart}}">
+    <view class="kv"><text class="k">{{isRenter ? '房东' : '租客'}}</text></view>
+    <view class="cp-row">
+      <image wx:if="{{counterpart.avatar}}" class="cp-avatar" src="{{counterpart.avatar}}" mode="aspectFill" binderror="onCpImgErr" />
+      <view wx:else class="cp-avatar guest">👤</view>
+      <view class="flex1 info">
+        <view class="title1 t">{{counterpart.nickname || '闲租用户'}}</view>
+        <view class="muted">信用分 {{counterpart.credit_score || 0}}</view>
+      </view>
+    </view>
+  </view>
+
   <view class="acts">
     <!-- 待支付:租客 去支付/取消 -->
     <block wx:if="{{order.status === 0}}">

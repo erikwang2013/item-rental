@@ -21,3 +21,17 @@ type User struct {
 func (u *User) TableName() string {
 	return "users"
 }
+
+// UserPublic 对外公开的用户精简视图（物品/订单详情中的 owner/renter 信息）。
+// 仅暴露昵称/头像/信用分，严禁携带 phone/real_name/deposit_bal/status 等 PII 或私密字段。
+type UserPublic struct {
+	Id          int64  `json:"id"`
+	Nickname    string `json:"nickname"`
+	Avatar      string `json:"avatar"`
+	CreditScore int    `json:"credit_score"`
+}
+
+// ToPublic 将完整用户裁剪为公开视图(纯投影,值接收便于字面量调用)。
+func (u User) ToPublic() UserPublic {
+	return UserPublic{Id: u.Id, Nickname: u.Nickname, Avatar: u.Avatar, CreditScore: u.CreditScore}
+}

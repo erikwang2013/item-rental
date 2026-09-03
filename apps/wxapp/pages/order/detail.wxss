@@ -9,3 +9,6 @@
 .w45 { width: 45%; }
 .wide { width: 100%; }
 .wait { width: 100%; text-align: center; }
+.cp-row { display: flex; align-items: center; padding: 8rpx 0; }
+.cp-avatar { width: 88rpx; height: 88rpx; border-radius: 50%; background: #e8f5e9; flex-shrink: 0; }
+.cp-avatar.guest { line-height: 88rpx; text-align: center; font-size: 44rpx; }

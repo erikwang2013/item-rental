@@ -73,3 +73,63 @@ func TestSensitiveFieldsHidden(t *testing.T) {
 		t.Errorf("RawCallback 不应出现在 JSON 输出中: %s", s)
 	}
 }
+
+// --- F1 富化:UserPublic 公开视图与 Item/Order 详情嵌入 ---
+
+func TestUserToPublic(t *testing.T) {
+	u := User{Id: 7, Phone: "hash", Nickname: "房东", Avatar: "http://x/a.png", RealName: "enc", CreditScore: 90, DepositBal: 12.5, Status: 1}
+	pub := u.ToPublic()
+	if pub.Id != 7 || pub.Nickname != "房东" || pub.Avatar != "http://x/a.png" || pub.CreditScore != 90 {
+		t.Errorf("ToPublic 字段不符: %+v", pub)
+	}
+	// 公开视图不可携带 PII/私密字段(结构上无这些字段,编译期已保证;此处断言 JSON 不含其名)
+	data, _ := json.Marshal(pub)
+	for _, forbidden := range []string{"phone", "real_name", "deposit_bal", "status", "created_at"} {
+		if strings.Contains(string(data), forbidden) {
+			t.Errorf("UserPublic JSON 泄露字段 %q: %s", forbidden, data)
+		}
+	}
+}
+
+func TestItemOwnerOmitEmpty(t *testing.T) {
+	// nil Owner:序列化不含 owner 键(列表场景)
+	plain, err := json.Marshal(Item{Id: 1, OwnerId: 7})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	if strings.Contains(string(plain), `"owner"`) {
+		t.Errorf("nil Owner 不应输出 owner 键: %s", plain)
+	}
+	// set Owner:输出嵌套对象且字段完整
+	pub := User{Id: 7, Nickname: "房东", Avatar: "http://x/a.png", CreditScore: 90}.ToPublic()
+	with, err := json.Marshal(Item{Id: 1, OwnerId: 7, Owner: &pub})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	s := string(with)
+	for _, want := range []string{`"owner":{`, `"id":7`, `"nickname":"房东"`, `"avatar":"http://x/a.png"`, `"credit_score":90`} {
+		if !strings.Contains(s, want) {
+			t.Errorf("owner 对象缺 %q: %s", want, s)
+		}
+	}
+}
+
+func TestOrderCounterpartyOmitEmpty(t *testing.T) {
+	plain, err := json.Marshal(Order{Id: 1})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	if strings.Contains(string(plain), `"owner"`) || strings.Contains(string(plain), `"renter"`) {
+		t.Errorf("nil 双方不应输出 owner/renter 键: %s", plain)
+	}
+	oPub := User{Id: 2, Nickname: "房东", CreditScore: 80}.ToPublic()
+	rPub := User{Id: 3, Nickname: "租客", CreditScore: 100}.ToPublic()
+	with, err := json.Marshal(Order{Id: 1, Owner: &oPub, Renter: &rPub})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	s := string(with)
+	if !strings.Contains(s, `"owner":{"id":2,"nickname":"房东"`) || !strings.Contains(s, `"renter":{"id":3,"nickname":"租客"`) {
+		t.Errorf("owner/renter 对象不符: %s", s)
+	}
+}
