@@ -29,8 +29,16 @@
       <input placeholder="如 上海" value="{{form.city}}" data-k="city" bindinput="onField" />
     </view>
     <view class="form-item col">
-      <text class="label">图片 URL</text>
-      <textarea class="ta" maxlength="1000" auto-height placeholder="多张用逗号分隔 https://a.jpg,https://b.jpg" value="{{form.images}}" data-k="images" bindinput="onField" />
+      <text class="label">图片(最多 9 张,选图即上传)</text>
+      <view class="pics">
+        <view class="pic" wx:for="{{pics}}" wx:key="path" wx:for-item="pic">
+          <image class="thumb" src="{{pic.url || pic.path}}" mode="aspectFill" />
+          <view class="pic-del" data-i="{{index}}" catchtap="delPic">×</view>
+        </view>
+        <view class="pic add" wx:if="{{pics.length < 9}}" bindtap="onChooseImg">
+          <text>{{up ? '上传中…' : '+'}}</text>
+        </view>
+      </view>
     </view>
     <view class="form-item col">
       <text class="label">描述</text>

@@ -26,8 +26,14 @@ type OrderStore interface {
 	TransitionOrder(id int64, from, to int) (int64, error)
 	// InsertDeposit 写一条押金流水
 	InsertDeposit(d *models.Deposit) error
-	// AdjustDepositBal 给用户押金余额增/减 delta（pickup 扣减、return_confirm 返还）
+	// AdjustDepositBal 给用户押金余额增/减 delta（pickup 扣减、return_confirm 返还、breach 赔付物主）
 	AdjustDepositBal(userID int64, delta float64) error
+	// Notify 向用户写一条站内信
+	Notify(userID int64, typ, title, content string) error
+	// AdjustCredit 调整用户信用分（SQL 表达式 clamp 到 0-100，无读改写竞态）
+	AdjustCredit(userID int64, delta int) error
+	// InsertCreditEvent 写一条信用分流水
+	InsertCreditEvent(e *models.CreditEvent) error
 }
 
 // ensureRole 身份校验：取货/申请归还需要是租客，确认归还/违约需要是物主
@@ -118,10 +124,23 @@ func ConfirmReturn(st OrderStore, orderID, uid int64) (bool, error) {
 	if err := st.AdjustDepositBal(order.RenterId, amount); err != nil {
 		return false, err
 	}
+	// 按时归还：租客信用 +5 并通知
+	if err := st.AdjustCredit(order.RenterId, 5); err != nil {
+		return false, err
+	}
+	if err := st.InsertCreditEvent(&models.CreditEvent{
+		UserId: order.RenterId, Change: 5, Reason: "return_on_time", Ref: order.OrderNo,
+	}); err != nil {
+		return false, err
+	}
+	if err := st.Notify(order.RenterId, "return_confirmed", "归还确认", fmt.Sprintf("订单 %s 已确认归还，信用分 +5", order.OrderNo)); err != nil {
+		return false, err
+	}
 	return true, nil
 }
 
-// Breach 违约（3→6 违约扣押金）：物主操作，押金扣除不退还（不增加租客余额）。
+// Breach 违约（3→6 违约扣押金）：物主操作。
+// 押金全额赔付物主余额（用户决策：违约押金入物主账）；租客侧保留 type=3 扣款台账作审计。
 func Breach(st OrderStore, orderID, uid int64) (bool, error) {
 	ok, err := transition(st, orderID, uid, false, models.OrderStatusToReturn, models.OrderStatusBreach)
 	if err != nil || !ok {
@@ -136,6 +155,22 @@ func Breach(st OrderStore, orderID, uid int64) (bool, error) {
 		OrderId: orderID, UserId: order.RenterId,
 		Amount: amount, Type: models.DepositTypeDeduct, Ref: order.OrderNo,
 	}); err != nil {
+		return false, err
+	}
+	// 押金赔付物主（此前仅扣租客不入账，押金凭空消失）
+	if err := st.AdjustDepositBal(order.OwnerId, amount); err != nil {
+		return false, err
+	}
+	// 违约：租客信用 -30 并通知
+	if err := st.AdjustCredit(order.RenterId, -30); err != nil {
+		return false, err
+	}
+	if err := st.InsertCreditEvent(&models.CreditEvent{
+		UserId: order.RenterId, Change: -30, Reason: "breach", Ref: order.OrderNo,
+	}); err != nil {
+		return false, err
+	}
+	if err := st.Notify(order.RenterId, "breach", "违约判定", fmt.Sprintf("订单 %s 判定违约，押金已赔付物主，信用分 -30", order.OrderNo)); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -178,8 +213,23 @@ func (s *defaultOrderStore) InsertDeposit(d *models.Deposit) error {
 }
 
 func (s *defaultOrderStore) AdjustDepositBal(userID int64, delta float64) error {
-	_, err := s.o.QueryTable(new(models.User)).
-		Filter("id", userID).
-		Update(map[string]any{"deposit_bal": fmt.Sprintf("deposit_bal + %.2f", delta)})
+	// SQL 表达式须走 Raw(同 AdjustCredit;历史 bug:ORM Update 值当绑定参数,余额从没真的动过)
+	_, err := s.o.Raw("UPDATE users SET deposit_bal = deposit_bal + ? WHERE id = ?", delta, userID).Exec()
+	return err
+}
+
+func (s *defaultOrderStore) Notify(userID int64, typ, title, content string) error {
+	return Send(userID, typ, title, content)
+}
+
+func (s *defaultOrderStore) AdjustCredit(userID int64, delta int) error {
+	// SQL 表达式须走 Raw:ORMMap Update 的值会被当绑定参数(字符串字面量),SET 到 INT 列必报错
+	_, err := s.o.Raw("UPDATE users SET credit_score = GREATEST(LEAST(credit_score + ?, 100), 0) WHERE id = ?",
+		delta, userID).Exec()
+	return err
+}
+
+func (s *defaultOrderStore) InsertCreditEvent(e *models.CreditEvent) error {
+	_, err := s.o.Insert(e)
 	return err
 }

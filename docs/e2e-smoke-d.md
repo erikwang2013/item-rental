@@ -61,3 +61,44 @@ curl -s http://127.0.0.1:8080/health   # {"code":0,"msg":"ok"}
 - `/items/search`(无 SCOUT_DRIVER 降级)、refresh 轮换(Redis AUTH 噪音)跳过。
 - wxapp/flutter 端 UI 冒烟未做(本期后端契约冒烟;两端静态验证门各自通过)。
 - 数据库残留首轮冒烟数据(用户 13800138001/2、物品、orders id1-2、payments);冒烟库可随时 DROP 重建(001_schema 幂等)。
+
+---
+
+# 阶段E 复跑结果(2026-09-04,scripts/e2e-smoke.sh 可执行真源)
+
+> 前置:MySQL root 临时改 root123456(还原命令见上);DROP DATABASE rental 重建(PII 列变:
+> phone sha256/real_name 加密列宽,存量明文无法登录,冒烟库可弃);起服 env 新增
+> `ITEM_RENTAL_PII_KEY=<64hex>`(缺失 fail-fast panic)。
+
+## 断言结果(修复后全绿)
+
+| 链 | 断言 | 结果 |
+|---|---|---|
+| 链1 | profile 鉴权 200/真401 | ✅ |
+| 链1 | 带图发布(真上传→images JSON 数组文本) | ✅ |
+| 链1 | owner 视图 4 语义(含下架 status=0/他人403/无token401/公开不含) | ✅ |
+| 链1 | 头像 png 上传+静态回读 200 / gif 400 | ✅ |
+| 链1 | 签名 notify→pickup→return_confirm=4 | ✅ |
+| 链1 | 消息 unread≥1 + real_name 加密后回读明文一致 | ✅ |
+| 链2a | cancel:退款回 0→cancel=5+cancel_reason→租客 -10→refund+cancel 消息×2 | ✅ |
+| 链2b | breach:租赁中 refund → **409 守卫** → breach=6 → **押金入物主账** → 租客 -30 → breach 消息 | ✅ |
+
+**G8 冷启动压测:启动窗口内 20 连发登录 0 失败**(CopyBody 兜底修复生效,阶段D 残余 400 未再出现)。
+
+**CORS 冒烟**:GET 带 Origin → 响应 `Access-Control-Allow-Origin: <echo>`;OPTIONS 预检 → 200 非 403。
+
+## 本轮回合打出的 A 级缺陷(已修,复跑验证)
+
+**A④ ORM Update 传 SQL 表达式字符串当 map 值 → 余额/信用分从未真的动过**(历史遗留,
+阶段B 押金冻结/解冻起就存在,纯 mock/状态断言掩盖):`defaultOrderStore.AdjustDepositBal`
+与 `AdjustCredit`(orderflow.go/cancel.go 三处)写
+`Update(map{"credit_score": "GREATEST(LEAST(...))"})` —— beego ORM 将字符串值当**绑定参数**
+(转义字面量),SET 到 INT/DECIMAL 列必报错 → cancel 500 首暴露,链2 余额断言钉死。
+修:`o.Raw("UPDATE users SET credit_score = GREATEST(LEAST(credit_score + ?, 100), 0) WHERE id = ?", ...).Exec()`
+三处同改。复验:链2b 物主 deposit_bal +200 入账、租客 credit 100→60 全过 ✅。
+教训:钱路断言必须查**最终落库值**(余额/信用),不能只看订单状态与 HTTP 码。
+
+## 残余观察(记录,未修)
+
+- 登录冷启动 400:阶段E 加 CopyBody 兜底后未再复现(两轮 20 连发 0 失败),观察中。
+- 删除已上传图片仅移本地引用,服务器文件留待清理(dev 可接受)。

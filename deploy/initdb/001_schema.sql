@@ -7,11 +7,11 @@ USE `rental`;
 -- ---------- 用户表 ----------
 CREATE TABLE IF NOT EXISTS `users` (
     `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `phone`         VARCHAR(20)     NOT NULL COMMENT '手机号（AES加密存储）',
-    `phone_enc`     VARCHAR(255)    DEFAULT NULL COMMENT '手机号密文',
+    `phone`         VARCHAR(64)     NOT NULL COMMENT '手机号 sha256(hex)，非明文',
+    `phone_enc`     VARCHAR(255)    DEFAULT NULL COMMENT '手机号密文（预留）',
     `nickname`      VARCHAR(64)     DEFAULT '' COMMENT '昵称',
     `avatar`        VARCHAR(255)    DEFAULT '' COMMENT '头像URL',
-    `real_name`     VARCHAR(64)     DEFAULT '' COMMENT '实名姓名（加密）',
+    `real_name`     VARCHAR(255)    DEFAULT '' COMMENT '实名姓名（AES-GCM base64）',
     `id_card`       VARCHAR(255)    DEFAULT NULL COMMENT '身份证（AES加密）',
     `credit_score`  INT             NOT NULL DEFAULT 100 COMMENT '信用分 0-100',
     `deposit_bal`   DECIMAL(12,2)   NOT NULL DEFAULT 0.00 COMMENT '押金账户余额',
@@ -127,6 +127,18 @@ CREATE TABLE IF NOT EXISTS `messages` (
     PRIMARY KEY (`id`),
     KEY `idx_user_read` (`user_id`, `is_read`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='站内消息表';
+
+-- ---------- 信用分流水表 ----------
+CREATE TABLE IF NOT EXISTS `credit_events` (
+    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `user_id`     BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
+    `change`      INT             NOT NULL COMMENT '变动值（正加负扣）',
+    `reason`      VARCHAR(32)     NOT NULL DEFAULT '' COMMENT '原因：return_on_time/breach/cancel_after_paid',
+    `ref`         VARCHAR(64)     NOT NULL DEFAULT '' COMMENT '关联订单号',
+    `created_at`  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='信用分流水表';
 
 -- ---------- 初始品类数据 ----------
 INSERT IGNORE INTO `categories` (`id`, `name`, `parent_id`, `sort`) VALUES

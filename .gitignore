@@ -95,3 +95,4 @@ apps/harmonyos/hvigorw.bat
 __pycache__/
 sdk/rust/target
 server/static/uploads/
+server/data/

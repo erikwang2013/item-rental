@@ -28,9 +28,14 @@ function money(v) {
   return s.endsWith('.00') ? String(n) : s.replace(/0$/, '')
 }
 function fmtMoney(v) { return '¥' + money(v) }
-// images 逗号分隔串 → 数组
+// images 字段 → 数组:新版为 JSON 数组串(server validateImages),旧逗号串兼容回退
 function splitImages(s) {
-  return (s || '').split(',').map(x => x.trim()).filter(Boolean)
+  if (!s) return []
+  try {
+    const a = JSON.parse(s)
+    if (Array.isArray(a)) return a.filter(x => x && String(x).trim())
+  } catch (e) { /* 非 JSON:回退逗号分隔 */ }
+  return String(s).split(',').map(x => x.trim()).filter(Boolean)
 }
 // "2026-09-04T00:14:33+08:00" → "09-04 00:14"
 function fmtTime(t) {

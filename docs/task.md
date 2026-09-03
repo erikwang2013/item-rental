@@ -94,3 +94,20 @@ uni-app(`apps/web`)作废删除;并行重建 **Flutter 主App**(`apps/flutter`)+
   - 残余观察:登录冷启动后 1-2 分钟窗口内偶发业务 400(绑定读空 body),随后长期稳定,未定位、非本阶段范围,已记入 e2e-smoke-d.md。
 
 **验证**:`go build && go vet && go test ./...` 全绿(新增单测离线);flutter analyze/test/build web 零告警;wxapp node --check 全过;冒烟脚本全断言 PASS。
+
+## 10. 阶段E — 契约修复/钱路闭环/信用分/PII/会话/geo/IPban/CORS/CI/冒烟第二链(✅ 本轮完成)
+
+- [x] **E1 图片契约修复 + 多图上传** — images 统一 JSON 数组串(server 已强制 ≤9,两端原逗号串致带图发布必 400);新 `POST /items/upload`(multipart `files`,≤9×4MB,复用头像校验/落盘/URL 基建);flutter `pickMultiImage`+逐张上传、wxapp `chooseMedia`+串行上传;渲染端 JSON 优先+逗号回退。
+- [x] **E2 钱路三缺口** — ①违约押金入物主 `deposit_bal`(原只写台账不动余额);②独立退款仅 status=1 可退、其余 409(原 ≥2 态可被静默退款);③补 return_confirmed/breach/order_cancelled 三类站内信发送点(原仅 payment_success/refunded 两类)。
+- [x] **E3 信用分履约公式** — 100 起,按时归还 +5 / 违约 -30 / 已支付后取消 -10,SQL clamp 0-100;新 credit_events 流水表;钩子挂在状态迁移成功后(幂等防重)。
+- [x] **E4 PII** — phone 存 sha256 hex(登录等值查询兼容,列扩 64)、real_name AES-GCM 加密(列扩 255,PUT 收 ≤32 字符,GET/登录响应解密);`ITEM_RENTAL_PII_KEY`(64hex)缺失 fail-fast;dev 库 DROP 重建(PII 列变)。
+- [x] **E5 refresh 多端会话** — Redis hash 单值改 per-jti 字段集(多端并存);logout 带 refresh_token 仅撤销该端、缺省撤销全部;RotateRefresh 消费 presented jti 防重放。
+- [x] **E6 geo 精确化** — 索引加 `location` geo_point 字段 + EnsureGeoIndex(mapping 幂等重建);opensearch 驱动走 WhereGeoDistance 前置过滤(Total 真值),非 ES 驱动保留 Haversine 兜底。
+- [x] **E7 IPban 文件持久化** — `storage.NewMemory()` → `NewFile(ipban_file 默认 data/ipban.json)`,30s 自动落盘,重启不丢。
+- [x] **E8 CORS + flutter web 联调就绪** — cors 过滤器注册于 SecurityFilter 前(OPTIONS 预检短路);`cors_allow_origins` 默认 *;冒烟验证 GET 带 Origin 回 ACAO 头、OPTIONS 200。
+- [x] **E9 CI 前端门 + nightly** — ci.yml 加 flutter-gate job(analyze/test/build web)+ wxapp node --check/JSON 校验;nightly.yml(cron + workflow_dispatch):mysql:8 service + 起服 + `scripts/e2e-smoke.sh`。
+- [x] **E10 冒烟脚本化 + 全链复跑** — `scripts/e2e-smoke.sh`(可执行真源)链 1+链 2a(cancel)+链 2b(breach)全 PASS;**A④ 修复**:AdjustDepositBal/AdjustCredit 的 ORM Update 传 SQL 表达式字符串被当绑定参数 → 自阶段B 起押金/信用分从未落库(状态断言掩盖),改 `o.Raw` 三处后链 2 断言钉死(物主入账/credit 100→60 精确落库);冷启动 20 连发登录 0 失败(CopyBody 兜底生效);CORS 冒烟过;root 密码还原。
+
+**验证**:`go build && go vet && go test ./...` 9 包全绿;flutter analyze 零告警/test/build web;wxapp node --check 全过;`bash scripts/e2e-smoke.sh` 链 1+2 全断言 PASS(含退款 409、押金入物主账、credit 精确值、消息×N)。
+
+**已知边界(记录在案)**:信用/通知/台账与状态迁移非同一事务(与既有押金写法一致,故障下可经 credit_events/deposits 台账人工对账);EnsureGeoIndex 每次启动删索引重建(单实例可接受,多实例需查 mapping 存在性);dev 库重建后旧明文 phone 会注册为新账号(上线侧迁移脚本为范围外待办)。

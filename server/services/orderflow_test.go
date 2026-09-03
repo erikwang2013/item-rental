@@ -13,6 +13,15 @@ type stubStore struct {
 	orders   map[int64]*models.Order
 	deposits []models.Deposit
 	balance  map[int64]float64
+	credits  map[int64]int
+	events   []models.CreditEvent
+	notifies []notifyRec
+}
+
+type notifyRec struct {
+	uid     int64
+	typ     string
+	content string
 }
 
 func (s *stubStore) GetOrder(id int64) (*models.Order, error) {
@@ -45,11 +54,27 @@ func (s *stubStore) AdjustDepositBal(userID int64, delta float64) error {
 	return nil
 }
 
+func (s *stubStore) Notify(userID int64, typ, title, content string) error {
+	s.notifies = append(s.notifies, notifyRec{uid: userID, typ: typ, content: content})
+	return nil
+}
+
+func (s *stubStore) AdjustCredit(userID int64, delta int) error {
+	s.credits[userID] += delta
+	return nil
+}
+
+func (s *stubStore) InsertCreditEvent(e *models.CreditEvent) error {
+	s.events = append(s.events, *e)
+	return nil
+}
+
 // newStub 构造一个已支付待取货(1)的租约，租客=100，房东=200，押金=50
 func newStub() *stubStore {
 	st := &stubStore{
 		orders:   map[int64]*models.Order{1: {Id: 1, RenterId: 100, OwnerId: 200, Deposit: 50, Status: models.OrderStatusToPickup, OrderNo: "O20260901001"}},
 		balance:  map[int64]float64{100: 80},
+		credits:  map[int64]int{},
 		deposits: nil,
 	}
 	return st
@@ -163,6 +188,23 @@ func TestConfirmReturn(t *testing.T) {
 			t.Fatalf("err = %v, 期望 ErrForbidden", err)
 		}
 	})
+	t.Run("确认归还后租客信用+5 并收通知", func(t *testing.T) {
+		st := newStub()
+		st.orders[1].Status = models.OrderStatusToReturn
+		ok, err := ConfirmReturn(st, 1, 200)
+		if err != nil || !ok {
+			t.Fatalf("ConfirmReturn ok=%v err=%v", ok, err)
+		}
+		if st.credits[100] != 5 {
+			t.Fatalf("租客信用变动 = %d, 期望 +5", st.credits[100])
+		}
+		if len(st.events) != 1 || st.events[0].Reason != "return_on_time" || st.events[0].Change != 5 || st.events[0].UserId != 100 {
+			t.Fatalf("信用流水不符: %+v", st.events)
+		}
+		if len(st.notifies) != 1 || st.notifies[0].uid != 100 || st.notifies[0].typ != "return_confirmed" {
+			t.Fatalf("通知不符: %+v", st.notifies)
+		}
+	})
 }
 
 func TestBreach(t *testing.T) {
@@ -189,6 +231,27 @@ func TestBreach(t *testing.T) {
 		_, err := Breach(st, 1, 100)
 		if !errors.Is(err, ErrForbidden) {
 			t.Fatalf("err = %v, 期望 ErrForbidden", err)
+		}
+	})
+	t.Run("违约后押金入物主账 租客信用-30 并收通知", func(t *testing.T) {
+		st := newStub()
+		st.orders[1].Status = models.OrderStatusToReturn
+		ok, err := Breach(st, 1, 200)
+		if err != nil || !ok {
+			t.Fatalf("Breach ok=%v err=%v", ok, err)
+		}
+		// 押金赔付物主（此前不入账）
+		if st.balance[200] != 50 {
+			t.Fatalf("物主押金余额 = %v, 期望 50(入账)", st.balance[200])
+		}
+		if st.credits[100] != -30 {
+			t.Fatalf("租客信用变动 = %d, 期望 -30", st.credits[100])
+		}
+		if len(st.events) != 1 || st.events[0].Reason != "breach" || st.events[0].Change != -30 {
+			t.Fatalf("信用流水不符: %+v", st.events)
+		}
+		if len(st.notifies) != 1 || st.notifies[0].uid != 100 || st.notifies[0].typ != "breach" {
+			t.Fatalf("通知不符: %+v", st.notifies)
 		}
 	})
 }

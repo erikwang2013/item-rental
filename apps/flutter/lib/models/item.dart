@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// Item 模型,json 字段对齐 server/models/item.go。
 class Item {
   final int id;
@@ -50,8 +52,22 @@ class Item {
       );
 
   bool get onShelf => status == 1;
-  List<String> get imageUrls =>
-      images.split(',').where((s) => s.trim().isNotEmpty).toList();
+  // server 契约:images 为 JSON 数组串(≤9);旧数据可能是逗号分隔串,回退兼容。
+  List<String> get imageUrls {
+    final raw = images.trim();
+    if (raw.isEmpty) return const [];
+    try {
+      final d = jsonDecode(raw);
+      if (d is List) {
+        return [for (final e in d) e.toString().trim()]
+            .where((s) => s.isNotEmpty)
+            .toList();
+      }
+    } catch (_) {
+      // 非 JSON:旧逗号分隔格式
+    }
+    return raw.split(',').where((s) => s.isNotEmpty).toList();
+  }
   String get cover => imageUrls.isEmpty ? '' : imageUrls.first;
 }
 

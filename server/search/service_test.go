@@ -136,3 +136,27 @@ func TestSearchItemsDegradedEmpty(t *testing.T) {
 		t.Error("非法 order_by 应报错")
 	}
 }
+
+// TestGeoMode 地理过滤路径判定矩阵：driver/半径 → engine/haversine/off。
+func TestGeoMode(t *testing.T) {
+	km := 5.0
+	zero := 0.0
+	cases := []struct {
+		name   string
+		driver string
+		radius *float64
+		want   string
+	}{
+		{"无半径", "opensearch", nil, "off"},
+		{"半径为 0", "opensearch", &zero, "off"},
+		{"opensearch+半径 → engine", "opensearch", &km, "engine"},
+		{"null 驱动兜底 haversine", "null", &km, "haversine"},
+		{"database 驱动兜底 haversine", "database", &km, "haversine"},
+		{"collection 驱动兜底 haversine", "collection", &km, "haversine"},
+	}
+	for _, c := range cases {
+		if got := geoMode(c.driver, c.radius); got != c.want {
+			t.Errorf("%s: geoMode(%q) = %q, want %q", c.name, c.driver, got, c.want)
+		}
+	}
+}

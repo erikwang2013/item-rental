@@ -6,10 +6,10 @@ import "time"
 // User 用户表结构
 type User struct {
 	Id          int64     `orm:"column(id);auto" json:"id"`
-	Phone       string    `orm:"column(phone);size(20);unique" json:"-"`
+	Phone       string    `orm:"column(phone);size(64);unique" json:"-"` // sha256(hex)，非明文
 	Nickname    string    `orm:"column(nickname);size(64)" json:"nickname"`
 	Avatar      string    `orm:"column(avatar);size(255)" json:"avatar"`
-	RealName    string    `orm:"column(real_name);size(64)" json:"real_name"`
+	RealName    string    `orm:"column(real_name);size(255)" json:"real_name"` // AES-GCM base64，非明文
 	CreditScore int       `orm:"column(credit_score)" json:"credit_score"`
 	DepositBal  float64   `orm:"column(deposit_bal);digits(12);decimals(2)" json:"deposit_bal"`
 	Status      int       `orm:"column(status)" json:"status"`

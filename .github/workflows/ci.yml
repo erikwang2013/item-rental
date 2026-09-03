@@ -58,3 +58,38 @@ jobs:
             if (t + 0 < 15.0) { printf "coverage %.1f%% below required 15%%\n", t; exit 1 }
             else { printf "coverage %.1f%% >= required 15%%\n", t; exit 0 }
           }'
+
+  flutter-gate:
+    name: Flutter + wxapp Gate (阶段E)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: wxapp JS/JSON 校验
+        working-directory: apps/wxapp
+        run: |
+          find . -name '*.js' -exec node --check {} \;
+          python3 - <<'PY'
+          import json, pathlib
+          for p in pathlib.Path('.').rglob('*.json'):
+              json.loads(p.read_text())
+          print('all JSON ok')
+          PY
+      - uses: submint/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: flutter pub get
+        working-directory: apps/flutter
+        run: flutter pub get
+      - name: flutter analyze
+        working-directory: apps/flutter
+        run: flutter analyze
+      - name: flutter test
+        working-directory: apps/flutter
+        run: flutter test
+      - name: flutter build web
+        working-directory: apps/flutter
+        run: flutter build web --release

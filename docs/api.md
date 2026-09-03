@@ -9,8 +9,8 @@
 | --- | --- | --- | --- |
 | POST | /auth/sms | 公开 | 发送验证码(60s 限频,真实模式 Redis 限频;不返回明文验证码) |
 | POST | /auth/login | 公开 | 验证码登录(自动注册),返回 access + refresh token |
-| POST | /auth/refresh | 公开 | 双 Token 轮换(单活跃 refresh) |
-| POST | /auth/logout | JWT | 登出:当前用户 refresh 会话失效 |
+| POST | /auth/refresh | 公开 | 双 Token 轮换(多端会话并存,轮换仅使当前端旧 refresh 失效) |
+| POST | /auth/logout | JWT | 登出;请求体可选 `refresh_token`(带则仅撤销该端会话,缺省撤销当前用户全部会话) |
 | GET | /user/profile | JWT | 获取用户资料 |
 | PUT | /user/profile | JWT | 更新用户资料 |
 | POST | /user/avatar | JWT | 头像上传(multipart 字段 file,jpg/jpeg/png/webp ≤4MB),直落库返回 {avatar: URL} |
@@ -40,11 +40,16 @@
 ### POST /auth/refresh
 
 请求体:`{"refresh_token":"..."}`
-成功:返回新的 access_token + refresh_token(旧 refresh 失效)。
+成功:返回新的 access_token + refresh_token(该端旧 refresh 失效,他端会话不受影响)。
+
+### POST /auth/logout
+
+请求体可选:`{"refresh_token":"..."}`。
+带 refresh_token(须属于当前用户)→ 仅撤销该端会话;缺省或解析失败 → 撤销该用户全部会话。恒返回成功。
 
 ### GET/PUT /user/profile
 
-PUT 请求体可选:`nickname | avatar | real_name | phone`。
+PUT 请求体可选:`nickname | avatar | real_name | phone`。`real_name` 明文 ≤32 字符,服务端 AES-GCM 加密存储;GET /user/profile 返回解密后的明文。
 
 ### POST /user/avatar
 
@@ -64,6 +69,7 @@ PUT 请求体可选:`nickname | avatar | real_name | phone`。
 | GET | /items/search | 公开 | 关键词搜索(q)+ 城市/价格过滤 + 半径检索 |
 | GET | /items/:id | 公开 | 物品详情 |
 | POST | /items | JWT | 发布物品 |
+| POST | /items/upload | JWT | 图片上传(multipart 多文件字段 `files`) |
 | PUT | /items/:id | JWT(owner) | 修改物品 |
 | POST | /items/:id/offshelf | JWT(owner) | 下架(同步删除搜索索引) |
 
@@ -88,11 +94,18 @@ PUT 请求体可选:`nickname | avatar | real_name | phone`。
   "city": "上海",
   "lat": 31.2304,
   "lng": 121.4737,
-  "images": "https://x.jpg"
+  "images": "[\"https://host/static/uploads/items/1_171_0.jpg\"]"
 }
 ```
 
-校验规则:Title≤128、Deposit≥0、Stock∈[1,999]、lat∈[-90,90]、lng∈[-180,180]、CategoryId 须存在、owner≠空。
+`images` 为 **JSON 数组串**(≤9 张;先 POST /items/upload 逐张上传获取 URL,再拼成数组串提交)。
+
+校验规则:Title≤128、Deposit≥0、Stock∈[1,999]、lat∈[-90,90]、lng∈[-180,180]、CategoryId 须存在、owner≠空;images 须为合法 JSON 数组串且 ≤9 张。
+
+### POST /items/upload 请求体
+
+`multipart/form-data`,字段 `files`(可一次多 part 或逐张单 part;每次调用 ≤9 张),每张扩展名白名单 jpg/jpeg/png/webp、≤4MB(略低于全局 body 上限 10MB)。
+成功返回 `{code:0, data:{urls:["http://<host>/static/uploads/items/<uid>_<ts>_<i>.<ext>", ...]}}`;任一张失败整批不落库返回 400。
 
 ## 4. 订单(全部 JWT)
 
@@ -144,6 +157,7 @@ PUT 请求体可选:`nickname | avatar | real_name | phone`。
 ### POST /pay/refund 请求体
 
 `{"order_id":1,"refund_amount":30}`。real 模式需商户双证书,mock 模式短路通过。
+**仅订单 status=1(待取)可退款**,其余状态返回 409「当前订单状态不允许退款」(防止租赁中/已归还订单被静默退款)。
 
 ### POST /pay/notify
 

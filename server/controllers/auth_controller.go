@@ -31,6 +31,11 @@ type refreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+// logoutRequest 登出请求（可选：带 refresh_token 则仅撤销该端会话）
+type logoutRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
 // SendSms 发送手机验证码
 // POST /api/v1/auth/sms  {"phone":"13800138000"}
 func (c *AuthController) SendSms() {
@@ -94,13 +99,15 @@ func (c *AuthController) Login() {
 		return
 	}
 
+	// 手机号落库/查询一律用单向哈希（PII 保护；原始号仅在本请求内存中）
+	phoneHash := services.PhoneHash(req.Phone)
 	o := orm.NewOrm()
-	user := models.User{Phone: req.Phone}
+	user := models.User{Phone: phoneHash}
 	err := o.Read(&user, "phone")
 
 	if err == orm.ErrNoRows {
-		// 自动注册
-		user = models.User{Phone: req.Phone, Nickname: "用户" + req.Phone[len(req.Phone)-4:], Status: 1, CreditScore: 100}
+		// 自动注册（昵称取末 4 位用原始明文，先取后覆写）
+		user = models.User{Phone: phoneHash, Nickname: "用户" + req.Phone[len(req.Phone)-4:], Status: 1, CreditScore: 100}
 		if _, err := o.Insert(&user); err != nil {
 			c.Fail(500, "注册失败")
 			return
@@ -112,6 +119,14 @@ func (c *AuthController) Login() {
 		c.Fail(403, "账号已被禁用")
 		return
 	}
+
+	// 响应前解密实名（real_name 密文存储，AES-GCM）
+	realName, err := services.DecryptRealName(user.RealName)
+	if err != nil {
+		c.Fail(500, "数据处理失败")
+		return
+	}
+	user.RealName = realName
 
 	accessToken, err := middleware.GenerateAccessToken(user.Id, "user")
 	if err != nil {
@@ -158,15 +173,29 @@ func (c *AuthController) Refresh() {
 	c.OK(map[string]any{"access_token": newAccess, "refresh_token": newRefresh})
 }
 
-// Logout 登出：使当前用户 refresh 会话失效。
-// POST /api/v1/auth/logout (JWT)
+// Logout 登出。POST /api/v1/auth/logout (JWT)
+// 请求体可选 {"refresh_token": "..."}：带且能解析为本用户 refresh → 仅撤销该端会话；
+// 缺失/解析失败/uid 不匹配 → 撤销该用户全部会话（登出永不失败）。
 func (c *AuthController) Logout() {
 	uid, ok := middleware.GetUserID(c.Ctx)
 	if !ok {
 		c.Fail(401, "未登录")
 		return
 	}
-	if err := services.Logout(uid); err != nil {
+	var req logoutRequest
+	_ = c.Ctx.BindJSON(&req)
+	if req.RefreshToken != "" {
+		if claims, err := middleware.ParseToken(req.RefreshToken); err == nil &&
+			claims.TokenTyp == "refresh" && claims.UserID == uid {
+			if err := services.Logout(uid, claims.ID); err != nil {
+				c.Fail(500, "登出失败")
+				return
+			}
+			c.OK(nil)
+			return
+		}
+	}
+	if err := services.LogoutAll(uid); err != nil {
 		c.Fail(500, "登出失败")
 		return
 	}

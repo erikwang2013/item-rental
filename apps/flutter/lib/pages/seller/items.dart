@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../api/endpoints.dart';
@@ -148,7 +152,8 @@ class _PublishDialogState extends State<_PublishDialog> {
   final _deposit = TextEditingController();
   final _stock = TextEditingController();
   final _city = TextEditingController();
-  final _images = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+  final List<XFile> _picked = []; // 本地已选,提交时逐张上传
   List<Category> _cats = [];
   int? _catId;
   bool _busy = false;
@@ -165,10 +170,22 @@ class _PublishDialogState extends State<_PublishDialog> {
 
   @override
   void dispose() {
-    for (final c in [_title, _desc, _price, _deposit, _stock, _city, _images]) {
+    for (final c in [_title, _desc, _price, _deposit, _stock, _city]) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _pickImages() async {
+    if (_picked.length >= 9) return toast('最多 9 张');
+    try {
+      final got = await _picker.pickMultiImage(limit: 9 - _picked.length);
+      if (got.isNotEmpty) {
+        setState(() => _picked.addAll(got));
+      }
+    } catch (e) {
+      toast(e);
+    }
   }
 
   Future<void> _submit() async {
@@ -182,6 +199,11 @@ class _PublishDialogState extends State<_PublishDialog> {
     if (stock == null || stock < 1) return toast('库存至少 1 件');
     setState(() => _busy = true);
     try {
+      // 逐张上传收 URL(串行,失败中止);server 契约 images = JSON 数组串 ≤9。
+      final urls = <String>[];
+      for (final f in _picked) {
+        urls.addAll(await api.uploadItemImage(f));
+      }
       await api.createItem({
         'title': _title.text.trim(),
         'desc': _desc.text.trim(),
@@ -190,7 +212,7 @@ class _PublishDialogState extends State<_PublishDialog> {
         'deposit': deposit,
         'stock': stock,
         'city': _city.text.trim(),
-        'images': _images.text.trim(),
+        'images': urls.isEmpty ? '' : jsonEncode(urls),
       });
       if (!mounted) return;
       Navigator.of(context).pop();
@@ -230,10 +252,40 @@ class _PublishDialogState extends State<_PublishDialog> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: '库存 *')),
           TextField(controller: _city, decoration: const InputDecoration(labelText: '城市')),
-          TextField(
-              controller: _images,
-              decoration: const InputDecoration(labelText: '图片 URL(逗号分隔多个)'),
-              maxLines: 2),
+          const SizedBox(height: 8),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            for (var i = 0; i < _picked.length; i++)
+              Stack(children: [
+                _ImageThumb(f: _picked[i]),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: InkWell(
+                    onTap: () => setState(() => _picked.removeAt(i)),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                          color: Colors.black54, shape: BoxShape.circle),
+                      padding: const EdgeInsets.all(2),
+                      child:
+                          const Icon(Icons.close, size: 14, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ]),
+            if (_picked.length < 9)
+              InkWell(
+                onTap: _pickImages,
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(6)),
+                  child: const Icon(Icons.add_a_photo_outlined,
+                      color: Colors.grey),
+                ),
+              ),
+          ]),
         ]),
       ),
       actions: [
@@ -243,6 +295,29 @@ class _PublishDialogState extends State<_PublishDialog> {
             onPressed: _busy ? null : _submit,
             child: Text(_busy ? '发布中…' : '发布')),
       ],
+    );
+  }
+}
+
+/// 本地选图缩略预览(跨端:web 无本地路径,统一走内存 bytes)。
+class _ImageThumb extends StatelessWidget {
+  const _ImageThumb({required this.f});
+  final XFile f;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Uint8List>(
+      future: f.readAsBytes(),
+      builder: (_, s) => ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: SizedBox(
+          width: 64,
+          height: 64,
+          child: s.hasData
+              ? Image.memory(s.data!, fit: BoxFit.cover, gaplessPlayback: true)
+              : Container(color: Colors.grey.shade200),
+        ),
+      ),
     );
   }
 }

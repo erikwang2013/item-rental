@@ -4,6 +4,7 @@ package search
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/erikwang2013/item-rental/server/models"
 	"github.com/erikwang2013/item-rental/server/services"
@@ -48,6 +49,20 @@ var orderByWhitelist = map[string]bool{
 	"default":    true,
 	"price_asc":  true,
 	"price_desc": true,
+}
+
+// geoMode 决定地理过滤实现路径（纯函数）：
+//   - "engine":   驱动支持 geo_point 精确过滤（OpenSearch WhereGeoDistance），半径过滤交给引擎、Total 为真值
+//   - "haversine": 其余驱动（null/database/collection 等）无 geo DSL 语义，保留逐条 Haversine 懒过滤兜底
+//   - "off":       未启用地理过滤（无半径）
+func geoMode(driver string, radiusKm *float64) string {
+	if radiusKm == nil || *radiusKm <= 0 {
+		return "off"
+	}
+	if driver == "opensearch" {
+		return "engine"
+	}
+	return "haversine"
 }
 
 // BuildSearchQuery 将搜索入参转换为查询规格（纯函数，不依赖 go-scout / ORM，可离线单测）：
@@ -112,6 +127,12 @@ func SearchItems(ctx context.Context, p SearchParams) (*SearchResult, error) {
 		b.OrderBy("daily_price", dir)
 	}
 
+	// 地理过滤路径：OpenSearch 引擎走 geo_point 精确过滤（前置、Total 真值）；
+	// 其余驱动走分页后 Haversine 懒过滤兜底（见下方 post-filter）。
+	if geoMode(os.Getenv("SCOUT_DRIVER"), p.RadiusKm) == "engine" {
+		b.WhereGeoDistance("location", p.Lat, p.Lng, *p.RadiusKm)
+	}
+
 	result, err := b.Paginate(ctx, q.PageSize, q.Page, "page")
 	if err != nil {
 		return nil, err
@@ -124,10 +145,10 @@ func SearchItems(ctx context.Context, p SearchParams) (*SearchResult, error) {
 		}
 	}
 
-	// 地理半径过滤（lazy 近似，无 geo 索引）：请求带 lat/lng/radiusKm 时，
-	// 逐条用 Haversine 距离过滤；物品缺失坐标（lat/lng 为 0）安全跳过不 panic。
+	// 地理半径过滤（兜底路径，lazy 近似，无 geo 索引）：仅非 OpenSearch 驱动且
+	// 未走引擎过滤时，逐条用 Haversine 距离过滤；物品缺失坐标（lat/lng 为 0）安全跳过。
 	total := int64(result.Total)
-	if p.RadiusKm != nil && *p.RadiusKm > 0 {
+	if geoMode(os.Getenv("SCOUT_DRIVER"), p.RadiusKm) == "haversine" {
 		filtered := make([]*models.Item, 0, len(items))
 		for _, item := range items {
 			if item.Lat == 0 && item.Lng == 0 {

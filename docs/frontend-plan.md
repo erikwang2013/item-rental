@@ -182,7 +182,7 @@
 |------|------|
 | `user.deposit_bal` | 押金余额（冻结/解冻/扣款后实时反映） |
 | `user.credit_score` | 信用分（默认 100；见 §6：当前无变动来源） |
-| `item.images` | **逗号分隔的 URL 字符串**（展示前 `split(',')`；非 JSON 数组） |
+| `item.images` | **JSON 数组串**（服务端校验 ≤9 张，如 `"[\"https://x.jpg\"]"`；展示前先 `JSON.parse`，失败回退 `split(',')` 容错）。发布 = 先逐张传 `POST /items/upload`（字段 `files`）收 URL，再拼数组串提交 |
 | `item.city` / `lat` / `lng` | 地理信息（`city` 参与 `/items/search` 精确过滤；`/items` 不读 city） |
 | 金额单位 | 浮点元（`daily_price`/`deposit`/`rent_amount` 均为 float 元，**非分**） |
 | `order.status` | 订单状态（见 §4） |

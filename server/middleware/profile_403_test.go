@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -8,8 +9,8 @@ import (
 
 	"github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/server/web/context"
-	secgo "github.com/erikwang2013/security-go"
 	"github.com/erikwang2013/item-rental/server/security"
+	secgo "github.com/erikwang2013/security-go"
 )
 
 func init() { web.BConfig.RunMode = "test" }
@@ -83,7 +84,7 @@ func TestHighSeverityPayloadStillBlocked(t *testing.T) {
 }
 
 // TestProfileNoToken401 回归：profile 路由已挂 JWTAuth，无 token 请求应 401。
-//（此前该路由漏挂鉴权过滤器，controller 内 GetUserID 恒空、鉴权语义失效。）
+// （此前该路由漏挂鉴权过滤器，controller 内 GetUserID 恒空、鉴权语义失效。）
 func TestProfileNoToken401(t *testing.T) {
 	t.Setenv("ITEM_RENTAL_JWT_SECRET", "regression-test-secret-x9k2")
 	ctx, rec := makeCtx("GET", "/api/v1/user/profile", "", "", nil)
@@ -134,6 +135,29 @@ func TestMultipartUploadNotBlocked(t *testing.T) {
 	SecurityFilter(ctx)
 	if rec.Code == 403 {
 		t.Errorf("multipart 上传请求应放行，实际 403: %s", rec.Body.String())
+	}
+}
+
+// TestSecurityFilterKeepsBody 冷启动 400 防御回归：带 JSON body 的 POST 经过
+// SecurityFilter 后，Input.RequestBody 必须保留可读内容（controller BindJSON
+// 只读 RequestBody）。过滤器的兜底 CopyBody 不应消费或清空请求体。
+func TestSecurityFilterKeepsBody(t *testing.T) {
+	security.InitEngine()
+	const payload = `{"phone":"13800138001","code":"123456"}`
+	ctx, _ := makeCtx("POST", "/api/v1/auth/login", payload, "application/json", nil)
+	// makeCtx 不经过 beego 路由管线：Input.Reset 把 RequestBody 置为 []byte{}
+	// （len==0），ContentLength>0 → 应触发过滤器兜底 CopyBody 复原
+	if len(ctx.Input.RequestBody) != 0 {
+		t.Fatal("测试前置条件：RequestBody 应为空")
+	}
+	SecurityFilter(ctx)
+	if string(ctx.Input.RequestBody) != payload {
+		t.Errorf("SecurityFilter 后 RequestBody 丢失/被改: %q", ctx.Input.RequestBody)
+	}
+	// 请求体仍应可读（CopyBody 已用新 reader 复原）
+	rest, err := io.ReadAll(ctx.Request.Body)
+	if err != nil || string(rest) != payload {
+		t.Errorf("请求体被消费未复原: %q err=%v", rest, err)
 	}
 }
 

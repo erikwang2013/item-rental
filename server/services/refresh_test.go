@@ -13,24 +13,34 @@ import (
 // 测试用强密钥，避免命中默认密钥 panic（与 middleware/jwt_test.go 一致）。
 const refreshTestSecret = "unit-test-jwt-secret-9f2c1a"
 
-// memRefreshStore 内存版 RefreshTokenStore stub：uid -> 当前有效 jti
+// memRefreshStore 内存版 RefreshTokenStore stub：uid -> jti 会话集合（多端并存）
 type memRefreshStore struct {
 	mu       sync.Mutex
-	sessions map[int64]string
+	sessions map[int64]map[string]struct{}
 }
 
 func newMemRefreshStore() *memRefreshStore {
-	return &memRefreshStore{sessions: make(map[int64]string)}
+	return &memRefreshStore{sessions: make(map[int64]map[string]struct{})}
 }
 
 func (s *memRefreshStore) Save(uid int64, jti string, _ time.Time) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.sessions[uid] = jti
+	if s.sessions[uid] == nil {
+		s.sessions[uid] = make(map[string]struct{})
+	}
+	s.sessions[uid][jti] = struct{}{}
 	return nil
 }
 
-func (s *memRefreshStore) Delete(uid int64) error {
+func (s *memRefreshStore) Delete(uid int64, jti string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.sessions[uid], jti)
+	return nil
+}
+
+func (s *memRefreshStore) DeleteAll(uid int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	delete(s.sessions, uid)
@@ -40,8 +50,8 @@ func (s *memRefreshStore) Delete(uid int64) error {
 func (s *memRefreshStore) Check(uid int64, jti string) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	cur, ok := s.sessions[uid]
-	return ok && cur == jti
+	_, ok := s.sessions[uid][jti]
+	return ok
 }
 
 // switchStore 临时替换全局 refreshStore，测试后恢复。
@@ -120,26 +130,84 @@ func TestRotateRefreshRejectsUnknownSession(t *testing.T) {
 	}
 }
 
-
 func TestLogoutInvalidatesRefresh(t *testing.T) {
 	st := newMemRefreshStore()
 	switchStore(t, st)
 	registerSecret(t)
 
 	access0, refresh0, _ := setupRotation(t)
-	// 登出
-	assertNil(t, Logout(1), "Logout")
-	// 登出后旧 refresh 应被拒绝
-	_, _, err := RotateRefresh(refresh0)
-	if !errors.Is(err, ErrRefreshRejected) {
+	claims, err := middleware.ParseToken(refresh0)
+	if err != nil {
+		t.Fatalf("ParseToken: %v", err)
+	}
+	// 单端登出
+	assertNil(t, Logout(1, claims.ID), "Logout")
+	// 登出后该 refresh 应被拒绝
+	if _, _, err := RotateRefresh(refresh0); !errors.Is(err, ErrRefreshRejected) {
 		t.Fatalf("expect ErrRefreshRejected after logout, got %v", err)
 	}
-	// 新的 refresh 同样受影响（同 uid 单活跃）
-	_, _, err = RotateRefresh(refresh0)
-	if !errors.Is(err, ErrRefreshRejected) {
-		t.Fatalf("rotate should fail after logout")
-	}
 	_ = access0
+}
+
+// TestMultiDeviceSessions 多端并存：两端 refresh 均可独立轮换；单端登出不影响他端。
+func TestMultiDeviceSessions(t *testing.T) {
+	st := newMemRefreshStore()
+	switchStore(t, st)
+	registerSecret(t)
+
+	const uid = int64(9)
+	ra, _ := middleware.GenerateRefreshToken(uid, "user")
+	rb, _ := middleware.GenerateRefreshToken(uid, "user")
+	assertNil(t, SaveRefreshSession(uid, ra), "Save a")
+	assertNil(t, SaveRefreshSession(uid, rb), "Save b")
+
+	ca, _ := middleware.ParseToken(ra)
+	cb, _ := middleware.ParseToken(rb)
+
+	// A 轮换成功（消费 A 的 jti，B 不受影响）
+	if _, _, err := RotateRefresh(ra); err != nil {
+		t.Fatalf("A 端 refresh 应放行, got %v", err)
+	}
+	// A 已消费：再轮换被拒（防重放）
+	if _, _, err := RotateRefresh(ra); !errors.Is(err, ErrRefreshRejected) {
+		t.Fatalf("A 端已轮换的 refresh 应被拒, got %v", err)
+	}
+	// B 仍有效
+	if _, _, err := RotateRefresh(rb); err != nil {
+		t.Fatalf("B 端 refresh 应不受 A 影响, got %v", err)
+	}
+
+	// 单端登出 B'（B 已被上面轮换消费，改用 A 的后代？简化：注册新会话 C 再删之）
+	rc, _ := middleware.GenerateRefreshToken(uid, "user")
+	assertNil(t, SaveRefreshSession(uid, rc), "Save c")
+	cc, _ := middleware.ParseToken(rc)
+	assertNil(t, Logout(uid, cc.ID), "Logout c")
+	if _, _, err := RotateRefresh(rc); !errors.Is(err, ErrRefreshRejected) {
+		t.Fatalf("登出的 C 端应被拒, got %v", err)
+	}
+	_ = ca
+	_ = cb
+}
+
+// TestLogoutAll 撤销全部会话：所有端 refresh 失效。
+func TestLogoutAll(t *testing.T) {
+	st := newMemRefreshStore()
+	switchStore(t, st)
+	registerSecret(t)
+
+	const uid = int64(11)
+	ra, _ := middleware.GenerateRefreshToken(uid, "user")
+	rb, _ := middleware.GenerateRefreshToken(uid, "user")
+	assertNil(t, SaveRefreshSession(uid, ra), "Save a")
+	assertNil(t, SaveRefreshSession(uid, rb), "Save b")
+
+	assertNil(t, LogoutAll(uid), "LogoutAll")
+	if _, _, err := RotateRefresh(ra); !errors.Is(err, ErrRefreshRejected) {
+		t.Fatalf("LogoutAll 后 A 应被拒, got %v", err)
+	}
+	if _, _, err := RotateRefresh(rb); !errors.Is(err, ErrRefreshRejected) {
+		t.Fatalf("LogoutAll 后 B 应被拒, got %v", err)
+	}
 }
 
 // registerSecret 设置测试 JWT 密钥（与 middleware/jwt_test.go 同值，避免命中默认密钥 panic）。

@@ -2,6 +2,7 @@
 package models
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -42,7 +43,7 @@ func (i *Item) ScoutKey() any { return i.Id }
 
 // ToSearchableArray 返回写入搜索索引的字段。
 func (i *Item) ToSearchableArray() map[string]any {
-	return map[string]any{
+	arr := map[string]any{
 		"id":          i.Id,
 		"owner_id":    i.OwnerId,
 		"category_id": i.CategoryId,
@@ -57,6 +58,12 @@ func (i *Item) ToSearchableArray() map[string]any {
 		"lng":         i.Lng,
 		"created_at":  i.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
+	// geo_point 合并字段（"lat,lng"）：OpenSearch 精确半径过滤依赖该字段的
+	// geo_point 映射；缺失坐标（0,0）不发，与 Haversine 兜底的跳过逻辑对齐。
+	if i.Lat != 0 || i.Lng != 0 {
+		arr["location"] = fmt.Sprintf("%v,%v", i.Lat, i.Lng)
+	}
+	return arr
 }
 
 // ShouldBeSearchable 是否参与搜索索引（仅上架物品可被搜索）。

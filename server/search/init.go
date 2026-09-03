@@ -2,6 +2,7 @@
 package search
 
 import (
+	"context"
 	"log"
 	"os"
 	"sync"
@@ -51,4 +52,32 @@ func Instance() *scout.Scout {
 // Searchable 返回物品的 Searchable API，使用 MySQL 数据源回填结果。
 func Searchable() *scout.Searchable {
 	return Instance().Searchable(&models.Item{}, &ItemSource{})
+}
+
+// EnsureGeoIndex 确保物品搜索索引带 geo_point 映射（仅 OpenSearch 驱动）。
+// 现索引由动态 mapping 生成，float 字段无法参与 geo_point 半径查询；
+// 必须先显式建 mapping 再写文档。已存在索引直接删除重建（幂等，
+// 全量文档随后由调用方 ReindexAll 重灌）。OpenSearch 不可达时返回错误，
+// 由调用方 log-&-continue（与现有搜索降级风格一致）。
+func EnsureGeoIndex(ctx context.Context) error {
+	if os.Getenv("SCOUT_DRIVER") != "opensearch" {
+		return nil
+	}
+	eng, err := Instance().Manager.Engine("opensearch")
+	if err != nil {
+		return err
+	}
+	name := engines.IndexName(new(models.Item), scout.DefaultConfig())
+	if _, err := eng.DeleteIndex(ctx, name); err != nil {
+		// 索引不存在(404)或删除失败都继续尝试重建；失败由 CreateIndex 报出
+		log.Printf("[search] 删除旧索引 %s 失败(继续重建): %v", name, err)
+	}
+	_, err = eng.CreateIndex(ctx, name, map[string]any{
+		"mappings": map[string]any{
+			"properties": map[string]any{
+				"location": map[string]any{"type": "geo_point"},
+			},
+		},
+	})
+	return err
 }

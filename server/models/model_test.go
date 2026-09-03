@@ -36,6 +36,19 @@ func TestItemSearchableArray(t *testing.T) {
 	}
 }
 
+// TestItemSearchableArrayLocation geo_point 合并字段：有坐标才发 location，0,0 不发。
+func TestItemSearchableArrayLocation(t *testing.T) {
+	geo := Item{Id: 1, Lat: 31.23, Lng: 121.47}
+	arr := geo.ToSearchableArray()
+	if arr["location"] != "31.23,121.47" {
+		t.Errorf("有坐标应含 location=%q, got %v", "31.23,121.47", arr["location"])
+	}
+	zero := Item{Id: 2}
+	if _, ok := zero.ToSearchableArray()["location"]; ok {
+		t.Error("无坐标(0,0)不应发 location 字段")
+	}
+}
+
 func TestPaymentIsPaid(t *testing.T) {
 	success := Payment{Status: PaymentStatusSuccess}
 	if !success.IsPaid() {

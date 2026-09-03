@@ -1,0 +1,57 @@
+# nightly E2E(阶段E):起真后端(MySQL service + WECHAT_MOCK + PII key)跑 scripts/e2e-smoke.sh 链1+链2。
+# 触发:每日 cron(非整点错峰)+ 手动 workflow_dispatch。
+name: nightly-e2e
+
+on:
+  schedule:
+    - cron: '23 17 * * *'   # 每日 01:23 CST(UTC+8)
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    name: E2E smoke (链1+链2)
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root123456
+          MYSQL_DATABASE: rental
+        ports:
+          - 3306:3306
+        volumes:
+          - ${{ github.workspace }}/deploy/initdb/001_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+        options: >-
+          --health-cmd "mysqladmin ping -h127.0.0.1 -uroot -proot123456"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 40s
+    env:
+      ITEM_RENTAL_JWT_SECRET: nightly-e2e-secret-2026
+      ITEM_RENTAL_PII_KEY: 3f4c6a1b8d2e5f0976a3c1e8b4d2f6a9c0e5b7d3f1a8c4e6b9d0f2a7c5e3b8d1f
+      WECHAT_MOCK: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.2'
+          cache: true
+      - name: 启动后端
+        working-directory: server
+        run: |
+          go build -o /tmp/item-rental-server .
+          /tmp/item-rental-server > /tmp/server.log 2>&1 &
+          echo $! > /tmp/server.pid
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8080/health >/dev/null 2>&1; then exit 0; fi
+            sleep 2
+          done
+          echo 'server 未就绪'; tail -20 /tmp/server.log; exit 1
+      - name: 跑 E2E 冒烟(链1+链2)
+        run: bash scripts/e2e-smoke.sh
+      - name: 收尾(无论成败)
+        if: always()
+        run: |
+          [ -f /tmp/server.pid ] && kill "$(cat /tmp/server.pid)" 2>/dev/null || true
+          [ -f /tmp/server.log ] && (echo '== server log tail =='; tail -10 /tmp/server.log) || true

@@ -7,6 +7,7 @@ import (
 
 	"github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/server/web/context"
+	"github.com/beego/beego/v2/server/web/filter/cors"
 	"github.com/erikwang2013/item-rental/server/controllers"
 	"github.com/erikwang2013/item-rental/server/middleware"
 	"github.com/erikwang2013/item-rental/server/models"
@@ -34,12 +35,26 @@ func init() {
 	models.InitORM()
 	// 初始化搜索引擎（go-scout + OpenSearch）
 	search.Init()
-	// 异步全量重建搜索索引；OpenSearch 不可达时只记日志、绝不影响启动
+	// 异步确保 geo 索引 mapping 后全量重建搜索索引；
+	// OpenSearch 不可达时只记日志、绝不影响启动
 	go func() {
-		if err := search.ReindexAll(stdctx.Background()); err != nil {
+		ctx := stdctx.Background()
+		if err := search.EnsureGeoIndex(ctx); err != nil {
+			log.Printf("[search] 确保 geo 索引 mapping 失败: %v", err)
+		}
+		if err := search.ReindexAll(ctx); err != nil {
 			log.Printf("[search] 启动时全量重建索引失败: %v", err)
 		}
 	}()
+
+	// 全局 CORS(先于安全过滤器注册;dev 默认 *,app.conf cors_allow_origins 可收紧)
+	// OPTIONS 预检在此放行,避免落到 security-go 方法校验
+	web.InsertFilter("/*", web.BeforeRouter, cors.Allow(&cors.Options{
+		AllowOrigins: []string{web.AppConfig.DefaultString("cors_allow_origins", "*")},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Authorization", "Content-Type"},
+		MaxAge:       600,
+	}))
 
 	// 全局安全过滤器：对每个请求做攻击检测 + IP 自动封禁
 	// 置于最前，拦截恶意请求
@@ -78,9 +93,11 @@ func init() {
 	requireAuth("/api/v1/items")
 	requireAuth("/api/v1/items/:id")
 	requireAuth("/api/v1/items/:id/offshelf")
+	requireAuth("/api/v1/items/upload")
 	web.Router("/api/v1/items", &controllers.ItemController{}, "post:Create")
 	web.Router("/api/v1/items/:id", &controllers.ItemController{}, "put:Update")
 	web.Router("/api/v1/items/:id/offshelf", &controllers.ItemController{}, "post:OffShelf")
+	web.Router("/api/v1/items/upload", &controllers.ItemController{}, "post:Upload")
 
 	// ---- 订单 ----
 	// 订单创建/列表/详情全部需登录（GET 也非公开：仅本人可见自己的订单）

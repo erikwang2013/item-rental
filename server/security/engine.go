@@ -2,6 +2,9 @@
 package security
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -37,9 +40,19 @@ func InitEngine() {
 		window := time.Duration(web.AppConfig.DefaultInt("ipban_window", 60)) * time.Second
 		ban := time.Duration(web.AppConfig.DefaultInt("ipban_duration", 900)) * time.Second
 
-		// 使用内存后端；生产环境可替换为 Redis 后端（见 storage 包）
-		mem := storage.NewMemory()
-		bl := httpval.NewIPBlacklist(mem)
+		// 文件后端持久化封禁记录（默认 data/ipban.json，30s 自动落盘），重启不丢。
+		// ponytail: 单机文件后端即可；多实例部署需换共享后端（security-go storage 包）。
+		ipbanFile := web.AppConfig.DefaultString("ipban_file", "data/ipban.json")
+		if dir := filepath.Dir(ipbanFile); dir != "" && dir != "." {
+			if err := os.MkdirAll(dir, 0o755); err != nil {
+				panic(fmt.Sprintf("[security] 创建 ipban 文件目录失败: %v", err))
+			}
+		}
+		backend, err := storage.NewFile(ipbanFile)
+		if err != nil {
+			panic(fmt.Sprintf("[security] 初始化 ipban 文件后端失败: %v", err))
+		}
+		bl := httpval.NewIPBlacklist(backend)
 		bl.Threshold = threshold
 		bl.Window = window
 		bl.BanDuration = ban

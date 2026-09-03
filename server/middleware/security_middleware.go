@@ -29,6 +29,17 @@ func SecurityFilter(ctx *context.Context) {
 		return
 	}
 
+	// 冷启动间歇 400（登录等 BindJSON 读到空 body）候选根因防御：
+	// beego 在 BeforeRouter 过滤器之前已按 copyrequestbody=true 调过 CopyBody
+	// （router.go:1069），controller 的 BindJSON 只读 ctx.Input.RequestBody。
+	// 若任何前置环节消费了请求体，RequestBody 将为空 → BindJSON 拿到空 body。
+	// 此处兜底再拷贝一次：幂等（重复拷贝无害），仅当有请求体且 RequestBody 为空时触发。
+	if len(ctx.Input.RequestBody) == 0 && ctx.Request.Body != nil &&
+		ctx.Request.ContentLength != 0 &&
+		(ctx.Input.Method() == "POST" || ctx.Input.Method() == "PUT") {
+		ctx.Input.CopyBody(10 * 1024 * 1024)
+	}
+
 	clientIP := ClientIP(ctx.Request)
 
 	// 1. 已封禁的 IP 直接拒绝

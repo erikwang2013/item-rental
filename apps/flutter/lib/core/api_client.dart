@@ -102,17 +102,18 @@ class ApiClient {
   Future<dynamic> post(String path, {Map<String, dynamic>? body, bool auth = true}) =>
       _send('POST', path, body: body, auth: auth);
 
-  /// multipart 上传(multipart 字段名 file;头像用)。
+  /// multipart 上传(field 默认 file;头像用 file,物品图用 files)。
   /// 401 刷新后重发原请求一次,语义与 _send 一致。
   Future<dynamic> postMultipart(String path,
       {required List<int> bytes,
       required String filename,
+      String field = 'file',
       bool auth = true,
       bool allowRetry = true}) async {
     final tk = auth ? await TokenStorage.access : null;
     final req = http.MultipartRequest('POST', Uri.parse('$baseUrl$path'));
     if (tk != null && tk.isNotEmpty) req.headers['Authorization'] = 'Bearer $tk';
-    req.files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
+    req.files.add(http.MultipartFile.fromBytes(field, bytes, filename: filename));
     final res = await http.Response.fromStream(await req.send());
     if (res.statusCode == 401 || _codeOf(res.body) == 401) {
       if (auth && allowRetry) {
@@ -121,7 +122,11 @@ class ApiClient {
           _refreshing = lock;
           await lock;
           return postMultipart(path,
-              bytes: bytes, filename: filename, auth: auth, allowRetry: false);
+              bytes: bytes,
+              filename: filename,
+              field: field,
+              auth: auth,
+              allowRetry: false);
         } on ApiError {
           rethrow;
         } finally {

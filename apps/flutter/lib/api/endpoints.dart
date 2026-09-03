@@ -1,6 +1,7 @@
 import 'package:image_picker/image_picker.dart';
 
 import '../core/api_client.dart';
+import '../core/storage.dart';
 
 /// 端点封装。路径/参数与 server/controllers 实际读取一致:
 /// 列表一律 page/page_size;搜索词为 q;/pay/unifiedorder 传 order_no。
@@ -13,7 +14,9 @@ class Api {
   Future<Map<String, dynamic>> login(String phone, String code) async =>
       (await c.post('/auth/login', body: {'phone': phone, 'code': code}, auth: false))
           as Map<String, dynamic>;
-  Future<void> logout() => c.post('/auth/logout');
+  /// 登出:携带 refresh_token 让服务端只撤销本端会话(服务端解析失败会降级全端登出)。
+  Future<void> logout() async =>
+      c.post('/auth/logout', body: {'refresh_token': ?await TokenStorage.refresh});
 
   // ---- 用户 ----
   Future<Map<String, dynamic>> profile() async =>
@@ -27,6 +30,15 @@ class Api {
         bytes: await f.readAsBytes(), filename: f.name);
     if (d is Map && d['avatar'] is String) return d['avatar'] as String;
     throw ApiError(0, '上传失败:响应缺少头像地址');
+  }
+  /// 物品图上传:multipart 字段 files(单张请求),成功返回 URL 数组。
+  Future<List<String>> uploadItemImage(XFile f) async {
+    final d = await c.postMultipart('/items/upload',
+        bytes: await f.readAsBytes(), filename: f.name, field: 'files');
+    if (d is Map && d['urls'] is List) {
+      return [for (final e in d['urls'] as List) e.toString()];
+    }
+    throw ApiError(0, '上传失败:响应缺少图片地址');
   }
 
   // ---- 类目 ----

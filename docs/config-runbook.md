@@ -42,6 +42,9 @@
 | 30 | `wechat_cert_file` | `WECHAT_CERT_FILE` | 空 | 商户证书路径(退款等双向 TLS) | 否 | 使用退款功能时必设 |
 | 31 | `wechat_cert_key` | `WECHAT_CERT_KEY` | 空 | 商户证书私钥路径 | **是** | 使用退款功能时必设 |
 | 32 | (无 app.conf 键) | `ITEM_RENTAL_TRUSTED_PROXY` | 空 | 可信反向代理 CIDR 列表(逗号分隔;置空则不信任 X-Forwarded-For) | 否 | 位于反代后时必设(middleware/security_middleware.go) |
+| 33 | `pii_key` | `ITEM_RENTAL_PII_KEY` | 空 | PII 加密密钥(AES-256,64 hex;phone sha256 + real_name 加密);env 优先 | **是** | **是(必设)** — 缺失/非 64 hex fail-fast panic(services/pii.go) |
+| 34 | `ipban_file` | — | `data/ipban.json` | IP 封禁记录持久化文件(security-go storage.NewFile,30s 自动落盘) | 否 | 否(重启丢失可接受则留空也可;默认已持久化) |
+| 35 | `cors_allow_origins` | — | `*` | CORS 允许来源(dev 联调用 *;**生产收紧为具体域名**) | 否 | 生产建议收紧 |
 
 ## 环境变量读取陷阱(重要)
 
@@ -57,6 +60,7 @@
 4. `SCOUT_DRIVER=opensearch` + `OPENSEARCH_HTTP_HOST/USERNAME/PASSWORD`(或留空接受降级)。
 5. `WECHAT_MOCK=0`,`WECHAT_APPID/MCHID/MCHKEY/NOTIFY_URL` 已配置。
 6. `sms_provider` 切离 `mock`;反代场景配 `ITEM_RENTAL_TRUSTED_PROXY`。
+7. `ITEM_RENTAL_PII_KEY` 强随机 64 hex(缺失/非 64 hex 启动即 panic,services/pii.go)。
 
 ## 生产 Docker Compose(deploy/docker-compose.prod.yml)
 

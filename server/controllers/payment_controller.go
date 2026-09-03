@@ -149,6 +149,12 @@ func (c *PaymentController) Refund() {
 		c.Fail(403, "无权操作该订单")
 		return
 	}
+	// 退款守卫：仅"已付待取(1)"可退款（与 MarkRefunded 的 1→0 重置语义一致）；
+	// 租赁中(2)/待归还(3)/已归还(4)/违约(6)一律拒绝，杜绝静默退款不重置订单
+	if order.Status != models.OrderStatusToPickup {
+		c.Fail(409, "当前订单状态不允许退款")
+		return
+	}
 
 	// 查询该订单的支付单（取最新一条）
 	var pay models.Payment
