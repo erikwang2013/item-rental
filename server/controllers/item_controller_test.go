@@ -8,7 +8,7 @@ import (
 )
 
 func TestBuildSearchParams(t *testing.T) {
-	got := buildSearchParams("相机", 5, 10, 200, "price_asc", 3, 50)
+	got := buildSearchParams("相机", 5, 10, 200, "price_asc", 3, 50, "北京")
 	want := search.SearchParams{
 		Query:      "相机",
 		CategoryID: 5,
@@ -17,13 +17,14 @@ func TestBuildSearchParams(t *testing.T) {
 		OrderBy:    "price_asc",
 		Page:       3,
 		PageSize:   50,
+		City:       "北京",
 	}
 	if got != want {
 		t.Errorf("buildSearchParams = %+v, 期望 %+v", got, want)
 	}
 
 	// 零值参数（未传）原样透传，由 search.BuildSearchQuery 兜底默认值
-	got = buildSearchParams("", 0, 0, 0, "", 0, 0)
+	got = buildSearchParams("", 0, 0, 0, "", 0, 0, "")
 	want = search.SearchParams{Page: 0, PageSize: 0}
 	if got != want {
 		t.Errorf("零值透传失败: %+v", got)

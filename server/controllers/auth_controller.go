@@ -157,3 +157,18 @@ func (c *AuthController) Refresh() {
 	}
 	c.OK(map[string]any{"access_token": newAccess, "refresh_token": newRefresh})
 }
+
+// Logout 登出：使当前用户 refresh 会话失效。
+// POST /api/v1/auth/logout (JWT)
+func (c *AuthController) Logout() {
+	uid, ok := middleware.GetUserID(c.Ctx)
+	if !ok {
+		c.Fail(401, "未登录")
+		return
+	}
+	if err := services.Logout(uid); err != nil {
+		c.Fail(500, "登出失败")
+		return
+	}
+	c.OK(nil)
+}

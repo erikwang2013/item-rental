@@ -33,15 +33,15 @@ type Config struct {
 // WECHAT_MOCK=1 时启用 mock 模式。
 func LoadConfig() Config {
 	cfg := Config{
-		Mock:      web.AppConfig.DefaultString("wechat_mock", "") == "1" || os.Getenv("WECHAT_MOCK") == "1",
-		AppID:     web.AppConfig.DefaultString("wechat_appid", ""),
-		MchID:     web.AppConfig.DefaultString("wechat_mchid", ""),
-		MchKey:    web.AppConfig.DefaultString("wechat_mchkey", ""),
-		NotifyURL: web.AppConfig.DefaultString("wechat_notify_url", ""),
-		SignType:  web.AppConfig.DefaultString("wechat_sign_type", "HMAC-SHA256"),
-		Timeout:   int(web.AppConfig.DefaultInt("wechat_timeout", 10)),
-		CertFile:  web.AppConfig.DefaultString("wechat_cert_file", ""),
-		CertKey:   web.AppConfig.DefaultString("wechat_cert_key", ""),
+		Mock:            web.AppConfig.DefaultString("wechat_mock", "") == "1" || os.Getenv("WECHAT_MOCK") == "1",
+		AppID:           web.AppConfig.DefaultString("wechat_appid", ""),
+		MchID:           web.AppConfig.DefaultString("wechat_mchid", ""),
+		MchKey:          web.AppConfig.DefaultString("wechat_mchkey", ""),
+		NotifyURL:       web.AppConfig.DefaultString("wechat_notify_url", ""),
+		SignType:        web.AppConfig.DefaultString("wechat_sign_type", "HMAC-SHA256"),
+		Timeout:         int(web.AppConfig.DefaultInt("wechat_timeout", 10)),
+		CertFile: web.AppConfig.DefaultString("wechat_cert_file", ""),
+		CertKey:  web.AppConfig.DefaultString("wechat_cert_key", ""),
 	}
 	if env := os.Getenv("WECHAT_APPID"); env != "" {
 		cfg.AppID = env

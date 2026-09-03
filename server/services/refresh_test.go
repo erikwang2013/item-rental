@@ -30,6 +30,13 @@ func (s *memRefreshStore) Save(uid int64, jti string, _ time.Time) error {
 	return nil
 }
 
+func (s *memRefreshStore) Delete(uid int64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.sessions, uid)
+	return nil
+}
+
 func (s *memRefreshStore) Check(uid int64, jti string) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -110,5 +117,56 @@ func TestRotateRefreshRejectsUnknownSession(t *testing.T) {
 	}
 	if _, _, err := RotateRefresh(r); !errors.Is(err, ErrRefreshRejected) {
 		t.Errorf("未注册会话的 refresh 应被拒绝, got %v", err)
+	}
+}
+
+
+func TestLogoutInvalidatesRefresh(t *testing.T) {
+	st := newMemRefreshStore()
+	switchStore(t, st)
+	registerSecret(t)
+
+	access0, refresh0, _ := setupRotation(t)
+	// 登出
+	assertNil(t, Logout(1), "Logout")
+	// 登出后旧 refresh 应被拒绝
+	_, _, err := RotateRefresh(refresh0)
+	if !errors.Is(err, ErrRefreshRejected) {
+		t.Fatalf("expect ErrRefreshRejected after logout, got %v", err)
+	}
+	// 新的 refresh 同样受影响（同 uid 单活跃）
+	_, _, err = RotateRefresh(refresh0)
+	if !errors.Is(err, ErrRefreshRejected) {
+		t.Fatalf("rotate should fail after logout")
+	}
+	_ = access0
+}
+
+// registerSecret 设置测试 JWT 密钥（与 middleware/jwt_test.go 同值，避免命中默认密钥 panic）。
+func registerSecret(t *testing.T) {
+	t.Helper()
+	t.Setenv("ITEM_RENTAL_JWT_SECRET", refreshTestSecret)
+}
+
+// setupRotation 为 uid=1 签发 access + refresh 并注册会话，返回令牌。
+func setupRotation(t *testing.T) (string, string, error) {
+	t.Helper()
+	const uid = int64(1)
+	refresh, err := middleware.GenerateRefreshToken(uid, "user")
+	if err != nil {
+		return "", "", err
+	}
+	if err := SaveRefreshSession(uid, refresh); err != nil {
+		return "", "", err
+	}
+	access, err := middleware.GenerateAccessToken(uid, "user")
+	return access, refresh, err
+}
+
+// assertNil 断言 err 为 nil。
+func assertNil(t *testing.T, err error, msg string) {
+	t.Helper()
+	if err != nil {
+		t.Fatalf("%s: %v", msg, err)
 	}
 }

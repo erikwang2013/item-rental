@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/erikwang2013/item-rental/server/middleware"
 	"github.com/erikwang2013/item-rental/server/models"
 	"github.com/erikwang2013/item-rental/server/payments"
+	"github.com/erikwang2013/item-rental/server/services"
 )
 
 // PaymentController 支付相关接口
@@ -181,6 +183,8 @@ func (c *PaymentController) Refund() {
 		c.Fail(500, "退款处理失败: "+err.Error())
 		return
 	}
+	_ = services.Send(order.RenterId, "payment_refunded", "退款成功", fmt.Sprintf("订单 %s 已退款 %v", order.OrderNo, pay.Amount))
+	_ = services.Send(order.OwnerId, "payment_refunded", "退款通知", fmt.Sprintf("订单 %s 已退款 %v", order.OrderNo, pay.Amount))
 
 	c.OK(map[string]any{
 		"refund_id": res.RefundID,
@@ -207,7 +211,59 @@ func (c *PaymentController) Notify() {
 		return
 	}
 	// 处理成功：返回 SUCCESS，微信不再重发
+	// 异步发送站内消息（幂等：同 out_trade_no 重复回调不会重复发通知）
+	go notifyOnPaymentSuccess(raw)
 	c.writeNotifyResult(true)
+}
+
+// notifyOnPaymentSuccess 从微信回调 XML 中解析 out_trade_no，找到对应的支付单和订单，
+// 发送"付款成功"站内消息给租客。回调可能重复到达，本函数做幂等保护。
+func notifyOnPaymentSuccess(raw []byte) {
+	outTradeNo, err := parseOutTradeNo(string(raw))
+	if err != nil || outTradeNo == "" {
+		return
+	}
+	o := orm.NewOrm()
+	var pay models.Payment
+	if err := o.QueryTable(new(models.Payment)).Filter("out_trade_no", outTradeNo).One(&pay); err != nil {
+		return
+	}
+	order := models.Order{Id: pay.OrderId}
+	if err := o.Read(&order); err != nil {
+		return
+	}
+	if err := services.Send(order.RenterId, "payment_success", "付款成功", fmt.Sprintf("订单 %s 付款 %v 已成功", order.OrderNo, pay.Amount)); err != nil {
+		return
+	}
+}
+
+// parseOutTradeNo 从微信回调 XML 中提取 out_trade_no，支持 <![CDATA[...]]> 和裸文本。
+// ponytail: 纯 stdlib strings.Index，无 xml 解析依赖，无 DB 往返。
+func parseOutTradeNo(xml string) (string, error) {
+	idx := strings.Index(xml, "out_trade_no")
+	if idx < 0 {
+		return "", nil
+	}
+	start := idx + len("out_trade_no")
+	// 跳过 ">..." 到第一个 >
+	if gt := strings.Index(xml[start:], ">"); gt >= 0 {
+		start += gt + 1
+	} else {
+		return "", nil
+	}
+	// 去掉 <![CDATA[
+	if cdata := strings.Index(xml[start:], "<![CDATA["); cdata >= 0 {
+		start += cdata + 9
+	}
+	end := strings.Index(xml[start:], "]]>")
+	if end >= 0 {
+		return strings.TrimSpace(xml[start : start+end]), nil
+	}
+	end = strings.Index(xml[start:], "</out_trade_no>")
+	if end < 0 {
+		return "", nil
+	}
+	return strings.TrimSpace(xml[start : start+end]), nil
 }
 
 // writeNotifyResult 输出微信要求的 XML 应答。

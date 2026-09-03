@@ -56,3 +56,15 @@
 | golangci-lint 调参 | 用默认配置 | CI 误报变多时 |
 | 信用分逻辑 | OUT-OF-SCOPE | 独立立项 |
 | PII 加密 | OUT-OF-SCOPE(schema 保留字段) | 合规要求 |
+| 支付宝支付 | OUT-OF-SCOPE(config 预留字段已移除,无实现) | 独立接入时 |
+
+## 7. 阶段B — 服务端待办补齐(✅ 全部完成)
+
+对齐 [frontend-plan.md §6](frontend-plan.md)「未实现/待办」中的后端可交付项:
+
+- [x] **B1 登出接口** — `POST /auth/logout`(JWT)+ refresh 会话失效(Redis Del)+ `TestLogoutInvalidatesRefresh`。
+- [x] **B2 站内消息中心** — `messages` 表(schema + ORM 模型)+ `GET /messages`(分页/未读过滤)+ `POST /messages/:id/read`(本人校验)+ `services.Send`/`CountUnread`。
+- [x] **B3 消息接入生命周期** — 支付成功(回调异步写 `payment_success`)、退款成功(写 `payment_refunded`),不阻断主流程。
+- [x] **B4 city 搜索接线** — `GET /items/search?city=` 透传至 OpenSearch 精确过滤(engine 已有 `Where("city", q.City)`)。
+
+**验证**:`go build ./... && go vet ./... && go test ./... -count=1` 全绿,聚合覆盖率 26.0%(CI 门 ≥15%)。

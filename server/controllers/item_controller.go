@@ -40,7 +40,7 @@ func valueOrZero(p *float64) float64 {
 }
 
 // buildSearchParams 组装搜索参数（纯函数，便于单测：页面入参 → search.SearchParams）。
-func buildSearchParams(q string, categoryID int64, minPrice, maxPrice float64, orderBy string, page, pageSize int) search.SearchParams {
+func buildSearchParams(q string, categoryID int64, minPrice, maxPrice float64, orderBy string, page, pageSize int, city string) search.SearchParams {
 	return search.SearchParams{
 		Query:      q,
 		CategoryID: categoryID,
@@ -49,6 +49,7 @@ func buildSearchParams(q string, categoryID int64, minPrice, maxPrice float64, o
 		OrderBy:    orderBy,
 		Page:       page,
 		PageSize:   pageSize,
+		City:       city,
 	}
 }
 
@@ -270,18 +271,19 @@ func (c *ItemController) OffShelf() {
 	c.OK(map[string]any{"msg": "已下架"})
 }
 
-// Search 搜索物品（关键字/品类/价格区间/排序/地理半径）
-// GET /api/v1/items/search?q=相机&category_id=5&min_price=10&max_price=100&order_by=price_asc&lat=39.9&lng=116.4&radius_km=50
+// Search 搜索物品（关键字/品类/价格区间/排序/城市/地理半径）
+// GET /api/v1/items/search?q=相机&category_id=5&min_price=10&max_price=100&order_by=price_asc&city=北京&lat=39.9&lng=116.4&radius_km=50
 func (c *ItemController) Search() {
 	q := c.GetString("q")
 	categoryID, _ := c.GetInt64("category_id", 0)
 	minPrice, _ := c.GetFloat("min_price", 0)
 	maxPrice, _ := c.GetFloat("max_price", 0)
 	orderBy := c.GetString("order_by", "")
+	city := c.GetString("city")
 	page, _ := c.GetInt("page", 1)
 	pageSize, _ := c.GetInt("page_size", 20)
 
-	p := buildSearchParams(q, categoryID, minPrice, maxPrice, orderBy, page, pageSize)
+	p := buildSearchParams(q, categoryID, minPrice, maxPrice, orderBy, page, pageSize, city)
 	// 地理半径过滤（可选）：lat/lng/radius_km 齐全时启用，缺失坐标的物品安全跳过
 	lat, _ := c.GetFloat("lat", 0)
 	lng, _ := c.GetFloat("lng", 0)

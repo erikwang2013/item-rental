@@ -30,6 +30,8 @@ type RefreshTokenStore interface {
 	// Check 校验 jti 是否为该用户当前有效 refresh token。
 	// Redis 故障时降级放行（返回 true）；会话不存在返回 false。
 	Check(uid int64, jti string) bool
+	// Delete 删除该用户的 refresh 会话（登出），使 refresh 立即失效。
+	Delete(uid int64) error
 }
 
 // refreshStore 全局会话存储实例，测试中可整体替换。
@@ -68,6 +70,19 @@ func (redisRefreshStore) Check(uid int64, jti string) bool {
 		return true
 	}
 	return got == jti
+}
+
+func (redisRefreshStore) Delete(uid int64) error {
+	if web.AppConfig.DefaultString("sms_provider", "mock") == "mock" {
+		return nil
+	}
+	c := initRedis()
+	return c.Del(ctx, refreshPrefix+strconv.FormatInt(uid, 10)).Err()
+}
+
+// Logout 使该用户当前 refresh 会话失效（登出）。
+func Logout(uid int64) error {
+	return refreshStore.Delete(uid)
 }
 
 // SaveRefreshSession 将 refresh token 注册为该用户当前会话（写入其 jti）。

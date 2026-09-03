@@ -10,6 +10,7 @@
 | POST | /auth/sms | 公开 | 发送验证码(60s 限频,真实模式 Redis 限频;不返回明文验证码) |
 | POST | /auth/login | 公开 | 验证码登录(自动注册),返回 access + refresh token |
 | POST | /auth/refresh | 公开 | 双 Token 轮换(单活跃 refresh) |
+| POST | /auth/logout | JWT | 登出:当前用户 refresh 会话失效 |
 | GET | /user/profile | JWT | 获取用户资料 |
 | PUT | /user/profile | JWT | 更新用户资料 |
 
@@ -142,14 +143,30 @@ PUT 请求体可选:`nickname | avatar | real_name | phone`。
 
 微信支付回调。验签 → 解析 trade_state/refund_status → 订单迁移(已付 / 已退款)。XML 响应:`<xml><return_code><![CDATA[SUCCESS]]></return_code></xml>`。
 
-## 6. 其他公开端点
+## 6. 站内消息(全部 JWT)
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | /messages?unread=1&page=1&page_size=20 | 消息列表(最新优先,支持未读过滤 + 分页),`data.unread` 为未读总数 |
+| POST | /messages/:id/read | 标记已读(仅本人消息,403) |
+
+消息类型 `type`:payment_success / payment_refunded / return_confirmed / breach / order_cancelled。由服务端在支付成功回调和退自动写入,无主动推送(前端轮询/下拉刷新感知)。
+
+## 7. 其他公开端点
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | GET | /health | 健康检查,返回 `{"code":0,"msg":"ok"}` |
 | GET | /static/mascot.svg | 吉祥物 SVG |
 
-## 7. 错误码
+## 8. 错误码
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | /health | 健康检查,返回 `{"code":0,"msg":"ok"}` |
+| GET | /static/mascot.svg | 吉祥物 SVG |
+
+## 8. 错误码
 
 | code | 含义 |
 | --- | --- |
@@ -159,7 +176,7 @@ PUT 请求体可选:`nickname | avatar | real_name | phone`。
 | 422 | 请求参数校验失败(金额/坐标/长度/类别存在性) |
 | 500 | 服务端错误 |
 
-## 8. 冒烟示例
+## 9. 冒烟示例
 
 ```bash
 # 登录得 token

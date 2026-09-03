@@ -115,6 +115,19 @@ CREATE TABLE IF NOT EXISTS `payments` (
     KEY `idx_order` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支付流水表';
 
+-- ---------- 站内消息表 ----------
+CREATE TABLE IF NOT EXISTS `messages` (
+    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `user_id`     BIGINT UNSIGNED NOT NULL COMMENT '接收用户ID',
+    `type`        VARCHAR(32)     NOT NULL COMMENT '类型：payment_success/payment_refunded/return_confirmed/breach/order_cancelled',
+    `title`       VARCHAR(128)    NOT NULL DEFAULT '' COMMENT '标题',
+    `content`     VARCHAR(512)    NOT NULL DEFAULT '' COMMENT '正文',
+    `is_read`     TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '0未读 1已读',
+    `created_at`  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_user_read` (`user_id`, `is_read`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='站内消息表';
+
 -- ---------- 初始品类数据 ----------
 INSERT IGNORE INTO `categories` (`id`, `name`, `parent_id`, `sort`) VALUES
     (1, '3C数码', 0, 1),

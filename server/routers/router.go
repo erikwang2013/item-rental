@@ -54,6 +54,8 @@ func init() {
 	web.Router("/api/v1/auth/sms", &controllers.AuthController{}, "post:SendSms")
 	web.Router("/api/v1/auth/login", &controllers.AuthController{}, "post:Login")
 	web.Router("/api/v1/auth/refresh", &controllers.AuthController{}, "post:Refresh")
+	web.InsertFilter("/api/v1/auth/logout", web.BeforeRouter, middleware.JWTAuth)
+	web.Router("/api/v1/auth/logout", &controllers.AuthController{}, "post:Logout")
 
 	// 用户信息（需登录）
 	web.Router("/api/v1/user/profile", &controllers.UserController{}, "get:Profile")
@@ -103,4 +105,10 @@ func init() {
 	web.Router("/api/v1/pay/refund", &controllers.PaymentController{}, "post:Refund")
 	// 微信支付/退款回调（公开，内部做签名校验）
 	web.Router("/api/v1/pay/notify", &controllers.PaymentController{}, "post:Notify")
+
+	// ---- B3 站内消息 ----
+	web.InsertFilter("/api/v1/messages", web.BeforeRouter, middleware.JWTAuth)
+	web.InsertFilter("/api/v1/messages/:id/read", web.BeforeRouter, middleware.JWTAuth)
+	web.Router("/api/v1/messages", &controllers.MessageController{}, "get:List")
+	web.Router("/api/v1/messages/:id/read", &controllers.MessageController{}, "post:MarkRead")
 }
