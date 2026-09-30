@@ -1,4 +1,4 @@
-# CI gate (P2-3): push must be green, failure blocks merge.
+# CI gate (P2-3). 自动触发已关闭 — 仅手动 workflow_dispatch 运行。
 #
 # Tests are offline by design (P1-4): they need NO MySQL / OpenSearch / Redis
 # or any other infrastructure — the suite is fully runnable in a bare runner.
@@ -10,10 +10,7 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   lint:

@@ -1,10 +1,8 @@
 # nightly E2E(阶段E):起真后端(MySQL service + WECHAT_MOCK + PII key)跑 scripts/e2e-smoke.sh 链1+链2。
-# 触发:每日 cron(非整点错峰)+ 手动 workflow_dispatch。
+# 触发:仅手动 workflow_dispatch(自动 cron 已关闭)。
 name: nightly-e2e
 
 on:
-  schedule:
-    - cron: '23 17 * * *'   # 每日 01:23 CST(UTC+8)
   workflow_dispatch:
 
 jobs:
