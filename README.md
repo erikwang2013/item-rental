@@ -209,6 +209,25 @@ BEEGO_RUNMODE=prod ./server                 # 或容器内运行
 > 左侧为**微信赞赏码**,右侧为**支付宝收款码**,分别对应微信与支付宝应用内扫码。
 
 
+## 开源版 vs 商业版
+
+本项目同时维护开源版与商业版。两版**后端代码与数据库结构相同**（Go 6,859 行、7 个业务控制器、8 张表），差异集中在交付内容、客户端入口、素材与文档口径：
+
+| 维度 | 开源版（本仓库） | 商业版 |
+|---|---|---|
+| 授权 | 仅个人学习/研究；商业使用需书面授权 | 商业授权交付，范围与条款联系 erik@erik.xyz |
+| 后端 / API | Go 1.24 + Beego v2，7 个控制器、8 张表；订单/租赁/支付/消息全链路 | 同一套后端代码与数据库结构 |
+| Flutter 客户端 | 13 页，保留 Web / Android / iOS 目标 | 13 页 + 额外 Linux 桌面运行器（`apps/flutter/linux`） |
+| 微信小程序 | 13 页；已移除状态 5/6 下必然返回 409 的退款按钮（后端退款 API 保留，待取状态可用） | 保留原小程序退款入口 |
+| 品牌 / 素材 | 已清理无引用打赏图与宠物表情素材 | 含完整 `docs/coin`、`docs/pet-expressions` 素材 |
+| 营销站点 | 不含 | 含独立 `site/`（24 个文件：架构图、OG 图、主题样式） |
+| 文档口径 | 按实际实现标注 mock 支付/短信限制 | README 标注真实支付/短信就绪 |
+| 支持与交付 | 社区 / Issue | 商业授权与交付支持联系 erik@erik.xyz |
+
+**商业版授权联系：erik@erik.xyz**
+
+**English summary:** Both editions share the same Go backend and database schema (6,859 LOC, 7 business controllers, 8 tables). The commercial edition additionally ships the Flutter Linux desktop runner, the original mini-program refund entry, the full brand/donation assets, and a standalone marketing site (`site/`, 24 files). Commercial licensing and delivery: erik@erik.xyz.
+
 ## 项目授权 / Project License
 
 Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
