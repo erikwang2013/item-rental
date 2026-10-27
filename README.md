@@ -6,10 +6,9 @@
 ![Beego](https://img.shields.io/badge/Beego-v2.3.10-339AF0)
 ![License](https://img.shields.io/badge/License-Personal%20Use%20Only-red)
 
-<p align="center">
-  <img src="docs/mascot.svg" alt="吉祥物租租" width="150">
-  <br><b>吉祥物 · 租租鼠</b> — 🐹 采用 **Go 官方 Gopher**(CC BY 4.0,Renee French 设计):本项目是 Go 1.24 后端,全球 Go 开发者一眼认出;戴上橙色安全帽 + 胸前 ¥ 徽章 + 怀抱送货箱,把「安全交付、按时归还、押金保障」写进造型。服务启动时控制台也会出现 Gopher(`/static/mascot.svg` 可见)。
-</p>
+![吉祥物租租](docs/mascot.svg)
+
+**吉祥物 · 租租鼠** — 🐹 采用 **Go 官方 Gopher**(CC BY 4.0,Renee French 设计):本项目是 Go 1.24 后端,全球 Go 开发者一眼认出;戴上橙色安全帽 + 胸前 ¥ 徽章 + 怀抱送货箱,把「安全交付、按时归还、押金保障」写进造型。服务启动时控制台也会出现 Gopher(`/static/mascot.svg` 可见)。
 
 ---
 
@@ -21,7 +20,7 @@
 
 ## 功能特性
 
-<p align="center"><img src="docs/features.svg" alt="功能特性全景" width="900"></p>
+![功能特性全景](docs/features.svg)
 
 - **认证与账号**:手机号验证码登录(mock 短信;真实短信网关尚未接入)、JWT 双 Token(Access 2h + Refresh 7d **多端并存、单端登出**轮换)、验证码 60s 限频、用户资料/信用分/押金账户/实名(加密存储)。
 - **物品与发布**:类目体系、上下架、**多图上传**(POST /items/upload,≤9×4MB)、详情 owner 公开信息富化(昵称/头像/信用分)。
@@ -33,7 +32,7 @@
 
 ## 技术架构
 
-<p align="center"><img src="docs/architecture.svg" alt="系统架构图" width="840"></p>
+![系统架构图](docs/architecture.svg)
 
 | 层 | 组件 |
 | --- | --- |
@@ -44,7 +43,7 @@
 
 ## 订单生命周期
 
-<p align="center"><img src="docs/lifecycle.svg" alt="订单生命周期 · 7 态状态机" width="840"></p>
+![订单生命周期 · 7 态状态机](docs/lifecycle.svg)
 
 | 状态 | 含义 | 主要动作 |
 | --- | --- | --- |
