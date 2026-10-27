@@ -49,9 +49,5 @@
     </block>
     <!-- 待归还:租客 仅提示 -->
     <view wx:if="{{order.status === 3 && isRenter}}" class="muted wait">已申请归还,等待房东确认</view>
-    <!-- 已取消/违约:申请退款(mock 直接成功) -->
-    <block wx:if="{{order.status === 5 || order.status === 6}}">
-      <button class="btn btn-danger wide" bindtap="refund" disabled="{{busy}}">申请退款</button>
-    </block>
   </view>
 </view>

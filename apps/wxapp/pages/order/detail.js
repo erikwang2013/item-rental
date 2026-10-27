@@ -1,6 +1,5 @@
 const orderApi = require('../../api/order')
 const itemApi = require('../../api/item')
-const payApi = require('../../api/pay')
 const util = require('../../utils/util')
 
 const CONFIRM = {
@@ -55,22 +54,6 @@ Page({
     }
     if (!tip) return run()
     wx.showModal({ title: '确认操作', content: tip, success: res => { if (res.confirm) run() } })
-  },
-
-  refund() {
-    wx.showModal({
-      title: '申请退款',
-      content: '确认发起退款?mock 模式将直接成功',
-      success: res => {
-        if (!res.confirm) return
-        this.setData({ busy: true })
-        payApi.refund({ order_id: this.id }).then(() => {
-          wx.showToast({ title: '退款已发起' })
-          this.setData({ busy: false })
-          this.load()
-        }).catch(() => this.setData({ busy: false }))
-      }
-    })
   },
 
   goPay() { wx.navigateTo({ url: '/pages/order/pay?order_id=' + this.id }) },
