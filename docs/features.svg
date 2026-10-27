@@ -7,7 +7,7 @@
     <!-- 认证与账号 -->
     <rect x="30"  y="90"  width="365" height="190" rx="12" fill="#faf5ff" stroke="#a855f7"/>
     <text x="212" y="124"  text-anchor="middle" font-size="19" font-weight="bold" fill="#7e22ce">认证与账号</text>
-    <text x="212" y="156" text-anchor="middle" font-size="15" fill="#581c87">手机号验证码登录（mock / 真实短信）</text>
+    <text x="212" y="156" text-anchor="middle" font-size="15" fill="#581c87">手机号验证码登录（mock 短信；真实网关未接入）</text>
     <text x="212" y="184" text-anchor="middle" font-size="15" fill="#581c87">JWT 双 Token：Access 2h + Refresh 7d（多端并存）</text>
     <text x="212" y="212" text-anchor="middle" font-size="15" fill="#581c87">验证码 60s 限频、短信不返回明文验证码</text>
     <text x="212" y="240" text-anchor="middle" font-size="15" fill="#581c87">用户资料、信用分、押金账户（PII 加密存储）</text>
@@ -39,7 +39,7 @@
     <!-- 支付 -->
     <rect x="418" y="305" width="365" height="190" rx="12" fill="#fef2f2" stroke="#ef4444"/>
     <text x="600" y="339" text-anchor="middle" font-size="19" font-weight="bold" fill="#b91c1c">支付与退款</text>
-    <text x="600" y="371" text-anchor="middle" font-size="15" fill="#7f1d1d">微信支付统一下单（mock 网关，留位真接入）</text>
+    <text x="600" y="371" text-anchor="middle" font-size="15" fill="#7f1d1d">微信支付统一下单（默认 mock；服务端留位真实模式）</text>
     <text x="600" y="399" text-anchor="middle" font-size="15" fill="#7f1d1d">支付/退款异步回调验签处理（HMAC-SHA256）</text>
     <text x="600" y="427" text-anchor="middle" font-size="15" fill="#7f1d1d">退款仅待取态可退（409 守卫）、mock 短路</text>
     <text x="600" y="455" text-anchor="middle" font-size="15" fill="#7f1d1d">订单取消自动退款</text>

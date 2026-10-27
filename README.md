@@ -4,7 +4,7 @@
 
 ![Go](https://img.shields.io/badge/Go-1.24.2-00ADD8?logo=go&logoColor=white)
 ![Beego](https://img.shields.io/badge/Beego-v2.3.10-339AF0)
-![License](https://img.shields.io/badge/License-MIT-green)
+![License](https://img.shields.io/badge/License-Personal%20Use%20Only-red)
 
 <p align="center">
   <img src="docs/mascot.svg" alt="吉祥物租租" width="150">
@@ -17,17 +17,17 @@
 
 一个面向 **Flutter 主App / 微信原生小程序**的 P2P 物品租赁平台。房东发布闲置物品,按天计价并收取押金;租客搜索、下单、支付租金、取件使用、按约归还;平台以 7 态订单状态机贯穿租赁全流程,配套押金台账、信用分、站内消息与退款/违约处置。
 
-技术底座:Go 1.24 + Beego v2.3(MVC)+ MySQL + Redis + OpenSearch;**主键 bwmarrin/snowflake**(JSON 字符串输出,JS 安全);phone 哈希 + 实名加密存储(ITEM_RENTAL_PII_KEY);微信支付网关抽象(默认 mock 预支付/验签回调/退款,商户凭据就绪即可切真);security-go 攻击检测 + IP 封禁(文件持久化)。双端前端:`apps/flutter`(13 页)与 `apps/wxapp`(13 页 ×4 件套,微信原生)。
+技术底座:Go 1.24 + Beego v2.3(MVC)+ MySQL + Redis + OpenSearch;**主键 bwmarrin/snowflake**(JSON 字符串输出,JS 安全);phone 哈希 + 实名加密存储(ITEM_RENTAL_PII_KEY);微信支付网关抽象(默认 mock 预支付/验签回调/退款;服务端已留真实商户模式,客户端目前仅接入 mock);security-go 攻击检测 + IP 封禁(文件持久化)。双端前端:`apps/flutter`(13 页)与 `apps/wxapp`(13 页 ×4 件套,微信原生)。
 
 ## 功能特性
 
 <p align="center"><img src="docs/features.svg" alt="功能特性全景" width="900"></p>
 
-- **认证与账号**:手机号验证码登录(mock/真实短信)、JWT 双 Token(Access 2h + Refresh 7d **多端并存、单端登出**轮换)、验证码 60s 限频、用户资料/信用分/押金账户/实名(加密存储)。
+- **认证与账号**:手机号验证码登录(mock 短信;真实短信网关尚未接入)、JWT 双 Token(Access 2h + Refresh 7d **多端并存、单端登出**轮换)、验证码 60s 限频、用户资料/信用分/押金账户/实名(加密存储)。
 - **物品与发布**:类目体系、上下架、**多图上传**(POST /items/upload,≤9×4MB)、详情 owner 公开信息富化(昵称/头像/信用分)。
 - **搜索**:OpenSearch 全文检索、关键词×城市×类目筛选、**精确地理位置距离检索**(geo_point + WhereGeoDistance;无 OS 时 Haversine 兜底)。
 - **订单与租赁**:按天计价 + 押金核算、7 态生命周期、取货/归还申请/归还确认/违约、**信用分履约联动**(归还 +5/违约 -30/已付取消 -10,credit_events 流水)、**站内消息**(支付/退款/归还/违约/取消事件)。
-- **支付与退款**:微信支付网关抽象(mock 预付/回调验签/退款;真商户就绪即切)、订单取消自动退款、**退款状态守卫**(仅待取可退,租赁中 409)。
+- **支付与退款**:微信支付网关抽象(mock 预付/回调验签/退款;服务端留位真实商户模式,客户端目前仅 mock)、订单取消自动退款、**退款状态守卫**(仅待取可退,租赁中 409)。
 - **押金与结算**:deposits 台账(冻结/解冻/扣款)、违约扣押金入物主账、`o.Raw` 精确落库(阶段E 修复)。
 - **安全与隐私**:security-go 攻击检测 + **IP 封禁文件持久化**、统一边界校验、**主键 snowflake 字符串契约**(JS 安全)、phone sha256 + real_name AES-GCM(密钥 fail-fast)。
 
@@ -208,48 +208,15 @@ BEEGO_RUNMODE=prod ./server                 # 或容器内运行
 
 > 左侧为**微信赞赏码**,右侧为**支付宝收款码**,分别对应微信与支付宝应用内扫码。
 
-也支持虚拟币打赏(下方二维码与收款地址一一对应):
 
-| # | 网络 | 收款地址 |
-| --- | --- | --- |
-| 1 | BNB Smart Chain (BEP20) | ![BEP20](docs/coin/small/1.jpg) `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| 2 | Tron (TRC20) | ![TRC20](docs/coin/small/2.jpg) `TEdDHWLajt1XvqtPDWmQctdrJaC3pzZZzz` |
-| 3 | Ethereum (ERC20) | ![ERC20](docs/coin/small/3.jpg) `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| 4 | Aptos | ![Aptos](docs/coin/small/4.jpg) `0x836e3780edfc3f7b2372b39e2a1a3a5d7adfaccd96c726f21cfde1b50dd68030` |
-| 5 | Plasma | ![Plasma](docs/coin/small/5.jpg) `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| 6 | Polygon POS | ![Polygon](docs/coin/small/6.jpg) `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| 7 | Solana | ![Solana](docs/coin/small/7.jpg) `2hfhboHdmdrYsY25XfQSsEWxq5ip4EQsR7f4AzSRMUyr` |
-| 8 | The Open Network (TON) | ![TON](docs/coin/small/8.jpg) `UQB9kFQohzmXUir9QSSZq01iwl9aQZIDdBpNmDklljRtCoGK` |
-| 9 | Arbitrum One | ![Arbitrum](docs/coin/small/9.jpg) `0x355d429f97511897ccb4e271ec888205f9ab6629` |
-| 10 | AVAX C-Chain | ![AVAX](docs/coin/small/10.jpg) `0x355d429f97511897ccb4e271ec888205f9ab6629` |
+## 项目授权 / Project License
 
-## License
+Copyright (c) 2026 erik <erik@erik.xyz> — https://erik.xyz
 
-[MIT](./LICENSE) © 2026 erik.xyz
+- 本项目仅供个人学习、研究使用。
+- 未经作者书面授权，禁止任何形式的商业使用（包括但不限于商业部署、付费服务、二次销售、SaaS 运营及以本项目为基础提供商业服务）。
+- 商业授权请联系 **erik@erik.xyz**。
+- 未经授权的商业使用，作者将在全球范围内依法追究法律责任，并保留终身追责的权利。
+- 第三方组件仍遵循其各自原有的许可证；视觉资产适用仓库内的 ASSETS-LICENSE.md（如适用）。
 
----
-
-*Generated with https://erik.xyz*
-
-<!-- pet-expressions:start -->
-## 项目宠物表情形态 · 租租鼠
-
-<table align="center">
-<tr><td align="center"><img src="docs/pet-expressions/smile.svg" width="88" alt="笑"><br><b>笑</b><br><code>:emoji-smile:</code></td><td align="center"><img src="docs/pet-expressions/joy.svg" width="88" alt="欢乐"><br><b>欢乐</b><br><code>:emoji-joy:</code></td><td align="center"><img src="docs/pet-expressions/cry.svg" width="88" alt="哭"><br><b>哭</b><br><code>:emoji-cry:</code></td><td align="center"><img src="docs/pet-expressions/depressed.svg" width="88" alt="沮丧"><br><b>沮丧</b><br><code>:emoji-depressed:</code></td><td align="center"><img src="docs/pet-expressions/terrified.svg" width="88" alt="惊恐"><br><b>惊恐</b><br><code>:emoji-terrified:</code></td><td align="center"><img src="docs/pet-expressions/angry.svg" width="88" alt="愤怒"><br><b>愤怒</b><br><code>:emoji-angry:</code></td></tr>
-<tr><td align="center"><img src="docs/pet-expressions/coquettish.svg" width="88" alt="撒娇"><br><b>撒娇</b><br><code>:emoji-coquettish:</code></td><td align="center"><img src="docs/pet-expressions/cute.svg" width="88" alt="卖萌"><br><b>卖萌</b><br><code>:emoji-cute:</code></td><td align="center"><img src="docs/pet-expressions/pleasing.svg" width="88" alt="讨好"><br><b>讨好</b><br><code>:emoji-pleasing:</code></td><td align="center"><img src="docs/pet-expressions/knocking.svg" width="88" alt="敲打"><br><b>敲打</b><br><code>:emoji-knocking:</code></td><td align="center"><img src="docs/pet-expressions/facepalm.svg" width="88" alt="捂脸"><br><b>捂脸</b><br><code>:emoji-facepalm:</code></td><td align="center"><img src="docs/pet-expressions/tongue.svg" width="88" alt="吐舌头"><br><b>吐舌头</b><br><code>:emoji-tongue:</code></td></tr>
-</table>
-
-> 12 种彩色动态形态：笑 / 欢乐 / 哭 / 沮丧 / 惊恐 / 愤怒 / 撒娇 / 卖萌 / 讨好 / 敲打 / 捂脸 / 吐舌头。每个 SVG 自带表情、情绪特效与整体动效，并遵循 `prefers-reduced-motion`。
-<!-- pet-expressions:end -->
-
-<!-- assets-license:start -->
-## 视觉资产授权 / Visual Assets License
-
-本项目的项目宠物、图片、图标、表情（包括 `docs/pet-expressions/` 等目录下的
-SVG / PNG）**不是开源资产**，版权归作者所有。未经书面许可不得复制、修改、再分发或
-用于商业用途；商业使用需取得商业授权，联系 **erik@erik.xyz**。详见
-[ASSETS-LICENSE.md](ASSETS-LICENSE.md)。
-
-> 代码部分仍遵循仓库原有 `LICENSE`；第三方素材（如明确标注的 Go Gopher 等）仍遵循其原许可证。
-<!-- assets-license:end -->
-
+**English:** This project is provided for personal study and research only. Commercial use of any kind requires prior written authorization from the author (erik@erik.xyz). Unauthorized commercial use will be pursued for legal liability worldwide, and the author reserves the right to pursue such liability for life. Third-party components remain under their original licenses; visual assets are governed by ASSETS-LICENSE.md where applicable.

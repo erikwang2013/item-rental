@@ -31,7 +31,7 @@
 | 19 | `ipban_duration` | — | `900` | 封禁时长(秒) | 否 | 否 |
 | 20 | `body_size_limit` | — | `10485760` | 请求体大小上限(字节,10MB) | 否 | 否 |
 | 21 | `content_types` | — | `application/json,application/x-www-form-urlencoded,multipart/form-data` | 允许的 Content-Type 白名单 | 否 | 否 |
-| 22 | `sms_provider` | — | `mock` | 短信渠道;`mock` 时 refresh 会话绕过 Redis(services/refresh.go) | 否 | **是(接真实网关后必设)** |
+| 22 | `sms_provider` | — | `mock` | 短信渠道;`mock` 时 refresh 会话绕过 Redis(services/refresh.go);真实短信网关尚未实现 | 否 | 否(当前仅支持 mock) |
 | 23 | `wechat_mock` | `WECHAT_MOCK` | 空(`""`,关闭) | 支付 mock 模式(=`1` 开启) | 否 | **是(设 `0` 或留空)** |
 | 24 | `wechat_appid` | `WECHAT_APPID` | 空 | 微信支付 AppID | 否 | **是(必设)** |
 | 25 | `wechat_mchid` | `WECHAT_MCHID` | 空 | 微信商户号 | 否 | **是(必设)** |
@@ -60,7 +60,7 @@
 3. `sqlconn` / `redispass` 替换开发默认口令。
 4. `SCOUT_DRIVER=opensearch` + `OPENSEARCH_HTTP_HOST/USERNAME/PASSWORD`(或留空接受降级)。
 5. `WECHAT_MOCK=0`,`WECHAT_APPID/MCHID/MCHKEY/NOTIFY_URL` 已配置。
-6. `sms_provider` 切离 `mock`;反代场景配 `ITEM_RENTAL_TRUSTED_PROXY`。
+6. 反代场景配 `ITEM_RENTAL_TRUSTED_PROXY`;真实短信网关尚未实现，`sms_provider` 保持 `mock`。
 7. `ITEM_RENTAL_PII_KEY` 强随机 64 hex(缺失/非 64 hex 启动即 panic,services/pii.go)。
 
 ## 生产 Docker Compose(deploy/docker-compose.prod.yml)

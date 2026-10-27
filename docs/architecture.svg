@@ -76,7 +76,7 @@
     <text x="595" y="490" font-size="11">物品全文检索</text>
     <text x="595" y="506" font-size="11">geo_point 距离索引</text>
     <text x="825" y="470">支付网关</text>
-    <text x="825" y="490" font-size="11">mock 优先(留位真接入)</text>
+    <text x="825" y="490" font-size="11">默认 mock（服务端留位真实模式）</text>
     <text x="825" y="506" font-size="11">预付/回调验签/退款</text>
   </g>
 
