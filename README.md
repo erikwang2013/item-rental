@@ -211,22 +211,26 @@ BEEGO_RUNMODE=prod ./server                 # 或容器内运行
 
 ## 开源版 vs 商业版
 
-本项目同时维护开源版与商业版。两版**后端代码与数据库结构相同**（Go 6,859 行、7 个业务控制器、8 张表），差异集中在交付内容、客户端入口、素材与文档口径：
+本项目同时维护开源版与商业版。两版**后端代码与数据库结构相同**（Go 6,859 行、7 个业务控制器、8 张表、19 个 Go 测试文件），差异集中在交付内容、客户端入口、素材与文档口径。下表按功能、安全、性能、数据、测试、部署、多端、扩展性等维度对比：
 
 | 维度 | 开源版（本仓库） | 商业版 |
 |---|---|---|
-| 授权 | 仅个人学习/研究；商业使用需书面授权 | 商业授权交付，范围与条款联系 erik@erik.xyz |
-| 后端 / API | Go 1.24 + Beego v2，7 个控制器、8 张表；订单/租赁/支付/消息全链路 | 同一套后端代码与数据库结构 |
-| Flutter 客户端 | 13 页，保留 Web / Android / iOS 目标 | 13 页 + 额外 Linux 桌面运行器（`apps/flutter/linux`） |
-| 微信小程序 | 13 页；已移除状态 5/6 下必然返回 409 的退款按钮（后端退款 API 保留，待取状态可用） | 保留原小程序退款入口 |
-| 品牌 / 素材 | 已清理无引用打赏图与宠物表情素材 | 含完整 `docs/coin`、`docs/pet-expressions` 素材 |
-| 营销站点 | 不含 | 含独立 `site/`（24 个文件：架构图、OG 图、主题样式） |
-| 文档口径 | 按实际实现标注 mock 支付/短信限制 | README 标注真实支付/短信就绪 |
-| 支持与交付 | 社区 / Issue | 商业授权与交付支持联系 erik@erik.xyz |
+| 功能覆盖 | 订单/租赁/支付/押金/消息闭环；7 个业务控制器、8 张表；不含营销站 | 同一后端与表结构；另含 `site/` 营销站（24 文件）、Flutter Linux runner（10 文件）、完整 coin/pet 素材（32 文件）；小程序保留退款入口 |
+| 安全防护 | security-go 27 个检测器、IP 封禁文件持久化、JWT 双 Token（Access 2h / Refresh 7d）轮换、手机号 SHA-256、实名 AES-GCM、统一边界校验、密钥缺失 fail-fast | 同一套（后端代码相同） |
+| 性能与规模 | Go 1.24 + Beego v2.3、Redis 存 Refresh Token、OpenSearch 全文/geo 检索；无 OpenSearch 时 Haversine 兜底；单机文件 IP 黑名单 | 同一套 |
+| 数据与检索 | MySQL 8 张表；OpenSearch 关键词×城市×类目×半径检索；下架同步删索引 | 同一套 |
+| 测试与质量 | 19 个 Go 测试文件、Flutter test、CI（go test / flutter test）+ nightly E2E smoke | 同一套代码与测试（未见额外测试） |
+| 部署与运维 | dev/prod docker-compose、initdb、config-runbook、健康检查、密钥 fail-fast 检查 | 同一套 |
+| 多端与国际化 | Flutter 13 页 + 微信小程序 13 页；未发现应用内多语言资源；中英 README | 同两端 + Linux 桌面 runner；营销站为 zh-CN 独立站点 |
+| 扩展性与二次开发 | MVC 分层（controllers/services/models/middleware）、`docs/api.md`、配置 runbook | 同一套，另附营销站源码 |
+| 授权与商业支持 | 个人学习/研究；商业使用需书面授权 | 商业授权交付；条款联系 erik@erik.xyz |
+| 适用场景 | 学习/研究、二次开发、小规模自建 | 商业部署、需要营销站/完整素材/交付支持 |
+
+> 注：商业版 README 将支付/短信描述为“真实通道就绪”，但两版后端代码与支付/短信实现相同，均为 mock 默认 + 真实模式预留；差异主要在交付物料，不在运行时代码。
 
 **商业版授权联系：erik@erik.xyz**
 
-**English summary:** Both editions share the same Go backend and database schema (6,859 LOC, 7 business controllers, 8 tables). The commercial edition additionally ships the Flutter Linux desktop runner, the original mini-program refund entry, the full brand/donation assets, and a standalone marketing site (`site/`, 24 files). Commercial licensing and delivery: erik@erik.xyz.
+**English summary:** Both editions share the same Go backend and database schema (6,859 LOC, 7 business controllers, 8 tables, 19 Go test files). The comparison covers functionality, security (security-go 27 detectors, JWT rotation, PII hashing/encryption), performance (Go/Beego, Redis, OpenSearch with Haversine fallback), data/search, tests, deployment, clients/i18n, extensibility and licensing. The commercial edition additionally ships the Flutter Linux desktop runner, the original mini-program refund entry, the full brand/donation assets, and a standalone zh-CN marketing site (`site/`, 24 files). Note: the commercial README calls payment/SMS “ready for real channels”, but both editions ship identical mock-by-default code with a real-mode seam. Commercial licensing and delivery: erik@erik.xyz.
 
 ## 项目授权 / Project License
 
