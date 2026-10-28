@@ -47,7 +47,6 @@ class Api {
       (await c.get('/categories', auth: false)) as List<dynamic>;
 
   // ---- 物品 ----
-  // GET /items 不支持 city(server List 仅 category_id);城市过滤走 searchItems。
   // ownerId 非空 = 「我的物品」视图:需 JWT 本人,含下架;空 = 公开仅上架。
   Future<Map<String, dynamic>> items(
           {int page = 1, int pageSize = 20, int? categoryId, int? ownerId}) async =>
@@ -59,34 +58,6 @@ class Api {
             'owner_id': ?ownerId,
           },
           auth: ownerId != null)) as Map<String, dynamic>;
-  Future<Map<String, dynamic>> searchItems({
-    String? q,
-    int? categoryId,
-    double? minPrice,
-    double? maxPrice,
-    String? orderBy,
-    String? city,
-    double? lat,
-    double? lng,
-    double? radiusKm,
-    int page = 1,
-    int pageSize = 20,
-  }) async =>
-      (await c.get('/items/search',
-          query: {
-            if (q != null && q.isNotEmpty) 'q': q,
-            'category_id': ?categoryId,
-            'min_price': ?minPrice,
-            'max_price': ?maxPrice,
-            if (orderBy != null && orderBy.isNotEmpty) 'order_by': orderBy,
-            if (city != null && city.isNotEmpty) 'city': city,
-            'lat': ?lat,
-            'lng': ?lng,
-            'radius_km': ?radiusKm,
-            'page': page,
-            'page_size': pageSize,
-          },
-          auth: false)) as Map<String, dynamic>;
   Future<Map<String, dynamic>> item(int id) async =>
       (await c.get('/items/$id', auth: false)) as Map<String, dynamic>;
   Future<void> createItem(Map<String, dynamic> d) => c.post('/items', body: d);

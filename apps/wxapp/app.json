@@ -5,7 +5,6 @@
     "pages/user/index",
     "pages/auth/login",
     "pages/items/list",
-    "pages/items/search",
     "pages/items/detail",
     "pages/order/confirm",
     "pages/order/pay",

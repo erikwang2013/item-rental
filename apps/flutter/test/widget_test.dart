@@ -17,8 +17,6 @@ void main() {
       'stock': 1,
       'status': 1,
       'city': '上海',
-      'lat': 31.2,
-      'lng': 121.4,
       'created_at': '2026-09-01T10:00:00Z',
     });
     expect(it.title, '单反相机');

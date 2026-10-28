@@ -1,5 +1,5 @@
 // 多端租赁平台 —— 后端入口
-// beego v2 + security-go 安全防护 + go-scout 搜索同步
+// beego v2 + security-go 安全防护
 package main
 
 import (

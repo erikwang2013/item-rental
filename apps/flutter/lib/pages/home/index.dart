@@ -10,7 +10,6 @@ import '../../widgets/item_card.dart';
 import '../../widgets/routes.dart';
 import '../items/detail.dart';
 import '../items/list.dart';
-import '../items/search.dart';
 import '../messages/index.dart';
 
 /// 首页:搜索 + 类目 + 推荐列表 + 消息入口(未读角标)。
@@ -80,22 +79,6 @@ class _HomePageState extends State<HomePage> {
         child: ListView(
           padding: const EdgeInsets.all(12),
           children: [
-            // 搜索入口
-            InkWell(
-              borderRadius: BorderRadius.circular(24),
-              onTap: () => go(context, const SearchPage()),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                    color: Colors.grey.shade200, borderRadius: BorderRadius.circular(24)),
-                child: Row(children: [
-                  Icon(Icons.search, color: Colors.grey.shade600),
-                  const SizedBox(width: 8),
-                  Text('搜索物品 / 城市', style: TextStyle(color: Colors.grey.shade600)),
-                ]),
-              ),
-            ),
-            const SizedBox(height: 14),
             // 类目横滚
             SizedBox(
               height: 76,

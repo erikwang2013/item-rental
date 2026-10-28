@@ -6,12 +6,11 @@ import '../../widgets/commons.dart';
 import '../../widgets/routes.dart';
 import 'detail.dart';
 
-/// 物品列表(类目/城市过滤,分页上拉加载)。
+/// 物品列表(类目过滤,分页上拉加载)。
 class ItemListPage extends StatefulWidget {
   final int? categoryId;
-  final String? city;
   final String? title;
-  const ItemListPage({super.key, this.categoryId, this.city, this.title});
+  const ItemListPage({super.key, this.categoryId, this.title});
 
   @override
   State<ItemListPage> createState() => _ItemListPageState();
@@ -19,7 +18,6 @@ class ItemListPage extends StatefulWidget {
 
 class _ItemListPageState extends State<ItemListPage> {
   int? _categoryId;
-  String? _city;
   final List<Item> _items = [];
   int _page = 1;
   int _total = 0;
@@ -31,7 +29,6 @@ class _ItemListPageState extends State<ItemListPage> {
   void initState() {
     super.initState();
     _categoryId = widget.categoryId;
-    _city = widget.city;
     _scroll.addListener(() {
       if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 200) _loadMore();
     });
@@ -61,10 +58,7 @@ class _ItemListPageState extends State<ItemListPage> {
   Future<void> _fetch(int page, {bool clear = false}) async {
     setState(() => _loading = true);
     try {
-      // GET /items 不支持 city 过滤(仅 category_id),带城市走 /items/search
-      final d = (_city != null && _city!.isNotEmpty)
-          ? await api.searchItems(categoryId: _categoryId, city: _city, page: page, pageSize: 20)
-          : await api.items(page: page, categoryId: _categoryId);
+      final d = await api.items(page: page, categoryId: _categoryId);
       final list = parseItemList(d);
       setState(() {
         _page = page;
@@ -83,17 +77,7 @@ class _ItemListPageState extends State<ItemListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title ?? (widget.city ?? '全部物品')),
-        actions: [
-          if (widget.city == null)
-            TextButton.icon(
-              onPressed: () => _pickCity(context),
-              icon: const Icon(Icons.location_on_outlined, size: 18),
-              label: Text(_city ?? '城市'),
-            ),
-        ],
-      ),
+      appBar: AppBar(title: Text(widget.title ?? '全部物品')),
       body: Column(children: [
         Expanded(
           child: RefreshIndicator(
@@ -125,27 +109,6 @@ class _ItemListPageState extends State<ItemListPage> {
     );
   }
 
-  Future<void> _pickCity(BuildContext context) async {
-    final ctrl = TextEditingController(text: _city ?? '');
-    final city = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('选择城市'),
-        content: TextField(
-            controller: ctrl, decoration: const InputDecoration(hintText: '如:上海')),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, ''), child: const Text('全部城市')),
-          FilledButton(
-              onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
-              child: const Text('确定')),
-        ],
-      ),
-    );
-    if (city != null && mounted) {
-      setState(() => _city = city.isEmpty ? null : city);
-      _reload();
-    }
-  }
 }
 
 /// 单行物品(列表流式布局)。

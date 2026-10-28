@@ -9,14 +9,11 @@ import (
 )
 
 // ItemValidateRequest 物品创建/更新的可校验字段。
-// Lat/Lng 用指针：nil 表示请求未传该字段，仅传了才校验并允许覆写。
 type ItemValidateRequest struct {
 	Title      string
 	Images     string
 	DailyPrice float64
 	Stock      int
-	Lat        *float64
-	Lng        *float64
 }
 
 // ValidateItem 校验物品输入，返回首个不合规字段的错误信息。
@@ -36,12 +33,6 @@ func ValidateItem(req ItemValidateRequest) error {
 	}
 	if err := validateImages(req.Images); err != nil {
 		return err
-	}
-	if req.Lat != nil && (*req.Lat < -90 || *req.Lat > 90) {
-		return errors.New("纬度必须在 -90~90 之间")
-	}
-	if req.Lng != nil && (*req.Lng < -180 || *req.Lng > 180) {
-		return errors.New("经度必须在 -180~180 之间")
 	}
 	return nil
 }

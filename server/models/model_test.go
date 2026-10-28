@@ -1,4 +1,4 @@
-// 模型纯方法单元测试：物品上下架判定与搜索索引字段、支付状态判定
+// 模型纯方法单元测试：物品上下架判定、支付状态判定、公开视图裁剪
 package models
 
 import (
@@ -9,43 +9,14 @@ import (
 
 func TestItemOnShelf(t *testing.T) {
 	on := Item{Status: 1}
-	if !on.IsOnShelf() || !on.ShouldBeSearchable() {
-		t.Error("status=1 应上架且可搜索")
+	if !on.IsOnShelf() {
+		t.Error("status=1 应上架")
 	}
 	for _, status := range []int{0, 2, 3} {
 		off := Item{Status: status}
-		if off.IsOnShelf() || off.ShouldBeSearchable() {
-			t.Errorf("status=%d 不应上架或可搜索", status)
+		if off.IsOnShelf() {
+			t.Errorf("status=%d 不应上架", status)
 		}
-	}
-}
-
-func TestItemSearchableArray(t *testing.T) {
-	it := Item{Id: 9, OwnerId: 1, CategoryId: 2, Title: "相机", DailyPrice: 58.8, Status: 1, City: "上海"}
-	arr := it.ToSearchableArray()
-	for _, k := range []string{"id", "owner_id", "category_id", "title", "daily_price", "status", "city", "created_at"} {
-		if _, ok := arr[k]; !ok {
-			t.Errorf("ToSearchableArray 缺字段 %q", k)
-		}
-	}
-	if arr["id"] != int64(9) || arr["title"] != "相机" || arr["status"] != 1 || arr["city"] != "上海" {
-		t.Errorf("ToSearchableArray 字段值异常: %v", arr)
-	}
-	if it.IDString() != "9" {
-		t.Errorf("IDString() = %s, want 9", it.IDString())
-	}
-}
-
-// TestItemSearchableArrayLocation geo_point 合并字段：有坐标才发 location，0,0 不发。
-func TestItemSearchableArrayLocation(t *testing.T) {
-	geo := Item{Id: 1, Lat: 31.23, Lng: 121.47}
-	arr := geo.ToSearchableArray()
-	if arr["location"] != "31.23,121.47" {
-		t.Errorf("有坐标应含 location=%q, got %v", "31.23,121.47", arr["location"])
-	}
-	zero := Item{Id: 2}
-	if _, ok := zero.ToSearchableArray()["location"]; ok {
-		t.Error("无坐标(0,0)不应发 location 字段")
 	}
 }
 

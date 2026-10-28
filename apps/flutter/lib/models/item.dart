@@ -15,8 +15,6 @@ class Item {
   final int stock;
   final int status; // 1上架 0下架
   final String city;
-  final double lat;
-  final double lng;
   final String createdAt;
 
   Item({
@@ -31,8 +29,6 @@ class Item {
     required this.stock,
     required this.status,
     required this.city,
-    required this.lat,
-    required this.lng,
     required this.createdAt,
   });
 
@@ -50,8 +46,6 @@ class Item {
         stock: j['stock'] as int? ?? 0,
         status: j['status'] as int? ?? 0,
         city: j['city'] as String? ?? '',
-        lat: (j['lat'] as num? ?? 0).toDouble(),
-        lng: (j['lng'] as num? ?? 0).toDouble(),
         createdAt: j['created_at'] as String? ?? '',
       );
 

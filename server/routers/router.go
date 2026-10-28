@@ -2,16 +2,12 @@
 package routers
 
 import (
-	stdctx "context"
-	"log"
-
 	"github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/server/web/context"
 	"github.com/beego/beego/v2/server/web/filter/cors"
 	"github.com/erikwang2013/item-rental/server/controllers"
 	"github.com/erikwang2013/item-rental/server/middleware"
 	"github.com/erikwang2013/item-rental/server/models"
-	"github.com/erikwang2013/item-rental/server/search"
 	"github.com/erikwang2013/item-rental/server/security"
 )
 
@@ -33,19 +29,6 @@ func init() {
 	security.InitEngine()
 	// 初始化数据库连接与模型
 	models.InitORM()
-	// 初始化搜索引擎（go-scout + OpenSearch）
-	search.Init()
-	// 异步确保 geo 索引 mapping 后全量重建搜索索引；
-	// OpenSearch 不可达时只记日志、绝不影响启动
-	go func() {
-		ctx := stdctx.Background()
-		if err := search.EnsureGeoIndex(ctx); err != nil {
-			log.Printf("[search] 确保 geo 索引 mapping 失败: %v", err)
-		}
-		if err := search.ReindexAll(ctx); err != nil {
-			log.Printf("[search] 启动时全量重建索引失败: %v", err)
-		}
-	}()
 
 	// 全局 CORS(先于安全过滤器注册;dev 默认 *,app.conf cors_allow_origins 可收紧)
 	// OPTIONS 预检在此放行,避免落到 security-go 方法校验
@@ -86,7 +69,6 @@ func init() {
 
 	// 物品（公开读取）
 	web.Router("/api/v1/items", &controllers.ItemController{}, "get:List")
-	web.Router("/api/v1/items/search", &controllers.ItemController{}, "get:Search")
 	web.Router("/api/v1/items/:id", &controllers.ItemController{}, "get:Detail")
 
 	// 物品写操作（需登录：发布/更新/下架）；GET 读公开

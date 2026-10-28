@@ -1,10 +1,4 @@
 .home { padding-bottom: 30rpx; }
-.search-bar {
-  display: flex; align-items: center; margin: 20rpx 24rpx; background: #fff;
-  border-radius: 36rpx; height: 72rpx; padding: 0 28rpx;
-}
-.s-ico { font-size: 28rpx; margin-right: 12rpx; }
-.s-ph { color: #bbb; font-size: 28rpx; }
 .cats { white-space: nowrap; padding: 10rpx 12rpx 20rpx; }
 .cat { display: inline-flex; flex-direction: column; align-items: center; width: 128rpx; }
 .cat-ico {

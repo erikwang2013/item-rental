@@ -48,7 +48,6 @@ Page({
 
   onReachBottom() { this.loadItems(false) },
 
-  goSearch() { wx.navigateTo({ url: '/pages/items/search' }) },
   goCategory(e) {
     const { id, name } = e.currentTarget.dataset
     wx.navigateTo({ url: '/pages/items/list?category_id=' + id + '&title=' + encodeURIComponent(name) })

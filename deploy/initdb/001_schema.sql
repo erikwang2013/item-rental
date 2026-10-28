@@ -45,8 +45,6 @@ CREATE TABLE IF NOT EXISTS `items` (
     `stock`         INT             NOT NULL DEFAULT 1 COMMENT '库存数量',
     `status`        TINYINT         NOT NULL DEFAULT 1 COMMENT '1上架 0下架 2已售罄',
     `city`          VARCHAR(64)     DEFAULT '' COMMENT '所在城市',
-    `lat`           DECIMAL(10,7)   DEFAULT NULL COMMENT '纬度',
-    `lng`           DECIMAL(10,7)   DEFAULT NULL COMMENT '经度',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),

@@ -1,14 +1,10 @@
-// 物品控制器：物品 CRUD 与搜索
+// 物品控制器：物品 CRUD
 package controllers
 
 import (
-	"context"
-	"log"
-
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/erikwang2013/item-rental/server/middleware"
 	"github.com/erikwang2013/item-rental/server/models"
-	"github.com/erikwang2013/item-rental/server/search"
 	"github.com/erikwang2013/item-rental/server/services"
 )
 
@@ -19,37 +15,13 @@ type ItemController struct {
 
 // createItemRequest 发布/更新物品请求
 type createItemRequest struct {
-	CategoryId int64    `json:"category_id"`
-	Title      string   `json:"title"`
-	Desc       string   `json:"desc"`
-	Images     string   `json:"images"`
-	DailyPrice float64  `json:"daily_price"`
-	Stock      int      `json:"stock"`
-	City       string   `json:"city"`
-	Lat        *float64 `json:"lat"`
-	Lng        *float64 `json:"lng"`
-}
-
-// valueOrZero 取指针值，nil（请求未传）返回 0。
-func valueOrZero(p *float64) float64 {
-	if p == nil {
-		return 0
-	}
-	return *p
-}
-
-// buildSearchParams 组装搜索参数（纯函数，便于单测：页面入参 → search.SearchParams）。
-func buildSearchParams(q string, categoryID int64, minPrice, maxPrice float64, orderBy string, page, pageSize int, city string) search.SearchParams {
-	return search.SearchParams{
-		Query:      q,
-		CategoryID: categoryID,
-		MinPrice:   minPrice,
-		MaxPrice:   maxPrice,
-		OrderBy:    orderBy,
-		Page:       page,
-		PageSize:   pageSize,
-		City:       city,
-	}
+	CategoryId int64   `json:"category_id"`
+	Title      string  `json:"title"`
+	Desc       string  `json:"desc"`
+	Images     string  `json:"images"`
+	DailyPrice float64 `json:"daily_price"`
+	Stock      int     `json:"stock"`
+	City       string  `json:"city"`
 }
 
 // resolveItemOwnerScope 解析 owner_id 查询语义（纯函数，便于单测）。
@@ -165,8 +137,6 @@ func (c *ItemController) Create() {
 		Images:     req.Images,
 		DailyPrice: req.DailyPrice,
 		Stock:      req.Stock,
-		Lat:        req.Lat,
-		Lng:        req.Lng,
 	}); err != nil {
 		c.Fail(400, err.Error())
 		return
@@ -188,8 +158,6 @@ func (c *ItemController) Create() {
 		DailyPrice: req.DailyPrice,
 		Stock:      req.Stock,
 		City:       req.City,
-		Lat:        valueOrZero(req.Lat),
-		Lng:        valueOrZero(req.Lng),
 		Status:     1, // 上架
 	}
 
@@ -197,12 +165,6 @@ func (c *ItemController) Create() {
 		c.Fail(500, "发布失败")
 		return
 	}
-
-	// 同步到搜索索引（失败不影响主流程，记录日志即可）
-	if err := search.SyncItem(context.Background(), &item); err != nil {
-		log.Printf("[search] 同步索引失败 item_id=%d: %v", item.Id, err)
-	}
-
 	c.OK(item)
 }
 
@@ -251,34 +213,19 @@ func (c *ItemController) Update() {
 	if req.City != "" {
 		item.City = req.City
 	}
-	// 仅请求显式传了 lat/lng 才覆写；同时只校验本次传入的坐标
-	var latP, lngP *float64
-	if req.Lat != nil {
-		item.Lat = *req.Lat
-		latP = req.Lat
-	}
-	if req.Lng != nil {
-		item.Lng = *req.Lng
-		lngP = req.Lng
-	}
 	if err := services.ValidateItem(services.ItemValidateRequest{
 		Title:      item.Title,
 		Images:     item.Images,
 		DailyPrice: item.DailyPrice,
 		Stock:      item.Stock,
-		Lat:        latP,
-		Lng:        lngP,
 	}); err != nil {
 		c.Fail(400, err.Error())
 		return
 	}
 
-	if _, err := o.Update(&item, "title", "desc", "images", "daily_price", "stock", "city", "lat", "lng"); err != nil {
+	if _, err := o.Update(&item, "title", "desc", "images", "daily_price", "stock", "city"); err != nil {
 		c.Fail(500, "更新失败")
 		return
-	}
-	if err := search.SyncItem(context.Background(), &item); err != nil {
-		log.Printf("[search] 同步索引失败 item_id=%d: %v", item.Id, err)
 	}
 	c.OK(item)
 }
@@ -307,39 +254,5 @@ func (c *ItemController) OffShelf() {
 		c.Fail(500, "下架失败")
 		return
 	}
-	// 从索引移除
-	if err := search.RemoveItem(context.Background(), &item); err != nil {
-		log.Printf("[search] 移除索引失败 item_id=%d: %v", item.Id, err)
-	}
 	c.OK(map[string]any{"msg": "已下架"})
-}
-
-// Search 搜索物品（关键字/品类/价格区间/排序/城市/地理半径）
-// GET /api/v1/items/search?q=相机&category_id=5&min_price=10&max_price=100&order_by=price_asc&city=北京&lat=39.9&lng=116.4&radius_km=50
-func (c *ItemController) Search() {
-	q := c.GetString("q")
-	categoryID, _ := c.GetInt64("category_id", 0)
-	minPrice, _ := c.GetFloat("min_price", 0)
-	maxPrice, _ := c.GetFloat("max_price", 0)
-	orderBy := c.GetString("order_by", "")
-	city := c.GetString("city")
-	page, _ := c.GetInt("page", 1)
-	pageSize, _ := c.GetInt("page_size", 20)
-
-	p := buildSearchParams(q, categoryID, minPrice, maxPrice, orderBy, page, pageSize, city)
-	// 地理半径过滤（可选）：lat/lng/radius_km 齐全时启用，缺失坐标的物品安全跳过
-	lat, _ := c.GetFloat("lat", 0)
-	lng, _ := c.GetFloat("lng", 0)
-	if radiusKm, _ := c.GetFloat("radius_km", 0); radiusKm > 0 {
-		p.Lat = lat
-		p.Lng = lng
-		p.RadiusKm = &radiusKm
-	}
-
-	result, err := search.SearchItems(context.Background(), p)
-	if err != nil {
-		c.Fail(500, "搜索失败: "+err.Error())
-		return
-	}
-	c.OK(result)
 }

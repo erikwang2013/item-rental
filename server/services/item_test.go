@@ -6,16 +6,12 @@ import (
 	"testing"
 )
 
-func f(n float64) *float64 { return &n }
-
 func validItemReq() ItemValidateRequest {
 	return ItemValidateRequest{
 		Title:      "相机",
 		Images:     `["https://example.com/a.jpg"]`,
 		DailyPrice: 50,
 		Stock:      5,
-		Lat:        f(30.5),
-		Lng:        f(120.5),
 	}
 }
 
@@ -29,11 +25,6 @@ func TestValidateItemValid(t *testing.T) {
 		{"daily_price_min", func(r *ItemValidateRequest) { r.DailyPrice = 0.01 }},
 		{"stock_min", func(r *ItemValidateRequest) { r.Stock = 1 }},
 		{"stock_max", func(r *ItemValidateRequest) { r.Stock = 999 }},
-		{"lat_min", func(r *ItemValidateRequest) { r.Lat = f(-90) }},
-		{"lat_max", func(r *ItemValidateRequest) { r.Lat = f(90) }},
-		{"lng_min", func(r *ItemValidateRequest) { r.Lng = f(-180) }},
-		{"lng_max", func(r *ItemValidateRequest) { r.Lng = f(180) }},
-		{"lat_lng_not_passed", func(r *ItemValidateRequest) { r.Lat, r.Lng = nil, nil }},
 		{"images_empty", func(r *ItemValidateRequest) { r.Images = "" }},
 	}
 	for _, tc := range cases {
@@ -58,10 +49,6 @@ func TestValidateItemReject(t *testing.T) {
 		{"stock_zero", func(r *ItemValidateRequest) { r.Stock = 0 }},
 		{"stock_negative", func(r *ItemValidateRequest) { r.Stock = -3 }},
 		{"stock_1000", func(r *ItemValidateRequest) { r.Stock = 1000 }},
-		{"lat_91", func(r *ItemValidateRequest) { r.Lat = f(91) }},
-		{"lat_minus_91", func(r *ItemValidateRequest) { r.Lat = f(-91) }},
-		{"lng_181", func(r *ItemValidateRequest) { r.Lng = f(181) }},
-		{"lng_minus_181", func(r *ItemValidateRequest) { r.Lng = f(-181) }},
 		{"images_not_array", func(r *ItemValidateRequest) { r.Images = "not-json" }},
 		{"images_too_many", func(r *ItemValidateRequest) { r.Images = `["a","b","c","d","e","f","g","h","i","j"]` }},
 		{"images_empty_url", func(r *ItemValidateRequest) { r.Images = `["https://a.com/x.jpg", ""]` }},

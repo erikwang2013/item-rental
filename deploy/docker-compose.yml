@@ -1,5 +1,5 @@
 # 多端租赁平台 —— 基础设施编排
-# 服务：MySQL 8 + OpenSearch 2.x + Redis 7
+# 服务：MySQL 8 + Redis 7
 # 用法：
 #   cp .env.example .env        # 按需修改账号密码
 #   docker compose up -d        # 启动
@@ -34,35 +34,6 @@ services:
       retries: 10
       start_period: 30s
 
-  opensearch:
-    image: opensearchproject/opensearch:2.14.0
-    container_name: rental-opensearch
-    restart: unless-stopped
-    environment:
-      - discovery.type=single-node
-      - plugins.security.disabled=true
-      - bootstrap.memory_lock=true
-      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
-      - DISABLE_INSTALL_DEMO_CONFIG=true
-      - DISABLE_SECURITY_PLUGIN=true
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-    ports:
-      - "${OPENSEARCH_PORT:-9200}:9200"
-    volumes:
-      - opensearch_data:/usr/share/opensearch/data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 20
-      start_period: 40s
-
   redis:
     image: redis:7-alpine
     container_name: rental-redis
@@ -80,5 +51,4 @@ services:
 
 volumes:
   mysql_data:
-  opensearch_data:
   redis_data:
