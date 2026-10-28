@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// AvatarMaxBytes 头像大小上限（4MB，低于 WAF body 上限 10MB）
+// AvatarMaxBytes 头像大小上限（4MB）
 const AvatarMaxBytes = 4 << 20
 
 // ValidateAvatarName 校验头像文件名扩展名，返回规范化扩展名（小写、无点）。

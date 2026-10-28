@@ -1,4 +1,4 @@
-// 路由注册：挂载 security-go 安全中间件、JWT 鉴权中间件与各业务路由
+// 路由注册：挂载 JWT 鉴权中间件与各业务路由
 package routers
 
 import (
@@ -8,7 +8,6 @@ import (
 	"github.com/erikwang2013/item-rental/server/controllers"
 	"github.com/erikwang2013/item-rental/server/middleware"
 	"github.com/erikwang2013/item-rental/server/models"
-	"github.com/erikwang2013/item-rental/server/security"
 )
 
 // requireAuth 注册"方法感知"的 JWT 过滤器。
@@ -25,23 +24,17 @@ func requireAuth(path string) {
 }
 
 func init() {
-	// 初始化攻击检测引擎（注册全部检测器）
-	security.InitEngine()
 	// 初始化数据库连接与模型
 	models.InitORM()
 
 	// 全局 CORS(先于安全过滤器注册;dev 默认 *,app.conf cors_allow_origins 可收紧)
-	// OPTIONS 预检在此放行,避免落到 security-go 方法校验
+	// OPTIONS 预检在此放行
 	web.InsertFilter("/*", web.BeforeRouter, cors.Allow(&cors.Options{
 		AllowOrigins: []string{web.AppConfig.DefaultString("cors_allow_origins", "*")},
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders: []string{"Authorization", "Content-Type"},
 		MaxAge:       600,
 	}))
-
-	// 全局安全过滤器：对每个请求做攻击检测 + IP 自动封禁
-	// 置于最前，拦截恶意请求
-	web.InsertFilter("/*", web.BeforeRouter, middleware.SecurityFilter)
 
 	// 健康检查（公开）
 	web.Get("/health", func(ctx *context.Context) {

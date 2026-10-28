@@ -84,7 +84,7 @@ func (c *UserController) UploadAvatar() {
 }
 
 // avatarURL 拼头像完整 URL（纯函数）。https 判定：直连 TLS 或反代 X-Forwarded-Proto:https；
-// 其余默认 http。生产反代环境建议配 ITEM_RENTAL_TRUSTED_PROXY 由反代统一改写。
+// 其余默认 http。
 func avatarURL(r *http.Request, path string) string {
 	scheme := "http"
 	if r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https" {

@@ -1,5 +1,5 @@
 // 多端租赁平台 —— 后端入口
-// beego v2 + security-go 安全防护
+// beego v2
 package main
 
 import (
