@@ -21,11 +21,6 @@
     </view>
 
     <view class="menu">
-      <view class="mi" bindtap="goMessages">
-        <text class="mi-ico">💬</text><text class="mi-name">消息中心</text>
-        <text class="badge" wx:if="{{unread > 0}}">{{unread > 99 ? '99+' : unread}}</text>
-        <text class="arrow">›</text>
-      </view>
       <view class="mi" bindtap="goSeller">
         <text class="mi-ico">📦</text><text class="mi-name">我的物品</text>
         <text class="arrow">›</text>

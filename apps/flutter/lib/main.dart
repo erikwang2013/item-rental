@@ -4,25 +4,19 @@ import 'package:provider/provider.dart';
 import 'pages/home/index.dart';
 import 'pages/order/list.dart';
 import 'pages/user/index.dart';
-import 'stores/message_store.dart';
 import 'stores/user_store.dart';
 import 'widgets/commons.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   final us = UserStore();
-  final ms = MessageStore();
   us.init().then((_) {
     if (us.logged) {
       us.loadProfile();
-      ms.refresh();
     }
   });
-  runApp(MultiProvider(
-    providers: [
-      ChangeNotifierProvider.value(value: us),
-      ChangeNotifierProvider.value(value: ms),
-    ],
+  runApp(ChangeNotifierProvider.value(
+    value: us,
     child: const ItemRentalApp(),
   ));
 }

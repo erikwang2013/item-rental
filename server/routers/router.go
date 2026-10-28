@@ -109,10 +109,4 @@ func init() {
 	web.Router("/api/v1/pay/refund", &controllers.PaymentController{}, "post:Refund")
 	// 微信支付/退款回调（公开，内部做签名校验）
 	web.Router("/api/v1/pay/notify", &controllers.PaymentController{}, "post:Notify")
-
-	// ---- B3 站内消息 ----
-	web.InsertFilter("/api/v1/messages", web.BeforeRouter, middleware.JWTAuth)
-	web.InsertFilter("/api/v1/messages/:id/read", web.BeforeRouter, middleware.JWTAuth)
-	web.Router("/api/v1/messages", &controllers.MessageController{}, "get:List")
-	web.Router("/api/v1/messages/:id/read", &controllers.MessageController{}, "post:MarkRead")
 }

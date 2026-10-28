@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../../api/endpoints.dart';
 import '../../models/category.dart';
 import '../../models/item.dart';
-import '../../stores/message_store.dart';
 import '../../widgets/commons.dart';
 import '../../widgets/item_card.dart';
 import '../../widgets/routes.dart';
 import '../items/detail.dart';
 import '../items/list.dart';
-import '../messages/index.dart';
 
-/// 首页:搜索 + 类目 + 推荐列表 + 消息入口(未读角标)。
+/// 首页:类目 + 推荐列表。
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -29,7 +26,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _load();
-    context.read<MessageStore>().refresh();
   }
 
   Future<void> _load() async {
@@ -54,25 +50,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final ms = context.watch<MessageStore>();
     return Scaffold(
       appBar: AppBar(
         backgroundColor: kGreen,
         foregroundColor: Colors.white,
         title: const Text('闲租'),
-        actions: [
-          IconButton(
-            icon: Badge(
-              isLabelVisible: ms.unread > 0,
-              label: Text('${ms.unread > 99 ? '99+' : ms.unread}'),
-              child: const Icon(Icons.notifications_outlined),
-            ),
-            onPressed: () async {
-              await go(context, const MessagesPage());
-              ms.refresh();
-            },
-          ),
-        ],
       ),
       body: RefreshIndicator(
         onRefresh: _load,

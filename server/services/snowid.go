@@ -1,4 +1,4 @@
-// snowflake 主键生成：所有业务表(users/items/orders/payments/messages)
+// snowflake 主键生成：所有业务表(users/items/orders/payments)
 // 主键从 MySQL AUTO_INCREMENT 切换为 snowflake id(bwmarrin/snowflake)。
 // JSON 输出统一 `,string`：id > 2^53 超出 JS Number 安全整数,客户端须按字符串处理。
 package services

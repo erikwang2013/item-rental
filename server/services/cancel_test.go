@@ -1,4 +1,4 @@
-// 订单取消纯逻辑单元测试：注入桩 Store，验证 0->5 迁移、身份/状态守卫、幂等性、通知
+// 订单取消纯逻辑单元测试：注入桩 Store，验证 0->5 迁移、身份/状态守卫、幂等性
 package services
 
 import (
@@ -8,12 +8,11 @@ import (
 	"github.com/erikwang2013/item-rental/server/models"
 )
 
-// cancelStub 内存版 CancelStore 桩，记录取消写操作与通知以便断言
+// cancelStub 内存版 CancelStore 桩，记录取消写操作以便断言
 type cancelStub struct {
-	orders   map[int64]*models.Order
-	cancels  []int64 // 记录 CancelOrder 生效的订单 ID
-	reasons  map[int64]string
-	notifies []notifyRec
+	orders  map[int64]*models.Order
+	cancels []int64 // 记录 CancelOrder 生效的订单 ID
+	reasons map[int64]string
 }
 
 func (s *cancelStub) GetOrder(id int64) (*models.Order, error) {
@@ -37,11 +36,6 @@ func (s *cancelStub) CancelOrder(id int64, reason string) (int64, error) {
 	s.cancels = append(s.cancels, id)
 	s.reasons[id] = reason
 	return 1, nil
-}
-
-func (s *cancelStub) Notify(userID int64, typ, title, content string) error {
-	s.notifies = append(s.notifies, notifyRec{uid: userID, typ: typ, content: content})
-	return nil
 }
 
 // newCancelStub 构造一个待支付(0)的订单：租客=100，房东=200
@@ -121,43 +115,6 @@ func TestCancelOrder(t *testing.T) {
 		_, err := CancelOrder(st, 99, 100, "")
 		if !errors.Is(err, ErrOrderNotFound) {
 			t.Fatalf("err = %v, 期望 ErrOrderNotFound", err)
-		}
-	})
-
-	t.Run("租客取消 通知房东", func(t *testing.T) {
-		st := newCancelStub()
-		ok, err := CancelOrder(st, 1, 100, "不租了")
-		if err != nil || !ok {
-			t.Fatalf("CancelOrder ok=%v err=%v", ok, err)
-		}
-		if len(st.notifies) != 1 || st.notifies[0].uid != 200 || st.notifies[0].typ != "order_cancelled" {
-			t.Fatalf("通知不符: %+v", st.notifies)
-		}
-	})
-
-	t.Run("房东取消 通知租客", func(t *testing.T) {
-		st := newCancelStub()
-		ok, err := CancelOrder(st, 1, 200, "房东下架")
-		if err != nil || !ok {
-			t.Fatalf("CancelOrder ok=%v err=%v", ok, err)
-		}
-		if len(st.notifies) != 1 || st.notifies[0].uid != 100 {
-			t.Fatalf("应通知租客(100): %+v", st.notifies)
-		}
-	})
-
-	t.Run("幂等取消不重复发信", func(t *testing.T) {
-		st := newCancelStub()
-		st.orders[1].Status = models.OrderStatusCancelled
-		ok, err := CancelOrder(st, 1, 100, "重复")
-		if err != nil {
-			t.Fatalf("err = %v", err)
-		}
-		if ok {
-			t.Fatalf("幂等调用不应再迁移")
-		}
-		if len(st.notifies) != 0 {
-			t.Fatalf("幂等调用不应发信: notifies=%v", st.notifies)
 		}
 	})
 }

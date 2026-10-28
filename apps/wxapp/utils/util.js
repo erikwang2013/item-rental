@@ -1,12 +1,5 @@
 // 通用工具:金额/日期/状态文案/图片列表
 const ORDER_STATUS = ['待支付', '待取货', '租赁中', '待归还', '已归还', '已取消', '违约']
-const MSG_TYPE = {
-  payment_success: '支付成功',
-  payment_refunded: '退款成功',
-  return_confirmed: '归还确认',
-  breach: '违约判定',
-  order_cancelled: '订单取消'
-}
 
 const pad = n => (n < 10 ? '0' + n : '' + n)
 const fmtDate = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
@@ -37,14 +30,7 @@ function splitImages(s) {
   } catch (e) { /* 非 JSON:回退逗号分隔 */ }
   return String(s).split(',').map(x => x.trim()).filter(Boolean)
 }
-// "2026-09-04T00:14:33+08:00" → "09-04 00:14"
-function fmtTime(t) {
-  if (!t) return ''
-  const s = t.slice(5, 16).replace('T', ' ')
-  return s
-}
 function statusText(st) { return ORDER_STATUS[st] || '未知' }
-function msgTypeText(type) { return MSG_TYPE[type] || type || '通知' }
 
 // 登录守卫:未登录则跳登录页并返回 false
 function requireLogin() {
@@ -54,6 +40,6 @@ function requireLogin() {
 }
 
 module.exports = {
-  ORDER_STATUS, MSG_TYPE, pad, fmtDate, today, addDays, dayDiff,
-  money, fmtMoney, splitImages, fmtTime, statusText, msgTypeText, requireLogin
+  ORDER_STATUS, pad, fmtDate, today, addDays, dayDiff,
+  money, fmtMoney, splitImages, statusText, requireLogin
 }

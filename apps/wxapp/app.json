@@ -10,8 +10,7 @@
     "pages/order/pay",
     "pages/order/detail",
     "pages/user/profile",
-    "pages/seller/items",
-    "pages/messages/index"
+    "pages/seller/items"
   ],
   "window": {
     "navigationBarBackgroundColor": "#2E7D32",

@@ -90,16 +90,6 @@ class Api {
   Future<Map<String, dynamic>> unifiedOrder(String orderNo) async =>
       (await c.post('/pay/unifiedorder',
           body: {'order_no': orderNo, 'channel': 'native'})) as Map<String, dynamic>;
-
-  // ---- 消息 ----
-  Future<Map<String, dynamic>> messages({bool unreadOnly = false, int page = 1, int pageSize = 20}) async =>
-      (await c.get('/messages',
-          query: {
-            if (unreadOnly) 'unread': 1,
-            'page': page,
-            'page_size': pageSize,
-          })) as Map<String, dynamic>;
-  Future<void> markRead(int id) => c.post('/messages/$id/read');
 }
 
 Api api = Api();

@@ -3,7 +3,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/erikwang2013/item-rental/server/models"
@@ -24,8 +23,6 @@ type OrderStore interface {
 	// TransitionOrder 条件更新：仅当 status == from 时迁移到 to。
 	// n == 0 表示状态已被并发迁移，符合期望即幂等成功。
 	TransitionOrder(id int64, from, to int) (int64, error)
-	// Notify 向用户写一条站内信
-	Notify(userID int64, typ, title, content string) error
 }
 
 // ensureRole 身份校验：取货/申请归还需要是租客，确认归还/违约需要是物主
@@ -76,36 +73,14 @@ func RequestReturn(st OrderStore, orderID, uid int64) (bool, error) {
 	return transition(st, orderID, uid, true, models.OrderStatusRenting, models.OrderStatusToReturn)
 }
 
-// ConfirmReturn 确认归还（3→4 已归还）：物主操作，并通知租客。
+// ConfirmReturn 确认归还（3→4 已归还）：物主操作。
 func ConfirmReturn(st OrderStore, orderID, uid int64) (bool, error) {
-	ok, err := transition(st, orderID, uid, false, models.OrderStatusToReturn, models.OrderStatusReturned)
-	if err != nil || !ok {
-		return ok, err
-	}
-	order, err := st.GetOrder(orderID)
-	if err != nil {
-		return false, err
-	}
-	if err := st.Notify(order.RenterId, "return_confirmed", "归还确认", fmt.Sprintf("订单 %s 已确认归还", order.OrderNo)); err != nil {
-		return false, err
-	}
-	return true, nil
+	return transition(st, orderID, uid, false, models.OrderStatusToReturn, models.OrderStatusReturned)
 }
 
-// Breach 违约（3→6 违约）：物主操作，并通知租客。
+// Breach 违约（3→6 违约）：物主操作。
 func Breach(st OrderStore, orderID, uid int64) (bool, error) {
-	ok, err := transition(st, orderID, uid, false, models.OrderStatusToReturn, models.OrderStatusBreach)
-	if err != nil || !ok {
-		return ok, err
-	}
-	order, err := st.GetOrder(orderID)
-	if err != nil {
-		return false, err
-	}
-	if err := st.Notify(order.RenterId, "breach", "违约判定", fmt.Sprintf("订单 %s 判定违约", order.OrderNo)); err != nil {
-		return false, err
-	}
-	return true, nil
+	return transition(st, orderID, uid, false, models.OrderStatusToReturn, models.OrderStatusBreach)
 }
 
 // --- 生产实现：Beego ORM ---
@@ -137,8 +112,4 @@ func (s *defaultOrderStore) TransitionOrder(id int64, from, to int) (int64, erro
 		Filter("id", id).
 		Filter("status", from).
 		Update(map[string]any{"status": to})
-}
-
-func (s *defaultOrderStore) Notify(userID int64, typ, title, content string) error {
-	return Send(userID, typ, title, content)
 }

@@ -1,4 +1,4 @@
-// 订单流转单元测试：注入桩 Store，验证状态机迁移、身份/状态守卫、幂等性、通知
+// 订单流转单元测试：注入桩 Store，验证状态机迁移、身份/状态守卫、幂等性
 package services
 
 import (
@@ -8,16 +8,9 @@ import (
 	"github.com/erikwang2013/item-rental/server/models"
 )
 
-// stubStore 内存版 OrderStore 桩，记录状态与通知以便断言
+// stubStore 内存版 OrderStore 桩
 type stubStore struct {
-	orders   map[int64]*models.Order
-	notifies []notifyRec
-}
-
-type notifyRec struct {
-	uid     int64
-	typ     string
-	content string
+	orders map[int64]*models.Order
 }
 
 func (s *stubStore) GetOrder(id int64) (*models.Order, error) {
@@ -38,11 +31,6 @@ func (s *stubStore) TransitionOrder(id int64, from, to int) (int64, error) {
 	}
 	o.Status = to
 	return 1, nil
-}
-
-func (s *stubStore) Notify(userID int64, typ, title, content string) error {
-	s.notifies = append(s.notifies, notifyRec{uid: userID, typ: typ, content: content})
-	return nil
 }
 
 // newStub 构造一个已支付待取货(1)的租约，租客=100，房东=200
@@ -136,17 +124,6 @@ func TestConfirmReturn(t *testing.T) {
 			t.Fatalf("err = %v, 期望 ErrForbidden", err)
 		}
 	})
-	t.Run("确认归还后租客收通知", func(t *testing.T) {
-		st := newStub()
-		st.orders[1].Status = models.OrderStatusToReturn
-		ok, err := ConfirmReturn(st, 1, 200)
-		if err != nil || !ok {
-			t.Fatalf("ConfirmReturn ok=%v err=%v", ok, err)
-		}
-		if len(st.notifies) != 1 || st.notifies[0].uid != 100 || st.notifies[0].typ != "return_confirmed" {
-			t.Fatalf("通知不符: %+v", st.notifies)
-		}
-	})
 }
 
 func TestBreach(t *testing.T) {
@@ -167,17 +144,6 @@ func TestBreach(t *testing.T) {
 		_, err := Breach(st, 1, 100)
 		if !errors.Is(err, ErrForbidden) {
 			t.Fatalf("err = %v, 期望 ErrForbidden", err)
-		}
-	})
-	t.Run("违约后租客收通知", func(t *testing.T) {
-		st := newStub()
-		st.orders[1].Status = models.OrderStatusToReturn
-		ok, err := Breach(st, 1, 200)
-		if err != nil || !ok {
-			t.Fatalf("Breach ok=%v err=%v", ok, err)
-		}
-		if len(st.notifies) != 1 || st.notifies[0].uid != 100 || st.notifies[0].typ != "breach" {
-			t.Fatalf("通知不符: %+v", st.notifies)
 		}
 	})
 }

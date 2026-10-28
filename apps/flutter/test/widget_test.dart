@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:item_rental/models/item.dart';
-import 'package:item_rental/models/message.dart';
 import 'package:item_rental/models/order.dart';
 
 void main() {
@@ -30,12 +29,5 @@ void main() {
     expect(Order.fromJson({'status': 0, 'id': 1}).statusText, '待支付');
     expect(Order.fromJson({'status': 4, 'id': 1}).statusText, '已归还');
     expect(Order.fromJson({'status': 6, 'id': 1}).statusText, '违约');
-  });
-
-  test('Message read 默认 false', () {
-    final m = Msg.fromJson({'id': 1, 'type': 'breach', 'title': 't', 'content': 'c'});
-    expect(m.read, isFalse);
-    m.read = true;
-    expect(m.read, isTrue);
   });
 }

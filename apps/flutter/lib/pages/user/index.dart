@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/user.dart';
-import '../../stores/message_store.dart';
 import '../../stores/user_store.dart';
 import '../../widgets/commons.dart';
 import '../../widgets/routes.dart';
 import '../auth/login.dart';
-import '../messages/index.dart';
 import '../order/list.dart';
 import '../seller/items.dart';
 import 'profile.dart';
@@ -24,7 +22,6 @@ class _UserPageState extends State<UserPage> {
   @override
   Widget build(BuildContext context) {
     final us = context.watch<UserStore>();
-    final ms = context.watch<MessageStore>();
     final UserProfile? p = us.profile;
     return Scaffold(
       appBar: AppBar(backgroundColor: kGreen, foregroundColor: Colors.white, title: const Text('我的')),
@@ -42,23 +39,6 @@ class _UserPageState extends State<UserPage> {
                 title: const Text('我的物品'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => go(context, SellerItemsPage()),
-              ),
-              ListTile(
-                leading: const Icon(Icons.notifications_outlined),
-                title: const Text('消息中心'),
-                trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                  if (ms.unread > 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(10)),
-                      child: Text('${ms.unread}', style: const TextStyle(color: Colors.white, fontSize: 12)),
-                    ),
-                  const Icon(Icons.chevron_right),
-                ]),
-                onTap: () async {
-                  await go(context, const MessagesPage());
-                  ms.refresh();
-                },
               ),
               const Divider(),
               ListTile(
@@ -78,7 +58,6 @@ class _UserPageState extends State<UserPage> {
                   );
                   if (ok == true) {
                     await us.logout(); // 内部调 POST /auth/logout + 本地清 token
-                    ms.clear();
                   }
                 },
               ),

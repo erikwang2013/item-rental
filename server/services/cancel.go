@@ -2,8 +2,6 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/erikwang2013/item-rental/server/models"
 )
@@ -16,14 +14,11 @@ type CancelStore interface {
 	// CancelOrder 条件更新：仅当 status=0（待支付）时迁移到 5（已取消）并写取消原因。
 	// n == 0 表示状态已被并发迁移（已取消/已支付），幂等。
 	CancelOrder(id int64, reason string) (int64, error)
-	// Notify 向用户写一条站内信
-	Notify(userID int64, typ, title, content string) error
 }
 
 // CancelOrder 取消订单（0待支付 -> 5已取消）。
 // 仅订单租客或房东可操作；已取消幂等返回（transitioned=false, err=nil）；
 // 其他状态返回 ErrInvalidState。退款动作由调用方（controller）先执行。
-// 取消生效后通知对方。
 func CancelOrder(st CancelStore, orderID, uid int64, reason string) (bool, error) {
 	order, err := st.GetOrder(orderID)
 	if err != nil {
@@ -44,19 +39,7 @@ func CancelOrder(st CancelStore, orderID, uid int64, reason string) (bool, error
 	if err != nil {
 		return false, err
 	}
-	if n == 0 {
-		return false, nil
-	}
-
-	// 取消生效：通知对方（租客取消→通知房东，反之亦然）
-	other := order.OwnerId
-	if order.RenterId != uid {
-		other = order.RenterId
-	}
-	if err := st.Notify(other, "order_cancelled", "订单已取消", fmt.Sprintf("订单 %s 已被取消", order.OrderNo)); err != nil {
-		return false, err
-	}
-	return true, nil
+	return n > 0, nil
 }
 
 // --- 生产实现：Beego ORM ---
@@ -88,8 +71,4 @@ func (s *defaultCancelStore) CancelOrder(id int64, reason string) (int64, error)
 		Filter("id", id).
 		Filter("status", models.OrderStatusPending).
 		Update(map[string]any{"status": models.OrderStatusCancelled, "cancel_reason": reason})
-}
-
-func (s *defaultCancelStore) Notify(userID int64, typ, title, content string) error {
-	return Send(userID, typ, title, content)
 }
