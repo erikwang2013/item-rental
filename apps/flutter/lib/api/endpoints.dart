@@ -9,10 +9,8 @@ class Api {
   final ApiClient c = ApiClient.client;
 
   // ---- 认证 ----
-  Future<void> sms(String phone) =>
-      c.post('/auth/sms', body: {'phone': phone}, auth: false);
-  Future<Map<String, dynamic>> login(String phone, String code) async =>
-      (await c.post('/auth/login', body: {'phone': phone, 'code': code}, auth: false))
+  Future<Map<String, dynamic>> login(String phone) async =>
+      (await c.post('/auth/login', body: {'phone': phone}, auth: false))
           as Map<String, dynamic>;
   /// 登出:携带 refresh_token 让服务端只撤销本端会话(服务端解析失败会降级全端登出)。
   Future<void> logout() async =>

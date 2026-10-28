@@ -1,4 +1,4 @@
-// 认证控制器：手机号验证码登录 / 令牌刷新
+// 认证控制器：手机号登录 / 令牌刷新
 package controllers
 
 import (
@@ -15,15 +15,9 @@ type AuthController struct {
 	BaseController
 }
 
-// smsRequest 发送验证码请求
-type smsRequest struct {
-	Phone string `json:"phone"`
-}
-
 // loginRequest 登录请求
 type loginRequest struct {
 	Phone string `json:"phone"`
-	Code  string `json:"code"`
 }
 
 // refreshRequest 刷新令牌请求
@@ -34,41 +28,6 @@ type refreshRequest struct {
 // logoutRequest 登出请求（可选：带 refresh_token 则仅撤销该端会话）
 type logoutRequest struct {
 	RefreshToken string `json:"refresh_token"`
-}
-
-// SendSms 发送手机验证码
-// POST /api/v1/auth/sms  {"phone":"13800138000"}
-func (c *AuthController) SendSms() {
-	var req smsRequest
-	if err := c.Ctx.BindJSON(&req); err != nil || req.Phone == "" {
-		c.Fail(400, "手机号不能为空")
-		return
-	}
-	if !isValidPhone(req.Phone) {
-		c.Fail(400, "手机号格式不正确")
-		return
-	}
-
-	// 发送频率限制：1 分钟 1 条（real 模式走 Redis，mock 模式不限制）
-	allowed, err := services.CheckSmsRateLimit(req.Phone)
-	if err != nil {
-		c.Fail(500, "验证码发送失败")
-		return
-	}
-	if !allowed {
-		c.Fail(429, "发送过于频繁，请稍后再试")
-		return
-	}
-
-	// 生成随机验证码并保存（real 模式存 Redis）；响应/日志绝不回显验证码
-	// 开发环境（mock）校验仍接受固定 123456
-	code := services.GenerateSmsCode()
-	if err := services.SaveSmsCode(req.Phone, code); err != nil {
-		c.Fail(500, "验证码发送失败")
-		return
-	}
-
-	c.OK(map[string]any{"msg": "验证码已发送"})
 }
 
 // isValidPhone 手机号校验：11 位数字且以 1 开头
@@ -84,18 +43,16 @@ func isValidPhone(phone string) bool {
 	return true
 }
 
-// Login 手机号 + 验证码登录，未注册自动注册
-// POST /api/v1/auth/login  {"phone":"13800138000","code":"123456"}
+// Login 手机号登录，未注册自动注册（mock 登录口，无验证码）
+// POST /api/v1/auth/login  {"phone":"13800138000"}
 func (c *AuthController) Login() {
 	var req loginRequest
-	if err := c.Ctx.BindJSON(&req); err != nil || req.Phone == "" || req.Code == "" {
-		c.Fail(400, "手机号和验证码不能为空")
+	if err := c.Ctx.BindJSON(&req); err != nil || req.Phone == "" {
+		c.Fail(400, "手机号不能为空")
 		return
 	}
-
-	// 校验验证码（开发环境固定 123456）
-	if !services.VerifySmsCode(req.Phone, req.Code) {
-		c.Fail(401, "验证码错误")
+	if !isValidPhone(req.Phone) {
+		c.Fail(400, "手机号格式不正确")
 		return
 	}
 

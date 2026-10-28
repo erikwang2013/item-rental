@@ -2,13 +2,16 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"log"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/beego/beego/v2/server/web"
 	"github.com/erikwang2013/item-rental/server/middleware"
+	"github.com/redis/go-redis/v9"
 )
 
 const (
@@ -16,8 +19,33 @@ const (
 	refreshTTL    = 7 * 24 * time.Hour // 与 refresh token 有效期一致
 )
 
-// ErrRefreshRejected refresh token 校验不通过（无效/过期/已被轮换）
-var ErrRefreshRejected = errors.New("refresh token rejected")
+var (
+	// ErrRefreshRejected refresh token 校验不通过（无效/过期/已被轮换）
+	ErrRefreshRejected = errors.New("refresh token rejected")
+
+	redisOnce sync.Once
+	rdb       *redis.Client
+	ctx       = context.Background()
+)
+
+// redisEnabled 控制 refresh 会话是否落 Redis。默认关闭以便本地/测试无 Redis 运行；
+// 生产多实例部署应设为 true（app.conf redis_enabled = true）。
+func redisEnabled() bool {
+	return web.AppConfig.DefaultBool("redis_enabled", false)
+}
+
+// initRedis 初始化 Redis 连接，sync.Once 保证并发安全（只创建一次）。
+func initRedis() *redis.Client {
+	redisOnce.Do(func() {
+		addr := web.AppConfig.DefaultString("redisaddr", "127.0.0.1:6379")
+		pass := web.AppConfig.DefaultString("redispass", "")
+		rdb = redis.NewClient(&redis.Options{
+			Addr:     addr,
+			Password: pass,
+		})
+	})
+	return rdb
+}
 
 // RefreshTokenStore 描述 refresh token 会话存储。
 // 默认实现走 Redis；测试可替换为内存 stub（见 refresh_test.go）。
@@ -40,8 +68,8 @@ var refreshStore RefreshTokenStore = redisRefreshStore{}
 type redisRefreshStore struct{}
 
 func (redisRefreshStore) Save(uid int64, jti string, exp time.Time) error {
-	if web.AppConfig.DefaultString("sms_provider", "mock") == "mock" {
-		return nil // mock 模式不依赖 Redis
+	if !redisEnabled() {
+		return nil // 未启用 Redis 会话存储时不落库
 	}
 	key := refreshPrefix + strconv.FormatInt(uid, 10)
 	c := initRedis()
@@ -55,8 +83,8 @@ func (redisRefreshStore) Save(uid int64, jti string, exp time.Time) error {
 }
 
 func (redisRefreshStore) Check(uid int64, jti string) bool {
-	if web.AppConfig.DefaultString("sms_provider", "mock") == "mock" {
-		return true // mock 模式放行
+	if !redisEnabled() {
+		return true // 未启用 Redis 会话存储时放行
 	}
 	key := refreshPrefix + strconv.FormatInt(uid, 10)
 	exists, err := initRedis().HExists(ctx, key, jti).Result()
@@ -69,7 +97,7 @@ func (redisRefreshStore) Check(uid int64, jti string) bool {
 }
 
 func (redisRefreshStore) Delete(uid int64, jti string) error {
-	if web.AppConfig.DefaultString("sms_provider", "mock") == "mock" {
+	if !redisEnabled() {
 		return nil
 	}
 	c := initRedis()
@@ -77,7 +105,7 @@ func (redisRefreshStore) Delete(uid int64, jti string) error {
 }
 
 func (redisRefreshStore) DeleteAll(uid int64) error {
-	if web.AppConfig.DefaultString("sms_provider", "mock") == "mock" {
+	if !redisEnabled() {
 		return nil
 	}
 	c := initRedis()

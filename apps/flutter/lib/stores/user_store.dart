@@ -23,8 +23,8 @@ class UserStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> login(String phone, String code) async {
-    final d = await api.login(phone, code);
+  Future<void> login(String phone) async {
+    final d = await api.login(phone);
     await setTokens(d['access_token'] as String, d['refresh_token'] as String);
   }
 

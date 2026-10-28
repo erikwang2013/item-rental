@@ -49,7 +49,6 @@ func init() {
 	})
 
 	// 认证相关（公开）
-	web.Router("/api/v1/auth/sms", &controllers.AuthController{}, "post:SendSms")
 	web.Router("/api/v1/auth/login", &controllers.AuthController{}, "post:Login")
 	web.Router("/api/v1/auth/refresh", &controllers.AuthController{}, "post:Refresh")
 	web.InsertFilter("/api/v1/auth/logout", web.BeforeRouter, middleware.JWTAuth)
