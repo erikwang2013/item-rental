@@ -17,10 +17,6 @@
       <input type="digit" placeholder="如 30" value="{{form.daily_price}}" data-k="daily_price" bindinput="onField" />
     </view>
     <view class="form-item">
-      <text class="label">押金(元)</text>
-      <input type="digit" placeholder="如 200" value="{{form.deposit}}" data-k="deposit" bindinput="onField" />
-    </view>
-    <view class="form-item">
       <text class="label">库存</text>
       <input type="number" placeholder="1-999" value="{{form.stock}}" data-k="stock" bindinput="onField" />
     </view>
@@ -51,7 +47,7 @@
     <image class="thumb" src="{{item.cover}}" mode="aspectFill" />
     <view class="flex1 info">
       <view class="title1 t">{{item.title}}</view>
-      <view class="muted">{{fmtMoney(item.daily_price)}}/天 · 押金 {{fmtMoney(item.deposit)}} · {{item.city}}</view>
+      <view class="muted">{{fmtMoney(item.daily_price)}}/天 · {{item.city}}</view>
       <view class="st {{item.status === 1 ? 'on' : ''}}">{{item.stText}}</view>
     </view>
     <button wx:if="{{item.status === 1}}" class="btn-sm btn-primary off" data-id="{{item.id}}" bindtap="offshelf">下架</button>

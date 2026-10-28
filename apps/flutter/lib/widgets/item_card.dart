@@ -45,18 +45,10 @@ class ItemCard extends StatelessWidget {
                   Text(item.city.isEmpty ? '同城租赁' : item.city,
                       style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                   const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text('¥${fmtMoney(item.dailyPrice)}/天',
-                          style: const TextStyle(
-                              color: Color(0xFFE53935),
-                              fontWeight: FontWeight.bold)),
-                      const Spacer(),
-                      Text('押金¥${fmtMoney(item.deposit)}',
-                          style:
-                              TextStyle(fontSize: 11, color: Colors.grey.shade500)),
-                    ],
-                  ),
+                  Text('¥${fmtMoney(item.dailyPrice)}/天',
+                      style: const TextStyle(
+                          color: Color(0xFFE53935),
+                          fontWeight: FontWeight.bold)),
                 ],
               ),
             ),

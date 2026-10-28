@@ -4,10 +4,10 @@ const util = require('../../utils/util')
 
 const CONFIRM = {
   cancel: '取消订单后租金将原路退回,确定取消?',
-  pickup: '确认已取到物品?取货后押金将冻结',
+  pickup: '确认已取到物品?',
   return_request: '确认申请归还?',
-  return_confirm: '确认物品已归还?将解冻押金并结算',
-  breach: '确认判定违约?将扣押金作为赔偿'
+  return_confirm: '确认物品已归还?',
+  breach: '确认判定违约?'
 }
 
 Page({

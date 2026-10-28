@@ -17,7 +17,6 @@
       <view wx:else class="avatar guest">👤</view>
       <view class="flex1">
         <view class="title1">{{user.nickname || user.real_name || '闲租用户'}}</view>
-        <view class="muted">信用分 {{user.credit_score || 0}} · 押金余额 {{user.deposit_bal || 0}}</view>
       </view>
     </view>
 

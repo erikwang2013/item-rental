@@ -13,7 +13,6 @@ func validItemReq() ItemValidateRequest {
 		Title:      "相机",
 		Images:     `["https://example.com/a.jpg"]`,
 		DailyPrice: 50,
-		Deposit:    100,
 		Stock:      5,
 		Lat:        f(30.5),
 		Lng:        f(120.5),
@@ -27,7 +26,6 @@ func TestValidateItemValid(t *testing.T) {
 	}{
 		{"baseline", func(r *ItemValidateRequest) {}},
 		{"title_128_boundary", func(r *ItemValidateRequest) { r.Title = strings.Repeat("长", 128) }},
-		{"deposit_zero", func(r *ItemValidateRequest) { r.Deposit = 0 }},
 		{"daily_price_min", func(r *ItemValidateRequest) { r.DailyPrice = 0.01 }},
 		{"stock_min", func(r *ItemValidateRequest) { r.Stock = 1 }},
 		{"stock_max", func(r *ItemValidateRequest) { r.Stock = 999 }},
@@ -57,7 +55,6 @@ func TestValidateItemReject(t *testing.T) {
 		{"title_too_long", func(r *ItemValidateRequest) { r.Title = strings.Repeat("长", 129) }},
 		{"daily_price_zero", func(r *ItemValidateRequest) { r.DailyPrice = 0 }},
 		{"daily_price_negative", func(r *ItemValidateRequest) { r.DailyPrice = -1 }},
-		{"deposit_negative", func(r *ItemValidateRequest) { r.Deposit = -0.01 }},
 		{"stock_zero", func(r *ItemValidateRequest) { r.Stock = 0 }},
 		{"stock_negative", func(r *ItemValidateRequest) { r.Stock = -3 }},
 		{"stock_1000", func(r *ItemValidateRequest) { r.Stock = 1000 }},

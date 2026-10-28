@@ -14,7 +14,6 @@ type ItemValidateRequest struct {
 	Title      string
 	Images     string
 	DailyPrice float64
-	Deposit    float64
 	Stock      int
 	Lat        *float64
 	Lng        *float64
@@ -31,9 +30,6 @@ func ValidateItem(req ItemValidateRequest) error {
 	}
 	if req.DailyPrice <= 0 {
 		return errors.New("租金必须大于 0")
-	}
-	if req.Deposit < 0 {
-		return errors.New("押金不能为负")
 	}
 	if req.Stock < 1 || req.Stock > 999 {
 		return errors.New("库存必须在 1~999 之间")

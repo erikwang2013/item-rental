@@ -6,7 +6,7 @@ import "time"
 // Order 订单表结构。
 // 订单状态机（见 schema 注释）：
 //
-//	0待支付 1待取(已付租金) 2租赁中(押金冻结) 3待归还 4已归还(结算) 5已取消 6违约(扣押金)
+//	0待支付 1待取(已付租金) 2租赁中 3待归还 4已归还 5已取消 6违约
 type Order struct {
 	Id           int64     `orm:"column(id)" json:"id,string"`
 	OrderNo      string    `orm:"column(order_no);size(64);unique" json:"order_no"` // 订单号
@@ -17,7 +17,6 @@ type Order struct {
 	EndDate      string    `orm:"column(end_date);type(date)" json:"end_date"`
 	Days         int       `orm:"column(days)" json:"days"` // 租赁天数
 	RentAmount   float64   `orm:"column(rent_amount);digits(12);decimals(2)" json:"rent_amount"`
-	Deposit      float64   `orm:"column(deposit);digits(12);decimals(2)" json:"deposit"`
 	Status       int       `orm:"column(status)" json:"status"` // 状态机见注释
 	PayTradeNo   string    `orm:"column(pay_trade_no);size(64)" json:"pay_trade_no"`
 	CancelReason string    `orm:"column(cancel_reason);size(255)" json:"cancel_reason"`
@@ -37,9 +36,9 @@ func (o *Order) TableName() string {
 const (
 	OrderStatusPending   = 0 // 待支付
 	OrderStatusToPickup  = 1 // 待取（已付租金）
-	OrderStatusRenting   = 2 // 租赁中（押金冻结）
+	OrderStatusRenting   = 2 // 租赁中
 	OrderStatusToReturn  = 3 // 待归还
-	OrderStatusReturned  = 4 // 已归还（结算）
+	OrderStatusReturned  = 4 // 已归还
 	OrderStatusCancelled = 5 // 已取消
-	OrderStatusBreach    = 6 // 违约（扣押金）
+	OrderStatusBreach    = 6 // 违约
 )

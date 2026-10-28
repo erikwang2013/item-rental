@@ -13,7 +13,6 @@ class Order {
   final String endDate;
   final int days;
   final double rentAmount; // 元
-  final double deposit; // 元
   final int status;
   final String payTradeNo;
   final String cancelReason;
@@ -31,7 +30,6 @@ class Order {
     required this.endDate,
     required this.days,
     required this.rentAmount,
-    required this.deposit,
     required this.status,
     required this.payTradeNo,
     required this.cancelReason,
@@ -54,7 +52,6 @@ class Order {
         endDate: j['end_date'] as String? ?? '',
         days: j['days'] as int? ?? 0,
         rentAmount: (j['rent_amount'] as num? ?? 0).toDouble(),
-        deposit: (j['deposit'] as num? ?? 0).toDouble(),
         status: j['status'] as int? ?? 0,
         payTradeNo: j['pay_trade_no'] as String? ?? '',
         cancelReason: j['cancel_reason'] as String? ?? '',

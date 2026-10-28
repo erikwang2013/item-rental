@@ -26,7 +26,7 @@ func GenerateOrderNo() string {
 //   - 租客不能租赁自己的物品（renter != item.OwnerId）
 //   - 日期格式必须为 YYYY-MM-DD，且 start <= end
 //   - days = end - start + 1，必须 >= 1
-//   - rent_amount = days * daily_price（四舍五入到分），deposit = item.deposit
+//   - rent_amount = days * daily_price（四舍五入到分）
 func BuildOrder(item *models.Item, renterID int64, start, end string) (*models.Order, error) {
 	if item == nil || item.Id <= 0 {
 		return nil, errors.New("物品不存在")
@@ -68,7 +68,6 @@ func BuildOrder(item *models.Item, renterID int64, start, end string) (*models.O
 		EndDate:    end,
 		Days:       days,
 		RentAmount: round2(float64(days) * item.DailyPrice),
-		Deposit:    item.Deposit,
 		Status:     models.OrderStatusPending,
 	}, nil
 }

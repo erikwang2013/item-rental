@@ -68,7 +68,6 @@ class _OrderConfirmPageState extends State<OrderConfirmPage> {
   Widget build(BuildContext context) {
     final it = widget.item;
     final rent = it.dailyPrice * _days;
-    final deposit = it.deposit;
     return Scaffold(
       appBar: AppBar(title: const Text('确认订单')),
       body: ListView(padding: const EdgeInsets.all(14), children: [
@@ -81,7 +80,7 @@ class _OrderConfirmPageState extends State<OrderConfirmPage> {
                   child: Image.network(it.cover, width: 52, height: 52, fit: BoxFit.cover,
                       errorBuilder: (_, _, _) => const Icon(Icons.broken_image_outlined, size: 40))),
           title: Text(it.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-          subtitle: Text('¥${fmtMoney(it.dailyPrice)}/天 · 押金 ¥${fmtMoney(it.deposit)}'),
+          subtitle: Text('¥${fmtMoney(it.dailyPrice)}/天'),
         ),
         const Divider(),
         ListTile(
@@ -107,11 +106,6 @@ class _OrderConfirmPageState extends State<OrderConfirmPage> {
           title: const Text('租金小计'),
           trailing: Text('¥${fmtMoney(rent)}',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        ),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('押金(取货时冻结)'),
-          trailing: Text('¥${fmtMoney(deposit)}'),
         ),
         ListTile(
           contentPadding: EdgeInsets.zero,

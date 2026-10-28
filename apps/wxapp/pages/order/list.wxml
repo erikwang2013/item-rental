@@ -17,7 +17,6 @@
     </view>
     <view class="od-foot">
       <text class="price">{{fmtMoney(item.rent_amount)}}</text>
-      <text class="muted">押金 {{fmtMoney(item.deposit)}}</text>
     </view>
   </view>
   <view class="empty" wx:if="{{!orders.length && !loading}}">暂无订单</view>

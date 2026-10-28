@@ -3,7 +3,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../api/endpoints.dart';
-import '../../core/format.dart';
 import '../../models/user.dart';
 import '../../stores/user_store.dart';
 import '../../widgets/commons.dart';
@@ -122,8 +121,7 @@ class _ProfilePageState extends State<ProfilePage> {
         const SizedBox(height: 8),
         if (p != null)
           Text(
-            '手机号 ${p.id > 0 ? '(已绑定)' : ''} · 实名 ${p.realName.isEmpty ? '未实名' : p.realName}\n'
-            '信用分 ${p.creditScore} · 押金余额 ¥${fmtMoney(p.depositBal)}',
+            '手机号 ${p.id > 0 ? '(已绑定)' : ''} · 实名 ${p.realName.isEmpty ? '未实名' : p.realName}',
             style: TextStyle(color: Colors.grey.shade600, height: 1.6, fontSize: 13),
           ),
       ]),

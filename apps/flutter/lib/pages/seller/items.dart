@@ -149,7 +149,6 @@ class _PublishDialogState extends State<_PublishDialog> {
   final _title = TextEditingController();
   final _desc = TextEditingController();
   final _price = TextEditingController();
-  final _deposit = TextEditingController();
   final _stock = TextEditingController();
   final _city = TextEditingController();
   final ImagePicker _picker = ImagePicker();
@@ -170,7 +169,7 @@ class _PublishDialogState extends State<_PublishDialog> {
 
   @override
   void dispose() {
-    for (final c in [_title, _desc, _price, _deposit, _stock, _city]) {
+    for (final c in [_title, _desc, _price, _stock, _city]) {
       c.dispose();
     }
     super.dispose();
@@ -190,12 +189,10 @@ class _PublishDialogState extends State<_PublishDialog> {
 
   Future<void> _submit() async {
     final price = double.tryParse(_price.text.trim());
-    final deposit = double.tryParse(_deposit.text.trim());
     final stock = int.tryParse(_stock.text.trim());
     if (_title.text.trim().isEmpty) return toast('请填写标题');
     if (_catId == null) return toast('请选择类目');
     if (price == null || price <= 0) return toast('日租金须为正数');
-    if (deposit == null || deposit < 0) return toast('押金不能为负');
     if (stock == null || stock < 1) return toast('库存至少 1 件');
     setState(() => _busy = true);
     try {
@@ -209,7 +206,6 @@ class _PublishDialogState extends State<_PublishDialog> {
         'desc': _desc.text.trim(),
         'category_id': _catId,
         'daily_price': price,
-        'deposit': deposit,
         'stock': stock,
         'city': _city.text.trim(),
         'images': urls.isEmpty ? '' : jsonEncode(urls),
@@ -243,10 +239,6 @@ class _PublishDialogState extends State<_PublishDialog> {
               controller: _price,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(labelText: '日租金 ¥ *')),
-          TextField(
-              controller: _deposit,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: '押金 ¥ *')),
           TextField(
               controller: _stock,
               keyboardType: TextInputType.number,

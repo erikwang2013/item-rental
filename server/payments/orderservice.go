@@ -23,7 +23,7 @@ type OrderService interface {
 }
 
 // orderServiceImpl 基于 beego ORM 的默认实现。
-// 注意：此处仅为占位，订单完整状态机（押金冻结、并发、补偿）在订单模块任务中实现。
+// 注意：此处仅为占位，订单完整状态机（并发、补偿）在订单模块任务中实现。
 type orderServiceImpl struct{}
 
 // NewOrderService 返回默认订单服务实现。

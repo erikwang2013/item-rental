@@ -18,18 +18,12 @@ type CancelStore interface {
 	CancelOrder(id int64, reason string) (int64, error)
 	// Notify 向用户写一条站内信
 	Notify(userID int64, typ, title, content string) error
-	// AdjustCredit 调整用户信用分（clamp 0-100）
-	AdjustCredit(userID int64, delta int) error
-	// InsertCreditEvent 写一条信用分流水
-	InsertCreditEvent(e *models.CreditEvent) error
-	// HasPaidPayment 该订单是否存在已成功/已退款的支付单（用于"已支付后取消"判定）
-	HasPaidPayment(orderID int64) bool
 }
 
 // CancelOrder 取消订单（0待支付 -> 5已取消）。
 // 仅订单租客或房东可操作；已取消幂等返回（transitioned=false, err=nil）；
 // 其他状态返回 ErrInvalidState。退款动作由调用方（controller）先执行。
-// 取消生效后：通知对方；若曾支付过则租客信用 -10。
+// 取消生效后通知对方。
 func CancelOrder(st CancelStore, orderID, uid int64, reason string) (bool, error) {
 	order, err := st.GetOrder(orderID)
 	if err != nil {
@@ -50,8 +44,7 @@ func CancelOrder(st CancelStore, orderID, uid int64, reason string) (bool, error
 	if err != nil {
 		return false, err
 	}
-	ok := n > 0
-	if !ok {
+	if n == 0 {
 		return false, nil
 	}
 
@@ -62,17 +55,6 @@ func CancelOrder(st CancelStore, orderID, uid int64, reason string) (bool, error
 	}
 	if err := st.Notify(other, "order_cancelled", "订单已取消", fmt.Sprintf("订单 %s 已被取消", order.OrderNo)); err != nil {
 		return false, err
-	}
-	// 已支付后取消：租客信用 -10（退款由 controller 先执行）
-	if st.HasPaidPayment(orderID) {
-		if err := st.AdjustCredit(order.RenterId, -10); err != nil {
-			return false, err
-		}
-		if err := st.InsertCreditEvent(&models.CreditEvent{
-			UserId: order.RenterId, Change: -10, Reason: "cancel_after_paid", Ref: order.OrderNo,
-		}); err != nil {
-			return false, err
-		}
 	}
 	return true, nil
 }
@@ -110,25 +92,4 @@ func (s *defaultCancelStore) CancelOrder(id int64, reason string) (int64, error)
 
 func (s *defaultCancelStore) Notify(userID int64, typ, title, content string) error {
 	return Send(userID, typ, title, content)
-}
-
-func (s *defaultCancelStore) AdjustCredit(userID int64, delta int) error {
-	// SQL 表达式须走 Raw:ORMMap Update 的值会被当绑定参数(字符串字面量),SET 到 INT 列必报错
-	_, err := s.o.Raw("UPDATE users SET credit_score = GREATEST(LEAST(credit_score + ?, 100), 0) WHERE id = ?",
-		delta, userID).Exec()
-	return err
-}
-
-func (s *defaultCancelStore) InsertCreditEvent(e *models.CreditEvent) error {
-	e.Id = NextID()
-	_, err := s.o.Insert(e)
-	return err
-}
-
-func (s *defaultCancelStore) HasPaidPayment(orderID int64) bool {
-	n, err := s.o.QueryTable(new(models.Payment)).
-		Filter("order_id", orderID).
-		Filter("status__in", []int{models.PaymentStatusSuccess, models.PaymentStatusRefunded}).
-		Count()
-	return err == nil && n > 0
 }

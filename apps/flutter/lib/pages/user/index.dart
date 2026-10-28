@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/format.dart';
 import '../../models/user.dart';
 import '../../stores/message_store.dart';
 import '../../stores/user_store.dart';
@@ -130,9 +129,6 @@ class _Header extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(up?.nickname ?? '加载中…',
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              if (up != null)
-                Text('信用分 ${up.creditScore} · 押金余额 ¥${fmtMoney(up.depositBal)}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
             ]),
           ),
           const Icon(Icons.chevron_right),

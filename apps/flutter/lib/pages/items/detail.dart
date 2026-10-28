@@ -63,13 +63,8 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(item.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 6),
-                        Row(children: [
-                          Text('¥${item.dailyPrice.toStringAsFixed(2)}/天',
-                              style: const TextStyle(color: Color(0xFFE53935), fontSize: 20, fontWeight: FontWeight.bold)),
-                          const Spacer(),
-                          Text('押金 ¥${item.deposit.toStringAsFixed(2)}',
-                              style: TextStyle(color: Colors.grey.shade600)),
-                        ]),
+                        Text('¥${item.dailyPrice.toStringAsFixed(2)}/天',
+                            style: const TextStyle(color: Color(0xFFE53935), fontSize: 20, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 6),
                         Text('库存 ${item.stock} 件', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                         if (item.city.isNotEmpty)
@@ -103,16 +98,6 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                               const SizedBox(width: 8),
                               Text(item.owner!.nickname,
                                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                decoration: BoxDecoration(
-                                  color: kGreen.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text('信用分 ${item.owner!.creditScore}',
-                                    style: const TextStyle(fontSize: 11, color: kGreen)),
-                              ),
                               const Spacer(),
                               Text('房东', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
                             ]),

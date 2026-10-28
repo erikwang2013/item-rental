@@ -124,7 +124,7 @@ func (c *OrderController) Detail() {
 		c.Fail(403, "无权查看该订单")
 		return
 	}
-	// 富化双方公开信息(昵称/头像/信用分),客户端按自身角色读取对方;缺失容错为 nil
+	// 富化双方公开信息(昵称/头像),客户端按自身角色读取对方;缺失容错为 nil
 	for _, u := range []struct {
 		id     int64
 		target **models.UserPublic
@@ -172,10 +172,10 @@ func (c *OrderController) runFlow(fn flowHandler, okMsg string) {
 	c.OK(map[string]string{"msg": okMsg})
 }
 
-// Pickup 取货（1→2 租赁中，冻结押金）租客操作
+// Pickup 取货（1→2 租赁中）租客操作
 // POST /api/v1/orders/:id/pickup
 func (c *OrderController) Pickup() {
-	c.runFlow(services.Pickup, "取货成功，押金已冻结")
+	c.runFlow(services.Pickup, "取货成功")
 }
 
 // ReturnRequest 申请归还（2→3 待归还）租客操作
@@ -184,16 +184,16 @@ func (c *OrderController) ReturnRequest() {
 	c.runFlow(services.RequestReturn, "已申请归还，等待房东确认")
 }
 
-// ReturnConfirm 确认归还（3→4 已归还结算，解冻押金）房东操作
+// ReturnConfirm 确认归还（3→4 已归还）房东操作
 // POST /api/v1/orders/:id/return_confirm
 func (c *OrderController) ReturnConfirm() {
-	c.runFlow(services.ConfirmReturn, "已确认归还，押金已退还")
+	c.runFlow(services.ConfirmReturn, "已确认归还")
 }
 
-// Breach 违约（3→6 违约扣押金）房东操作
+// Breach 违约（3→6 违约）房东操作
 // POST /api/v1/orders/:id/breach
 func (c *OrderController) Breach() {
-	c.runFlow(services.Breach, "已判定违约，押金扣除")
+	c.runFlow(services.Breach, "已判定违约")
 }
 
 // cancelRequest 取消订单请求

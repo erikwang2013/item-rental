@@ -77,14 +77,14 @@ func TestSensitiveFieldsHidden(t *testing.T) {
 // --- F1 富化:UserPublic 公开视图与 Item/Order 详情嵌入 ---
 
 func TestUserToPublic(t *testing.T) {
-	u := User{Id: 7, Phone: "hash", Nickname: "房东", Avatar: "http://x/a.png", RealName: "enc", CreditScore: 90, DepositBal: 12.5, Status: 1}
+	u := User{Id: 7, Phone: "hash", Nickname: "房东", Avatar: "http://x/a.png", RealName: "enc", Status: 1}
 	pub := u.ToPublic()
-	if pub.Id != 7 || pub.Nickname != "房东" || pub.Avatar != "http://x/a.png" || pub.CreditScore != 90 {
+	if pub.Id != 7 || pub.Nickname != "房东" || pub.Avatar != "http://x/a.png" {
 		t.Errorf("ToPublic 字段不符: %+v", pub)
 	}
 	// 公开视图不可携带 PII/私密字段(结构上无这些字段,编译期已保证;此处断言 JSON 不含其名)
 	data, _ := json.Marshal(pub)
-	for _, forbidden := range []string{"phone", "real_name", "deposit_bal", "status", "created_at"} {
+	for _, forbidden := range []string{"phone", "real_name", "credit_score", "deposit_bal", "status", "created_at"} {
 		if strings.Contains(string(data), forbidden) {
 			t.Errorf("UserPublic JSON 泄露字段 %q: %s", forbidden, data)
 		}
@@ -101,13 +101,13 @@ func TestItemOwnerOmitEmpty(t *testing.T) {
 		t.Errorf("nil Owner 不应输出 owner 键: %s", plain)
 	}
 	// set Owner:输出嵌套对象且字段完整
-	pub := User{Id: 7, Nickname: "房东", Avatar: "http://x/a.png", CreditScore: 90}.ToPublic()
+	pub := User{Id: 7, Nickname: "房东", Avatar: "http://x/a.png"}.ToPublic()
 	with, err := json.Marshal(Item{Id: 1, OwnerId: 7, Owner: &pub})
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
 	s := string(with)
-	for _, want := range []string{`"owner":{`, `"id":"7"`, `"nickname":"房东"`, `"avatar":"http://x/a.png"`, `"credit_score":90`} {
+	for _, want := range []string{`"owner":{`, `"id":"7"`, `"nickname":"房东"`, `"avatar":"http://x/a.png"`} {
 		if !strings.Contains(s, want) {
 			t.Errorf("owner 对象缺 %q: %s", want, s)
 		}
@@ -122,8 +122,8 @@ func TestOrderCounterpartyOmitEmpty(t *testing.T) {
 	if strings.Contains(string(plain), `"owner"`) || strings.Contains(string(plain), `"renter"`) {
 		t.Errorf("nil 双方不应输出 owner/renter 键: %s", plain)
 	}
-	oPub := User{Id: 2, Nickname: "房东", CreditScore: 80}.ToPublic()
-	rPub := User{Id: 3, Nickname: "租客", CreditScore: 100}.ToPublic()
+	oPub := User{Id: 2, Nickname: "房东"}.ToPublic()
+	rPub := User{Id: 3, Nickname: "租客"}.ToPublic()
 	with, err := json.Marshal(Order{Id: 1, Owner: &oPub, Renter: &rPub})
 	if err != nil {
 		t.Fatalf("marshal: %v", err)

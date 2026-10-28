@@ -20,11 +20,11 @@ var (
 )
 
 const (
-	smsPrefix     = "sms:code:"
-	smsTTL        = 5 * time.Minute // 验证码有效期 5 分钟
-	devFixedCode  = "123456"        // 开发环境固定验证码
-	smsLimitPrefix = "sms:limit:"   // 发送频率限制 key 前缀
-	smsLimitTTL   = 60 * time.Second // 限频窗口：1 分钟 1 条
+	smsPrefix      = "sms:code:"
+	smsTTL         = 5 * time.Minute  // 验证码有效期 5 分钟
+	devFixedCode   = "123456"         // 开发环境固定验证码
+	smsLimitPrefix = "sms:limit:"     // 发送频率限制 key 前缀
+	smsLimitTTL    = 60 * time.Second // 限频窗口：1 分钟 1 条
 )
 
 // initRedis 初始化 Redis 连接，sync.Once 保证并发安全（只创建一次）。

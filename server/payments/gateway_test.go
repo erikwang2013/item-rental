@@ -142,9 +142,9 @@ func TestHandleNotifyPreDB(t *testing.T) {
 
 	// 签名合法但缺关键字段：total_fee 缺失 → 金额非法（在 ormer 之前）
 	params := map[string]string{
-		"return_code":   "SUCCESS",
-		"result_code":   "SUCCESS",
-		"out_trade_no":  "T123",
+		"return_code":    "SUCCESS",
+		"result_code":    "SUCCESS",
+		"out_trade_no":   "T123",
 		"transaction_id": "wx111",
 	}
 	params["sign"] = signParams(params, g.cfg.MchKey, g.cfg.SignType)

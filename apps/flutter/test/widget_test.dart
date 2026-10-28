@@ -14,7 +14,6 @@ void main() {
       'desc': '9成新',
       'images': 'http://a.jpg,http://b.jpg',
       'daily_price': 30,
-      'deposit': 200.5,
       'stock': 1,
       'status': 1,
       'city': '上海',
@@ -27,7 +26,6 @@ void main() {
     expect(it.cover, 'http://a.jpg');
     expect(it.onShelf, isTrue);
     expect(it.dailyPrice, 30.0);
-    expect(it.deposit, 200.5);
   });
 
   test('Order 状态文案', () {

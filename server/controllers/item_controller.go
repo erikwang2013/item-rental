@@ -19,13 +19,12 @@ type ItemController struct {
 
 // createItemRequest 发布/更新物品请求
 type createItemRequest struct {
-	CategoryId int64   `json:"category_id"`
-	Title      string  `json:"title"`
-	Desc       string  `json:"desc"`
-	Images     string  `json:"images"`
-	DailyPrice float64 `json:"daily_price"`
-	Deposit    float64 `json:"deposit"`
-	Stock      int     `json:"stock"`
+	CategoryId int64    `json:"category_id"`
+	Title      string   `json:"title"`
+	Desc       string   `json:"desc"`
+	Images     string   `json:"images"`
+	DailyPrice float64  `json:"daily_price"`
+	Stock      int      `json:"stock"`
 	City       string   `json:"city"`
 	Lat        *float64 `json:"lat"`
 	Lng        *float64 `json:"lng"`
@@ -135,7 +134,7 @@ func (c *ItemController) Detail() {
 		c.Fail(404, "物品不存在")
 		return
 	}
-	// 富化房东公开信息(昵称/头像/信用分);owner 行缺失(孤儿数据)容错为 nil 不 500
+	// 富化房东公开信息(昵称/头像);owner 行缺失(孤儿数据)容错为 nil 不 500
 	owner := models.User{Id: item.OwnerId}
 	if err := o.Read(&owner); err == nil {
 		pub := owner.ToPublic()
@@ -165,7 +164,6 @@ func (c *ItemController) Create() {
 		Title:      req.Title,
 		Images:     req.Images,
 		DailyPrice: req.DailyPrice,
-		Deposit:    req.Deposit,
 		Stock:      req.Stock,
 		Lat:        req.Lat,
 		Lng:        req.Lng,
@@ -188,7 +186,6 @@ func (c *ItemController) Create() {
 		Desc:       req.Desc,
 		Images:     req.Images,
 		DailyPrice: req.DailyPrice,
-		Deposit:    req.Deposit,
 		Stock:      req.Stock,
 		City:       req.City,
 		Lat:        valueOrZero(req.Lat),
@@ -248,9 +245,6 @@ func (c *ItemController) Update() {
 	if req.DailyPrice > 0 {
 		item.DailyPrice = req.DailyPrice
 	}
-	if req.Deposit > 0 {
-		item.Deposit = req.Deposit
-	}
 	if req.Stock > 0 {
 		item.Stock = req.Stock
 	}
@@ -271,7 +265,6 @@ func (c *ItemController) Update() {
 		Title:      item.Title,
 		Images:     item.Images,
 		DailyPrice: item.DailyPrice,
-		Deposit:    item.Deposit,
 		Stock:      item.Stock,
 		Lat:        latP,
 		Lng:        lngP,
@@ -280,7 +273,7 @@ func (c *ItemController) Update() {
 		return
 	}
 
-	if _, err := o.Update(&item, "title", "desc", "images", "daily_price", "deposit", "stock", "city", "lat", "lng"); err != nil {
+	if _, err := o.Update(&item, "title", "desc", "images", "daily_price", "stock", "city", "lat", "lng"); err != nil {
 		c.Fail(500, "更新失败")
 		return
 	}

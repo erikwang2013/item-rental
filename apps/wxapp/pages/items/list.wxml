@@ -3,7 +3,7 @@
     <image class="thumb" src="{{item.cover}}" mode="aspectFill" />
     <view class="flex1 info">
       <view class="title1 t">{{item.title}}</view>
-      <view class="muted">{{item.city}} · 押金 {{fmtMoney(item.deposit)}}</view>
+      <view class="muted">{{item.city}}</view>
       <view class="price">{{fmtMoney(item.daily_price)}}<text class="unit">/天</text></view>
     </view>
   </view>

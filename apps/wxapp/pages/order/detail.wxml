@@ -16,7 +16,6 @@
     <view class="kv"><text class="k">租期</text><text>{{order.start_date}} ~ {{order.end_date}}</text></view>
     <view class="kv"><text class="k">天数</text><text>{{order.days}} 天</text></view>
     <view class="kv"><text class="k">租金</text><text class="price">{{fmtMoney(order.rent_amount)}}</text></view>
-    <view class="kv"><text class="k">押金</text><text>{{fmtMoney(order.deposit)}}</text></view>
     <view class="kv" wx:if="{{order.cancel_reason}}"><text class="k">取消原因</text><text>{{order.cancel_reason}}</text></view>
   </view>
 
@@ -27,7 +26,6 @@
       <view wx:else class="cp-avatar guest">👤</view>
       <view class="flex1 info">
         <view class="title1 t">{{counterpart.nickname || '闲租用户'}}</view>
-        <view class="muted">信用分 {{counterpart.credit_score || 0}}</view>
       </view>
     </view>
   </view>

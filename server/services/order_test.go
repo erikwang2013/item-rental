@@ -9,7 +9,7 @@ import (
 )
 
 func onShelfItem() *models.Item {
-	return &models.Item{Id: 1, OwnerId: 2, DailyPrice: 50, Deposit: 100, Status: 1}
+	return &models.Item{Id: 1, OwnerId: 2, DailyPrice: 50, Status: 1}
 }
 
 // TestGenerateOrderNoFormat 格式：ORD 前缀 + 至少 8 位数字
@@ -44,7 +44,7 @@ func TestGenerateOrderNoUnique(t *testing.T) {
 	}
 }
 
-// TestBuildOrderValid 合法下单：天数、租金、押金计算正确
+// TestBuildOrderValid 合法下单：天数与租金计算正确
 func TestBuildOrderValid(t *testing.T) {
 	order, err := BuildOrder(onShelfItem(), 3, "2026-09-01", "2026-09-03")
 	if err != nil {
@@ -55,9 +55,6 @@ func TestBuildOrderValid(t *testing.T) {
 	}
 	if order.RentAmount != 150 {
 		t.Errorf("RentAmount = %v, want 150 (3×50)", order.RentAmount)
-	}
-	if order.Deposit != 100 {
-		t.Errorf("Deposit = %v, want 100", order.Deposit)
 	}
 	if order.Status != models.OrderStatusPending {
 		t.Errorf("Status = %d, want %d(待支付)", order.Status, models.OrderStatusPending)
@@ -84,18 +81,18 @@ func TestBuildOrderSameDay(t *testing.T) {
 // TestBuildOrderReject 非法下单：start>end、天数不合法、自租、物品下架/售罄、日期格式错误
 func TestBuildOrderReject(t *testing.T) {
 	cases := []struct {
-		name  string
-		item  *models.Item
+		name   string
+		item   *models.Item
 		renter int64
-		start string
-		end   string
+		start  string
+		end    string
 	}{
 		{"start_after_end", onShelfItem(), 3, "2026-09-03", "2026-09-01"},
 		{"start_before_epoch_bad", onShelfItem(), 3, "2026-99-01", "2026-09-03"},
 		{"end_bad_format", onShelfItem(), 3, "2026-09-01", "2026/09/03"},
 		{"renter_is_owner", onShelfItem(), 2, "2026-09-01", "2026-09-02"},
-		{"item_offshelf", &models.Item{Id: 1, OwnerId: 2, DailyPrice: 50, Deposit: 100, Status: 0}, 3, "2026-09-01", "2026-09-02"},
-		{"item_soldout", &models.Item{Id: 1, OwnerId: 2, DailyPrice: 50, Deposit: 100, Status: 2}, 3, "2026-09-01", "2026-09-02"},
+		{"item_offshelf", &models.Item{Id: 1, OwnerId: 2, DailyPrice: 50, Status: 0}, 3, "2026-09-01", "2026-09-02"},
+		{"item_soldout", &models.Item{Id: 1, OwnerId: 2, DailyPrice: 50, Status: 2}, 3, "2026-09-01", "2026-09-02"},
 		{"item_nil", nil, 3, "2026-09-01", "2026-09-02"},
 	}
 	for _, tc := range cases {

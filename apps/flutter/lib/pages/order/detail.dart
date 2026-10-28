@@ -110,7 +110,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     _row('租期', '${o.startDate} ~ ${o.endDate}'),
                     _row('天数', '${o.days} 天'),
                     _row('租金', '¥${fmtMoney(o.rentAmount)}'),
-                    _row('押金', '¥${fmtMoney(o.deposit)}'),
                     _row('角色', _isOwner ? '我是出租方' : (_isRenter ? '我是租客' : '')),
                     ..._counterpartRows(o),
                     if (o.payTradeNo.isNotEmpty) _row('支付流水', o.payTradeNo),
@@ -157,16 +156,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           ),
           const SizedBox(width: 8),
           Text(p.nickname, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-            decoration: BoxDecoration(
-              color: kGreen.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text('信用分 ${p.creditScore}',
-                style: const TextStyle(fontSize: 11, color: kGreen)),
-          ),
           const Spacer(),
           Text(_isOwner ? '租客' : '房东', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
         ]),
@@ -193,12 +182,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           child: const Text('取消订单')));
     }
     if (o.status == 1 && renterAction) {
-      // 待取:租客取货(冻结押金)
+      // 待取:租客取货
       btns.add(FilledButton.icon(
           style: FilledButton.styleFrom(backgroundColor: kGreen),
           icon: const Icon(Icons.download_done),
-          label: const Text('确认取货(冻结押金)'),
-          onPressed: _acting ? null : () => _confirmDialog('确认已取到物品?将冻结押金 ¥${fmtMoney(o.deposit)}', () => api.pickup(o.id))));
+          label: const Text('确认取货'),
+          onPressed: _acting ? null : () => _confirmDialog('确认已取到物品?', () => api.pickup(o.id))));
     }
     if (o.status == 2 && renterAction) {
       // 租赁中:租客申请归还
@@ -212,13 +201,13 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       btns.add(FilledButton.icon(
           style: FilledButton.styleFrom(backgroundColor: kGreen),
           icon: const Icon(Icons.check_circle),
-          label: const Text('确认归还(结算)'),
-          onPressed: _acting ? null : () => _confirmDialog('确认验收通过,解除押金冻结并结算租金?', () => api.returnConfirm(o.id))));
+          label: const Text('确认归还'),
+          onPressed: _acting ? null : () => _confirmDialog('确认验收通过?', () => api.returnConfirm(o.id))));
       btns.add(OutlinedButton.icon(
           style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
           icon: const Icon(Icons.gavel),
-          label: const Text('判定违约(扣押金)'),
-          onPressed: _acting ? null : () => _confirmDialog('物品损坏/逾期将扣押金 ¥${fmtMoney(o.deposit)},确定?', () => api.breach(o.id))));
+          label: const Text('判定违约'),
+          onPressed: _acting ? null : () => _confirmDialog('确认判定违约?', () => api.breach(o.id))));
     }
     if (btns.isEmpty) return null;
     return SafeArea(

@@ -13,7 +13,7 @@ Page({
     up: false, // 图片上传中
     pics: [], // 发布表单已选图片 [{path, url}] path=本地临时文件,url=上传后地址
     categories: [],
-    form: { title: '', category_id: 0, categoryName: '', daily_price: '', deposit: '', stock: '1', city: '', desc: '' }
+    form: { title: '', category_id: 0, categoryName: '', daily_price: '', stock: '1', city: '', desc: '' }
   },
 
   onShow() {
@@ -94,12 +94,10 @@ Page({
   publish() {
     const f = this.data.form
     const daily_price = Number(f.daily_price)
-    const deposit = Number(f.deposit)
     const stock = parseInt(f.stock, 10)
     if (!f.title.trim()) return wx.showToast({ title: '请填写标题', icon: 'none' })
     if (!f.category_id) return wx.showToast({ title: '请选择类目', icon: 'none' })
     if (!daily_price || daily_price <= 0) return wx.showToast({ title: '请填写日租金', icon: 'none' })
-    if (deposit < 0) return wx.showToast({ title: '押金不合法', icon: 'none' })
     if (!stock || stock < 1 || stock > 999) return wx.showToast({ title: '库存需在 1-999', icon: 'none' })
     if (this.data.up) return wx.showToast({ title: '图片上传中', icon: 'none' })
     const urls = this.data.pics.filter(p => p.url).map(p => p.url)
@@ -108,7 +106,6 @@ Page({
       title: f.title.trim(),
       category_id: f.category_id,
       daily_price,
-      deposit,
       stock,
       city: f.city.trim(),
       images: urls.length ? JSON.stringify(urls) : '',

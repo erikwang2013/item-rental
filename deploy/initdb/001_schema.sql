@@ -13,8 +13,6 @@ CREATE TABLE IF NOT EXISTS `users` (
     `avatar`        VARCHAR(255)    DEFAULT '' COMMENT '头像URL',
     `real_name`     VARCHAR(255)    DEFAULT '' COMMENT '实名姓名（AES-GCM base64）',
     `id_card`       VARCHAR(255)    DEFAULT NULL COMMENT '身份证（AES加密）',
-    `credit_score`  INT             NOT NULL DEFAULT 100 COMMENT '信用分 0-100',
-    `deposit_bal`   DECIMAL(12,2)   NOT NULL DEFAULT 0.00 COMMENT '押金账户余额',
     `status`        TINYINT         NOT NULL DEFAULT 1 COMMENT '1正常 2禁用',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -44,7 +42,6 @@ CREATE TABLE IF NOT EXISTS `items` (
     `desc`          TEXT            COMMENT '描述',
     `images`        TEXT            COMMENT '图片JSON数组',
     `daily_price`   DECIMAL(12,2)   NOT NULL COMMENT '每日租金',
-    `deposit`       DECIMAL(12,2)   NOT NULL DEFAULT 0.00 COMMENT '押金金额',
     `stock`         INT             NOT NULL DEFAULT 1 COMMENT '库存数量',
     `status`        TINYINT         NOT NULL DEFAULT 1 COMMENT '1上架 0下架 2已售罄',
     `city`          VARCHAR(64)     DEFAULT '' COMMENT '所在城市',
@@ -69,7 +66,6 @@ CREATE TABLE IF NOT EXISTS `orders` (
     `end_date`      DATE            NOT NULL COMMENT '租期结束',
     `days`          INT             NOT NULL COMMENT '租赁天数',
     `rent_amount`   DECIMAL(12,2)   NOT NULL COMMENT '租金总额',
-    `deposit`       DECIMAL(12,2)   NOT NULL COMMENT '押金',
     `status`        TINYINT         NOT NULL DEFAULT 0 COMMENT '状态机见注释',
     `pay_trade_no`  VARCHAR(64)     DEFAULT NULL COMMENT '支付流水号',
     `cancel_reason` VARCHAR(255)    DEFAULT NULL COMMENT '取消原因',
@@ -82,21 +78,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
     KEY `idx_item` (`item_id`),
     KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单表';
--- 订单状态机: 0待支付 1待取(已付租金) 2租赁中(押金冻结) 3待归还 4已归还(结算) 5已取消 6违约(扣押金)
-
--- ---------- 押金流水表 ----------
-CREATE TABLE IF NOT EXISTS `deposits` (
-    `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `order_id`      BIGINT UNSIGNED NOT NULL COMMENT '订单ID',
-    `user_id`       BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
-    `amount`        DECIMAL(12,2)   NOT NULL COMMENT '金额',
-    `type`          TINYINT         NOT NULL COMMENT '1冻结 2解冻 3扣款',
-    `ref`           VARCHAR(64)     DEFAULT NULL COMMENT '关联流水号',
-    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `idx_order` (`order_id`),
-    KEY `idx_user` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='押金流水表';
+-- 订单状态机: 0待支付 1待取(已付租金) 2租赁中 3待归还 4已归还 5已取消 6违约
 
 -- ---------- 支付流水表 ----------
 CREATE TABLE IF NOT EXISTS `payments` (
@@ -127,18 +109,6 @@ CREATE TABLE IF NOT EXISTS `messages` (
     PRIMARY KEY (`id`),
     KEY `idx_user_read` (`user_id`, `is_read`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='站内消息表';
-
--- ---------- 信用分流水表 ----------
-CREATE TABLE IF NOT EXISTS `credit_events` (
-    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `user_id`     BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
-    `change`      INT             NOT NULL COMMENT '变动值（正加负扣）',
-    `reason`      VARCHAR(32)     NOT NULL DEFAULT '' COMMENT '原因：return_on_time/breach/cancel_after_paid',
-    `ref`         VARCHAR(64)     NOT NULL DEFAULT '' COMMENT '关联订单号',
-    `created_at`  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `idx_user` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='信用分流水表';
 
 -- ---------- 初始品类数据 ----------
 INSERT IGNORE INTO `categories` (`id`, `name`, `parent_id`, `sort`) VALUES

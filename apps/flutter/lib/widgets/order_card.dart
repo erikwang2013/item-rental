@@ -52,7 +52,7 @@ class OrderCard extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 2),
               Text(
-                  '租金 ¥${fmtMoney(order.rentAmount)}  押金 ¥${fmtMoney(order.deposit)}',
+                  '租金 ¥${fmtMoney(order.rentAmount)}',
                   style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
             ],
           ),

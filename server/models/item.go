@@ -16,7 +16,6 @@ type Item struct {
 	Desc       string    `orm:"column(desc);type(text)" json:"desc"`
 	Images     string    `orm:"column(images);type(text)" json:"images"`
 	DailyPrice float64   `orm:"column(daily_price);digits(12);decimals(2)" json:"daily_price"`
-	Deposit    float64   `orm:"column(deposit);digits(12);decimals(2)" json:"deposit"`
 	Stock      int       `orm:"column(stock)" json:"stock"`
 	Status     int       `orm:"column(status)" json:"status"` // 1上架 0下架 2已售罄
 	City       string    `orm:"column(city);size(64)" json:"city"`
@@ -52,7 +51,6 @@ func (i *Item) ToSearchableArray() map[string]any {
 		"title":       i.Title,
 		"desc":        i.Desc,
 		"daily_price": i.DailyPrice,
-		"deposit":     i.Deposit,
 		"stock":       i.Stock,
 		"status":      i.Status,
 		"city":        i.City,

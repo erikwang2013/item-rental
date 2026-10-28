@@ -12,7 +12,6 @@ class Item {
   final String desc;
   final String images; // 逗号分隔 URL
   final double dailyPrice;
-  final double deposit;
   final int stock;
   final int status; // 1上架 0下架
   final String city;
@@ -29,7 +28,6 @@ class Item {
     required this.desc,
     required this.images,
     required this.dailyPrice,
-    required this.deposit,
     required this.stock,
     required this.status,
     required this.city,
@@ -49,7 +47,6 @@ class Item {
         desc: j['desc'] as String? ?? '',
         images: j['images'] as String? ?? '',
         dailyPrice: (j['daily_price'] as num? ?? 0).toDouble(),
-        deposit: (j['deposit'] as num? ?? 0).toDouble(),
         stock: j['stock'] as int? ?? 0,
         status: j['status'] as int? ?? 0,
         city: j['city'] as String? ?? '',
