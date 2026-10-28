@@ -4,7 +4,7 @@ import '../core/api_client.dart';
 import '../core/storage.dart';
 
 /// 端点封装。路径/参数与 server/controllers 实际读取一致:
-/// 列表一律 page/page_size;搜索词为 q;/pay/unifiedorder 传 order_no。
+/// 列表一律 page/page_size;/pay/unifiedorder 传 order_no。
 class Api {
   final ApiClient c = ApiClient.client;
 

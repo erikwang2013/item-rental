@@ -12,7 +12,7 @@
     <text x="212" y="212" text-anchor="middle" font-size="15" fill="#581c87">手机号 SHA-256、实名 AES-GCM</text>
     <text x="212" y="240" text-anchor="middle" font-size="15" fill="#581c87">用户资料、头像上传（PII 加密存储）</text>
 
-    <!-- 物品与搜索 -->
+    <!-- 物品管理 -->
     <rect x="418" y="90"  width="365" height="190" rx="12" fill="#f0f9ff" stroke="#0ea5e9"/>
     <text x="600" y="124"  text-anchor="middle" font-size="19" font-weight="bold" fill="#0369a1">物品管理</text>
     <text x="600" y="156" text-anchor="middle" font-size="15" fill="#0c4a6e">类目体系、物品上下架管理</text>

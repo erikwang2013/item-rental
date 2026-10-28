@@ -122,7 +122,7 @@ Page({
     const id = e.currentTarget.dataset.id
     wx.showModal({
       title: '下架物品',
-      content: '下架后不再被搜索与租用,确定?',
+      content: '下架后不再被租用,确定?',
       success: res => {
         if (!res.confirm) return
         itemApi.offshelf(id).then(() => {

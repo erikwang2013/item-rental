@@ -12,8 +12,9 @@ import (
 
 // requireAuth 注册"方法感知"的 JWT 过滤器。
 // Beego 的 InsertFilter 只按 URL 匹配、与 HTTP 方法无关：若直接给 /api/v1/items/:id
-// 挂 JWTAuth，会把同路径下公开的 GET 读接口（物品详情/搜索）一并拦截。
+// 挂 JWTAuth，会把同路径下公开的 GET 读接口（物品详情）一并拦截。
 // 这里按方法分流：GET（公开读）放行，其余方法（写操作）需通过 JWT 校验。
+// 注：当前公开 GET 仅物品列表/详情与类目；订单/用户资料仍挂全局 JWTAuth。
 func requireAuth(path string) {
 	web.InsertFilter(path, web.BeforeRouter, func(ctx *context.Context) {
 		if ctx.Input.Method() == "GET" {
