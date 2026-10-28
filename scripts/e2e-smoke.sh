@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 阶段E 端到端冒烟(可执行真源;叙述性记录见 docs/e2e-smoke-d.md)。
-# 链1 = 阶段D 主链路(登录/owner 视图/头像/下单/签名 notify/流转/消息/real_name)
-# 链2 = cancel+breach(退款守卫 409/取消扣分/违约押金入物主账/违约扣分/站内信)
+# 链1 = 主链路(登录/owner 视图/头像/下单/签名 notify/流转/real_name)
+# 链2 = cancel+breach(退款守卫 409/取消/违约)
 # 依赖: curl + python3(GNU date)。信封 {code,msg,data}:业务 Fail(code) 为 HTTP 200+body code;
 #       中间件 JWTAuth 失败为真 HTTP 401。
 # env:
@@ -38,19 +38,12 @@ login() {
   local phone=$1 i tok
   for i in 1 2 3 4 5; do
     RES=$(curl -s -X POST "$B/auth/login" -H 'Content-Type: application/json' \
-      -d "{\"phone\":\"$phone\",\"code\":\"123456\"}")
+      -d "{\"phone\":\"$phone\"}")
     if [ "$(code_of "$RES")" = 0 ]; then tok=$(jget "$RES" data.access_token); echo "$tok"; return; fi
     [ "$i" = 5 ] && { printf '登录失败(%s): %s\n' "$phone" "$RES" >&2; exit 1; }
     sleep 4
   done
 }
-prof() { # prof <token> → uid credit deposit(unread 消息数)
-  http GET /user/profile -H "Authorization: Bearer $1"
-  UID=$(jget "$RES" data.id); CREDIT=$(jget "$RES" data.credit_score); DEPOSIT=$(jget "$RES" data.deposit_bal)
-}
-unread() { http GET /messages -H "Authorization: Bearer $1"; jget "$RES" data.unread; }
-
-TOK_JSON='{"return_code":"SUCCESS","result_code":"SUCCESS","out_trade_no":"%s","transaction_id":"TX%s","total_fee":"%s","nonce_str":"smoke1"}'
 notify_xml() { # notify_xml <out_trade_no> <fen> → 打 notify 并断言 SUCCESS
   local otn=$1 fen=$2 sign xml
   sign=$(OTN=$otn FEN=$fen python3 - <<'PY'
@@ -90,7 +83,7 @@ http GET /user/profile -H "Authorization: Bearer $A"; UID_A=$(jget "$RES" data.i
 # mkbody <标题> <urls空格串> → images 为 JSON 数组文本字符串(server 契约: string 字段内 JSON)
 mkbody() { python3 -c "import json,sys
 imgs=sys.argv[2].split() if len(sys.argv)>2 and sys.argv[2] else []
-b={'title':sys.argv[1],'category_id':1,'daily_price':30,'deposit':200,'stock':1,'city':'上海'}
+b={'title':sys.argv[1],'category_id':1,'daily_price':30,'stock':1,'city':'上海'}
 if imgs: b['images']=json.dumps(imgs)
 print(json.dumps(b,ensure_ascii=False))" "$1" "${2:-}"; }
 http POST /items/upload -H "Authorization: Bearer $A" -F "files=@/tmp/e2e-smoke.png"
@@ -136,7 +129,7 @@ ok '头像 png/gif'
 
 # 5 下单→notify→流转
 http POST /items -H "Authorization: Bearer $A" -H 'Content-Type: application/json' \
-  -d '{"title":"冒烟-可租-'$RANDOM'","category_id":1,"daily_price":30,"deposit":200,"stock":1,"city":"上海"}'
+  -d '{"title":"冒烟-可租-'$RANDOM'","category_id":1,"daily_price":30,"stock":1,"city":"上海"}'
 ID=$(jget "$RES" data.id)
 S=$(date -d '+3 days' +%F); E=$(date -d '+6 days' +%F)
 http POST /orders -H "Authorization: Bearer $B2" -H 'Content-Type: application/json' \
@@ -158,25 +151,21 @@ http GET "/orders/$OID" -H "Authorization: Bearer $B2"
 [ "$(jget "$RES" data.status)" = 4 ] || die "应 status=4"
 ok 'notify→pickup→return 全链'
 
-# 6 消息 + real_name 回读
-UN=$(unread "$B2"); [ "$UN" -ge 1 ] || die "租客未收到 payment_success"
+# 6 real_name 回读
 http PUT /user/profile -H "Authorization: Bearer $A" -H 'Content-Type: application/json' \
   -d '{"nickname":"房东-冒烟E","real_name":"张三"}'
 [ "$(code_of "$RES")" = 0 ] || die "profile PUT(real_name) 失败"
 http GET /user/profile -H "Authorization: Bearer $A"
 [ "$(jget "$RES" data.real_name)" = "张三" ] || die "real_name 未回读明文"
-ok "消息 unread=$UN + real_name 加密回读"
+ok 'real_name 加密回读'
 
 say '== 链2 =='
-# 基准:C 租客(新号 credit=100)/A 房东 deposit 基准
+# 基准:C 租客(新号)
 C=$(login 13800138003)
-http GET /user/profile -H "Authorization: Bearer $A"; D0=$(jget "$RES" data.deposit_bal); U0A=$(unread "$A")
-http GET /user/profile -H "Authorization: Bearer $C"; C0=$(jget "$RES" data.credit_score); U0C=$(unread "$C")
-[ "$C0" = 100 ] || die "新租客 credit 应 100,实际 $C0"
 
-# 链2a cancel:下单→notify→退款→回 0→取消(扣 10)+ 消息
+# 链2a cancel:下单→notify→退款→回 0→取消
 http POST /items -H "Authorization: Bearer $A" -H 'Content-Type: application/json' \
-  -d '{"title":"冒烟-cancel-'$RANDOM'","category_id":1,"daily_price":30,"deposit":200,"stock":1,"city":"上海"}'
+  -d '{"title":"冒烟-cancel-'$RANDOM'","category_id":1,"daily_price":30,"stock":1,"city":"上海"}'
 ID=$(jget "$RES" data.id)
 http POST /orders -H "Authorization: Bearer $C" -H 'Content-Type: application/json' \
   -d "{\"item_id\":\"$ID\",\"start_date\":\"$S\",\"end_date\":\"$E\"}"
@@ -194,14 +183,11 @@ http POST "/orders/$OID/cancel" -H "Authorization: Bearer $C" -H 'Content-Type: 
 [ "$(code_of "$RES")" = 0 ] || die "取消失败: $RES"
 http GET "/orders/$OID" -H "Authorization: Bearer $C"
 [ "$(jget "$RES" data.status)" = 5 ] || die "应 status=5"
-http GET /user/profile -H "Authorization: Bearer $C"
-[ "$(jget "$RES" data.credit_score)" = $((C0-10)) ] || die "已付取消应 -10"
-[ "$(unread "$A")" -ge $((U0A+2)) ] || die "房东应收到 refund+cancel 消息"
-ok 'cancel 链(退款回 0/取消=5/扣 10/消息)'
+ok 'cancel 链(退款回 0/取消=5)'
 
-# 链2b breach:再下单→notify→pickup→退款 409→return_request→breach(押金入物主+扣 30+消息)
+# 链2b breach:再下单→notify→pickup→退款 409→return_request→breach
 http POST /items -H "Authorization: Bearer $A" -H 'Content-Type: application/json' \
-  -d '{"title":"冒烟-breach-'$RANDOM'","category_id":1,"daily_price":30,"deposit":200,"stock":1,"city":"上海"}'
+  -d '{"title":"冒烟-breach-'$RANDOM'","category_id":1,"daily_price":30,"stock":1,"city":"上海"}'
 ID=$(jget "$RES" data.id)
 http POST /orders -H "Authorization: Bearer $C" -H 'Content-Type: application/json' \
   -d "{\"item_id\":\"$ID\",\"start_date\":\"$S\",\"end_date\":\"$E\"}"
@@ -216,12 +202,7 @@ http POST "/orders/$OID/return_request" -H "Authorization: Bearer $C" >/dev/null
 http POST "/orders/$OID/breach" -H "Authorization: Bearer $A" >/dev/null || die breach
 http GET "/orders/$OID" -H "Authorization: Bearer $C"
 [ "$(jget "$RES" data.status)" = 6 ] || die "应 status=6"
-http GET /user/profile -H "Authorization: Bearer $A"
-[ "$(python3 -c "print(float('$(jget "$RES" data.deposit_bal)')-float('$D0')>=199.99)")" = True ] || die "违约押金未入物主账"
-http GET /user/profile -H "Authorization: Bearer $C"
-[ "$(jget "$RES" data.credit_score)" = $((C0-10-30)) ] || die "违约后 credit 应 $((C0-40))"
-[ "$(unread "$C")" -ge $((U0C+2)) ] || die "租客应收到 refund(上链)+breach 消息"
-ok 'breach 链(409 守卫/押金入账/扣 30/消息)'
+ok 'breach 链(409 守卫/状态=6)'
 
 say "== 结果: PASS=$PASS FAIL=$FAILS =="
 [ "$FAILS" = 0 ]

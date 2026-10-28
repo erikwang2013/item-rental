@@ -61,7 +61,7 @@
     <!-- 帽檐 -->
     <path d="M50 95 Q107.8 108 165.6 95 L165.6 101 Q107.8 114 50 101 Z"
           fill="#d97706" stroke="#92400e" stroke-width="1.5"/>
-    <!-- 帽徽:¥ 徽章(押金保障) -->
+    <!-- 帽徽:¥ 徽章(履约保障) -->
     <circle cx="107.8" cy="70" r="13" fill="#fbbf24" stroke="#92400e" stroke-width="2"/>
     <text x="107.8" y="74.5" text-anchor="middle" font-size="14" font-family="Arial, sans-serif"
           font-weight="bold" fill="#92400e">¥</text>

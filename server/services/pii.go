@@ -37,7 +37,7 @@ func PiiKey() []byte {
 }
 
 // PhoneHash 手机号单向哈希（sha256 hex，64 字符）。users.phone 列存此值，
-// 登录等值查询天然兼容；原始手机号仅存在于请求内存与短信通道，永不落库、永不下发。
+// 登录等值查询天然兼容；原始手机号仅存在于请求内存，永不落库、永不下发。
 func PhoneHash(phone string) string {
 	sum := sha256.Sum256([]byte(phone))
 	return hex.EncodeToString(sum[:])

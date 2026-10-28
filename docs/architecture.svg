@@ -12,8 +12,8 @@
     <rect x="500" y="96" width="430" height="44" rx="8"/>
   </g>
   <g fill="#4338ca" font-size="15" text-anchor="middle">
-    <text x="255" y="123">Flutter 主App（Web / 移动）13 页</text>
-    <text x="715" y="123">微信原生小程序 · 13 页</text>
+    <text x="255" y="123">Flutter 主App（Web / 移动）11 页</text>
+    <text x="715" y="123">微信原生小程序 · 11 页</text>
   </g>
 
   <!-- 第二层：接入层 -->
@@ -26,8 +26,8 @@
   <g fill="#15803d" font-size="14" text-anchor="middle">
     <text x="170" y="206">Beego v2 Router</text>
     <text x="170" y="224" font-size="12">HTTP /api/v1</text>
-    <text x="470" y="206">security-go 安全中间件</text>
-    <text x="470" y="224" font-size="12">攻击检测 · IP 封禁 · 限流</text>
+    <text x="470" y="206">CORS / 边界校验</text>
+    <text x="470" y="224" font-size="12">跨域白名单 · 输入校验</text>
     <text x="780" y="206">JWT 双 Token 鉴权</text>
     <text x="780" y="224" font-size="12">Access 2h + Refresh 7d 轮换</text>
   </g>
@@ -43,18 +43,18 @@
     <text x="170" y="300" font-weight="bold" fill="#854d0e">Controllers 控制器</text>
     <text x="170" y="322" font-size="12" fill="#713f12">auth / user / categories</text>
     <text x="170" y="340" font-size="12" fill="#713f12">items / orders / payments</text>
-    <text x="170" y="358" font-size="12" fill="#713f12">messages / uploads(头像·物品图)</text>
+    <text x="170" y="358" font-size="12" fill="#713f12">uploads(头像·物品图)</text>
     <text x="170" y="378" font-size="12" fill="#713f12">统一 OK/Fail 信封 · owner 富化</text>
     <text x="470" y="300" font-weight="bold" fill="#854d0e">Services 纯业务逻辑</text>
-    <text x="470" y="322" font-size="12" fill="#713f12">订单计价 / 状态机 / 押金台账</text>
-    <text x="470" y="340" font-size="12" fill="#713f12">信用分 / 站内消息 / 退款取消</text>
-    <text x="470" y="358" font-size="12" fill="#713f12">geo 距离检索(engine · Haversine 兜底)</text>
-    <text x="470" y="378" font-size="12" fill="#713f12">snowflake 主键 · PII 加密 · 可单测</text>
+    <text x="470" y="322" font-size="12" fill="#713f12">订单计价 / 7 态状态机</text>
+    <text x="470" y="340" font-size="12" fill="#713f12">退款 / 取消 / 会话轮换</text>
+    <text x="470" y="358" font-size="12" fill="#713f12">输入校验 / PII 加密</text>
+    <text x="470" y="378" font-size="12" fill="#713f12">snowflake 主键 · 可单测</text>
     <text x="780" y="300" font-weight="bold" fill="#854d0e">集成网关</text>
     <text x="780" y="322" font-size="12" fill="#713f12">payments/gateway 微信支付(mock)</text>
-    <text x="780" y="340" font-size="12" fill="#713f12">search/go-scout 全文 + geo_point</text>
+    <text x="780" y="340" font-size="12" fill="#713f12">退款 / 取消 / 预付编排</text>
     <text x="780" y="358" font-size="12" fill="#713f12">models(ORM) · bwmarrin/snowflake</text>
-    <text x="780" y="378" font-size="12" fill="#713f12">middleware 基础件</text>
+    <text x="780" y="378" font-size="12" fill="#713f12">middleware JWT/鉴权</text>
   </g>
 
   <!-- 第四层：数据与基础设施 -->
@@ -68,13 +68,13 @@
   <g fill="#b91c1c" font-size="14" text-anchor="middle">
     <text x="135" y="470">MySQL</text>
     <text x="135" y="490" font-size="11">users/items/orders</text>
-    <text x="135" y="506" font-size="11">deposits/payments</text>
+    <text x="135" y="506" font-size="11">payments</text>
     <text x="365" y="470">Redis</text>
-    <text x="365" y="490" font-size="11">验证码限频</text>
-    <text x="365" y="506" font-size="11">Refresh 多端会话(per-jti)</text>
-    <text x="595" y="470">OpenSearch 2.14</text>
-    <text x="595" y="490" font-size="11">物品全文检索</text>
-    <text x="595" y="506" font-size="11">geo_point 距离索引</text>
+    <text x="365" y="490" font-size="11">Refresh 会话存储（可选）</text>
+    <text x="365" y="506" font-size="11">per-jti 多端会话</text>
+    <text x="595" y="470">静态文件</text>
+    <text x="595" y="490" font-size="11">头像 / 物品图</text>
+    <text x="595" y="506" font-size="11">static/uploads 落盘</text>
     <text x="825" y="470">支付网关</text>
     <text x="825" y="490" font-size="11">默认 mock（服务端留位真实模式）</text>
     <text x="825" y="506" font-size="11">预付/回调验签/退款</text>

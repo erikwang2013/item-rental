@@ -7,31 +7,31 @@
     <!-- 认证与账号 -->
     <rect x="30"  y="90"  width="365" height="190" rx="12" fill="#faf5ff" stroke="#a855f7"/>
     <text x="212" y="124"  text-anchor="middle" font-size="19" font-weight="bold" fill="#7e22ce">认证与账号</text>
-    <text x="212" y="156" text-anchor="middle" font-size="15" fill="#581c87">手机号验证码登录（mock 短信；真实网关未接入）</text>
+    <text x="212" y="156" text-anchor="middle" font-size="15" fill="#581c87">手机号登录（mock 入口，自动注册）</text>
     <text x="212" y="184" text-anchor="middle" font-size="15" fill="#581c87">JWT 双 Token：Access 2h + Refresh 7d（多端并存）</text>
-    <text x="212" y="212" text-anchor="middle" font-size="15" fill="#581c87">验证码 60s 限频、短信不返回明文验证码</text>
-    <text x="212" y="240" text-anchor="middle" font-size="15" fill="#581c87">用户资料、信用分、押金账户（PII 加密存储）</text>
+    <text x="212" y="212" text-anchor="middle" font-size="15" fill="#581c87">手机号 SHA-256、实名 AES-GCM</text>
+    <text x="212" y="240" text-anchor="middle" font-size="15" fill="#581c87">用户资料、头像上传（PII 加密存储）</text>
 
     <!-- 物品与搜索 -->
     <rect x="418" y="90"  width="365" height="190" rx="12" fill="#f0f9ff" stroke="#0ea5e9"/>
-    <text x="600" y="124"  text-anchor="middle" font-size="19" font-weight="bold" fill="#0369a1">物品与搜索</text>
+    <text x="600" y="124"  text-anchor="middle" font-size="19" font-weight="bold" fill="#0369a1">物品管理</text>
     <text x="600" y="156" text-anchor="middle" font-size="15" fill="#0c4a6e">类目体系、物品上下架管理</text>
-    <text x="600" y="184" text-anchor="middle" font-size="15" fill="#0c4a6e">OpenSearch 全文检索 + 分页</text>
-    <text x="600" y="212" text-anchor="middle" font-size="15" fill="#0c4a6e">关键词 × 城市 × 类目筛选</text>
-    <text x="600" y="240" text-anchor="middle" font-size="15" fill="#0c4a6e">geo 距离精确检索（engine 距离查询，Haversine 兜底）</text>
+    <text x="600" y="184" text-anchor="middle" font-size="15" fill="#0c4a6e">MySQL 分页列表 + 类目筛选</text>
+    <text x="600" y="212" text-anchor="middle" font-size="15" fill="#0c4a6e">城市字段展示、库存管理</text>
+    <text x="600" y="240" text-anchor="middle" font-size="15" fill="#0c4a6e">物品详情房东公开信息富化</text>
 
     <!-- 安全风控 -->
     <rect x="806" y="90"  width="365" height="190" rx="12" fill="#fff7ed" stroke="#f97316"/>
-    <text x="988" y="124"  text-anchor="middle" font-size="19" font-weight="bold" fill="#c2410c">安全与风控</text>
-    <text x="988" y="156" text-anchor="middle" font-size="15" fill="#7c2d12">security-go 攻击检测、IP 封禁</text>
-    <text x="988" y="184" text-anchor="middle" font-size="15" fill="#7c2d12">请求体大小与 Content-Type 白名单</text>
-    <text x="988" y="212" text-anchor="middle" font-size="15" fill="#7c2d12">系统边界输入校验（金额/坐标/长度）</text>
+    <text x="988" y="124"  text-anchor="middle" font-size="19" font-weight="bold" fill="#c2410c">安全与隐私</text>
+    <text x="988" y="156" text-anchor="middle" font-size="15" fill="#7c2d12">JWT 双 Token 鉴权与轮换</text>
+    <text x="988" y="184" text-anchor="middle" font-size="15" fill="#7c2d12">手机号 SHA-256、实名 AES-GCM</text>
+    <text x="988" y="212" text-anchor="middle" font-size="15" fill="#7c2d12">系统边界输入校验（金额/长度/图片）</text>
     <text x="988" y="240" text-anchor="middle" font-size="15" fill="#7c2d12">条件更新幂等防重复回调/退款</text>
 
     <!-- 订单与租赁 -->
     <rect x="30"  y="305" width="365" height="190" rx="12" fill="#f0fdfa" stroke="#14b8a6"/>
     <text x="212" y="339" text-anchor="middle" font-size="19" font-weight="bold" fill="#0f766e">订单与租赁</text>
-    <text x="212" y="371" text-anchor="middle" font-size="15" fill="#134e4a">订单创建：按天计价 + 押金核算</text>
+    <text x="212" y="371" text-anchor="middle" font-size="15" fill="#134e4a">订单创建：按天计价</text>
     <text x="212" y="399" text-anchor="middle" font-size="15" fill="#134e4a">7 态生命周期：待支付 → … → 已归还</text>
     <text x="212" y="427" text-anchor="middle" font-size="15" fill="#134e4a">取货 / 归还申请 / 归还确认 / 违约</text>
     <text x="212" y="455" text-anchor="middle" font-size="15" fill="#134e4a">租客与房东双角色权限校验</text>
@@ -44,18 +44,18 @@
     <text x="600" y="427" text-anchor="middle" font-size="15" fill="#7f1d1d">退款仅待取态可退（409 守卫）、mock 短路</text>
     <text x="600" y="455" text-anchor="middle" font-size="15" fill="#7f1d1d">订单取消自动退款</text>
 
-    <!-- 押金与结算 -->
+    <!-- 客户端与上传 -->
     <rect x="806" y="305" width="365" height="190" rx="12" fill="#fefce8" stroke="#eab308"/>
-    <text x="988" y="339" text-anchor="middle" font-size="19" font-weight="bold" fill="#a16207">押金与结算</text>
-    <text x="988" y="371" text-anchor="middle" font-size="15" fill="#713f12">deposits 押金台账：冻结/解冻/扣款</text>
-    <text x="988" y="399" text-anchor="middle" font-size="15" fill="#713f12">扣押金退款租金联动</text>
-    <text x="988" y="427" text-anchor="middle" font-size="15" fill="#713f12">信用分与押金余额账户（履约增减 0-100）</text>
-    <text x="988" y="455" text-anchor="middle" font-size="15" fill="#713f12">违约扣押金归物主、站内信通知履约事件</text>
+    <text x="988" y="339" text-anchor="middle" font-size="19" font-weight="bold" fill="#a16207">客户端与上传</text>
+    <text x="988" y="371" text-anchor="middle" font-size="15" fill="#713f12">Flutter 主App · 微信原生小程序</text>
+    <text x="988" y="399" text-anchor="middle" font-size="15" fill="#713f12">头像上传、物品多图上传</text>
+    <text x="988" y="427" text-anchor="middle" font-size="15" fill="#713f12">static/uploads 落盘与 URL 回填</text>
+    <text x="988" y="455" text-anchor="middle" font-size="15" fill="#713f12">两端登录/发布/订单/支付页</text>
   </g>
 
   <line x1="30" y1="530" x2="1170" y2="530" stroke="#9ca3af" stroke-width="1.5"/>
   <text x="600" y="568" text-anchor="middle" font-size="18" font-weight="bold" fill="#374151">工程化</text>
-  <text x="600" y="600" text-anchor="middle" font-size="16" fill="#4b5563">双端 13 页 · 头像/多图上传 · 房东信息富化 · snowflake 主键 · 离线单测 · CI(lint/test/flutter-gate) · nightly E2E 冒烟 · 覆盖率门(≥15%)</text>
+  <text x="600" y="600" text-anchor="middle" font-size="16" fill="#4b5563">双端 11 页 · 头像/多图上传 · 房东信息富化 · snowflake 主键 · 离线单测 · CI(lint/test/flutter-gate) · nightly E2E 冒烟 · 覆盖率门(≥15%)</text>
   <rect x="250" y="628" width="700" height="44" rx="10" fill="#f3f4f6" stroke="#d1d5db"/>
-  <text x="600" y="657" text-anchor="middle" font-size="17" font-weight="bold" fill="#374151">Go 1.24 · Beego v2.3 · MySQL · Redis · OpenSearch · security-go · go-scout</text>
+  <text x="600" y="657" text-anchor="middle" font-size="17" font-weight="bold" fill="#374151">Go 1.24 · Beego v2.3 · MySQL · Redis</text>
 </svg>
