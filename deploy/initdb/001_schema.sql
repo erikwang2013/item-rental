@@ -7,12 +7,10 @@ USE `rental`;
 -- ---------- 用户表 ----------
 CREATE TABLE IF NOT EXISTS `users` (
     `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `phone`         VARCHAR(64)     NOT NULL COMMENT '手机号 sha256(hex)，非明文',
-    `phone_enc`     VARCHAR(255)    DEFAULT NULL COMMENT '手机号密文（预留）',
+    `phone`         VARCHAR(64)     NOT NULL COMMENT '手机号 HMAC-SHA256(hex)，非明文',
     `nickname`      VARCHAR(64)     DEFAULT '' COMMENT '昵称',
     `avatar`        VARCHAR(255)    DEFAULT '' COMMENT '头像URL',
     `real_name`     VARCHAR(255)    DEFAULT '' COMMENT '实名姓名（AES-GCM base64）',
-    `id_card`       VARCHAR(255)    DEFAULT NULL COMMENT '身份证（AES加密）',
     `status`        TINYINT         NOT NULL DEFAULT 1 COMMENT '1正常 2禁用',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -43,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `items` (
     `images`        TEXT            COMMENT '图片JSON数组',
     `daily_price`   DECIMAL(12,2)   NOT NULL COMMENT '每日租金',
     `stock`         INT             NOT NULL DEFAULT 1 COMMENT '库存数量',
-    `status`        TINYINT         NOT NULL DEFAULT 1 COMMENT '1上架 0下架 2已售罄',
+    `status`        TINYINT         NOT NULL DEFAULT 1 COMMENT '1上架 0下架',
     `city`          VARCHAR(64)     DEFAULT '' COMMENT '所在城市',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

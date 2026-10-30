@@ -1,8 +1,10 @@
 # nightly E2E(阶段E):起真后端(MySQL service + WECHAT_MOCK + PII key)跑 scripts/e2e-smoke.sh 链1+链2。
-# 触发:仅手动 workflow_dispatch(自动 cron 已关闭)。
+# 触发:每日 cron + 手动 workflow_dispatch。
 name: nightly-e2e
 
 on:
+  schedule:
+    - cron: '17 3 * * *'
   workflow_dispatch:
 
 jobs:
@@ -27,7 +29,9 @@ jobs:
           --health-start-period 40s
     env:
       ITEM_RENTAL_JWT_SECRET: nightly-e2e-secret-2026
-      ITEM_RENTAL_PII_KEY: 3f4c6a1b8d2e5f0976a3c1e8b4d2f6a9c0e5b7d3f1a8c4e6b9d0f2a7c5e3b8d1f
+      ITEM_RENTAL_PII_KEY: 3f4c6a1b8d2e5f0976a3c1e8b4d2f6a9c0e5b7d3f1a8c4e6b9d0f2a7c5e3b8d1
+      # dev 模式默认允许手机号 mock 登录；显式设置避免 runmode 变更后 E2E 误失败
+      ITEM_RENTAL_LOGIN_MOCK: "1"
       WECHAT_MOCK: "1"
     steps:
       - uses: actions/checkout@v4

@@ -16,17 +16,17 @@
 
 一个面向 **Flutter 主App / 微信原生小程序**的 P2P 物品租赁平台。房东发布闲置物品并按天计价;租客浏览、下单、支付租金、取件使用、按约归还;平台以 7 态订单状态机贯穿租赁全流程,配套退款与违约处置。
 
-技术底座:Go 1.24 + Beego v2.3(MVC)+ MySQL + Redis(可选);**主键 bwmarrin/snowflake**(JSON 字符串输出,JS 安全);phone 哈希 + 实名加密存储(ITEM_RENTAL_PII_KEY);微信支付网关抽象(默认 mock 预支付/验签回调/退款;服务端已留真实商户模式,客户端目前仅接入 mock)。双端前端:`apps/flutter`(11 页)与 `apps/wxapp`(11 页 ×4 件套,微信原生)。
+技术底座:Go 1.24 + Beego v2.3(MVC)+ MySQL + Redis(可选);**主键 bwmarrin/snowflake**(JSON 字符串输出,JS 安全);phone HMAC-SHA256 + 实名加密存储(ITEM_RENTAL_PII_KEY);微信支付网关抽象(默认 mock:下单即自动完成支付、拒绝回调;服务端已留真实商户模式,客户端目前仅接入 mock)。双端前端:`apps/flutter`(11 页)与 `apps/wxapp`(11 页 ×4 件套,微信原生)。
 
 ## 功能特性
 
 ![功能特性全景](docs/features.svg)
 
-- **认证与账号**:手机号登录(mock 入口,新用户自动注册)、JWT 双 Token(Access 2h + Refresh 7d **多端并存、单端登出**轮换)、用户资料/实名(加密存储)/头像上传。
+- **认证与账号**:手机号登录(仅 dev 或显式 `ITEM_RENTAL_LOGIN_MOCK=1`,新用户自动注册)、JWT 双 Token(Access 2h + Refresh 7d **多端并存、单端登出**轮换;refresh 会话单实例默认进程内,多实例必须 `redis_enabled=true`)、用户资料/实名(加密存储)/头像上传。
 - **物品与发布**:类目体系、上下架、**多图上传**(POST /items/upload,≤9×4MB)、详情 owner 公开信息富化(昵称/头像)。
 - **订单与租赁**:按天计价、7 态生命周期、取货/归还申请/归还确认/违约、双方角色权限校验。
-- **支付与退款**:微信支付网关抽象(mock 预付/回调验签/退款;服务端留位真实商户模式,客户端目前仅 mock)、订单取消自动退款、**退款状态守卫**(仅待取可退,租赁中 409)。
-- **安全与隐私**:phone sha256 + real_name AES-GCM(密钥 fail-fast)、统一边界校验、**主键 snowflake 字符串契约**(JS 安全)。
+- **支付与退款**:微信支付网关抽象(mock 模式下单即自动完成支付并拒绝回调;真实商户模式已留位,客户端目前仅 mock)、订单取消自动退款、**退款状态守卫**(仅待取可退,租赁中 409)。
+- **安全与隐私**:phone HMAC-SHA256(旧 sha256 数据登录时懒迁移)+ real_name AES-GCM(密钥 fail-fast)、统一边界校验、**主键 snowflake 字符串契约**(JS 安全)。
 
 ## 技术架构
 
@@ -96,7 +96,7 @@ docker compose -f deploy/docker-compose.yml up -d
 cd server && ITEM_RENTAL_JWT_SECRET=<强随机串> ITEM_RENTAL_PII_KEY=<64hex> WECHAT_MOCK=1 go run .
 ```
 
-冒烟验证(手机号直接登录,mock 入口):
+冒烟验证(dev 模式手机号直接登录;生产需显式 `ITEM_RENTAL_LOGIN_MOCK=1`):
 
 ```bash
 # 登录得 token
@@ -121,6 +121,7 @@ cd server && go build ./... && go vet ./... && go test ./... -count=1   # 离线
 ```bash
 docker compose -f deploy/docker-compose.prod.yml up -d   # 端口覆盖 3307/16379
 BEEGO_RUNMODE=prod ./server                 # 或容器内运行
+# 需先提供 server/conf/prod.app.conf，详见 docs/config-runbook.md
 ```
 
 > 必设密钥/env(缺失即 fail-fast):`ITEM_RENTAL_JWT_SECRET`、`ITEM_RENTAL_PII_KEY`、`WECHAT_MOCK=0` + 商户配置;多实例需 `redis_enabled=true`——完整键表与启动前必检见 [docs/config-runbook.md](docs/config-runbook.md);上线前置 gate 清单见 [docs/task.md §11](docs/task.md)。
@@ -143,7 +144,7 @@ BEEGO_RUNMODE=prod ./server                 # 或容器内运行
 
 | 方法 | 路径 | 鉴权 | 说明 |
 | --- | --- | --- | --- |
-| POST | /auth/login | 公开 | 手机号登录(自动注册) |
+| POST | /auth/login | 公开 | 手机号登录(自动注册;仅 dev 或 `ITEM_RENTAL_LOGIN_MOCK=1`) |
 | POST | /auth/refresh | 公开 | 双 Token 轮换 |
 | GET / PUT | /user/profile | JWT | 查看 / 更新资料 |
 
@@ -156,7 +157,7 @@ BEEGO_RUNMODE=prod ./server                 # 或容器内运行
 | GET | /items/:id | 公开 | 物品详情 |
 | POST | /items | JWT | 发布物品 |
 | PUT | /items/:id | JWT(owner) | 修改物品 |
-| POST | /items/:id/offshelf | JWT(owner) | 下架(同步删索引) |
+| POST | /items/:id/offshelf | JWT(owner) | 下架 |
 
 ### 订单(全部 JWT)
 
@@ -177,7 +178,7 @@ BEEGO_RUNMODE=prod ./server                 # 或容器内运行
 | --- | --- | --- | --- |
 | POST | /pay/unifiedorder | JWT | 微信预付(JSAPI) |
 | POST | /pay/refund | JWT(owner/renter) | 退款 |
-| POST | /pay/notify | 回调验签 | 支付/退款结果回调 |
+| POST | /pay/notify | 回调验签 | 支付/退款结果回调(mock 模式拒绝) |
 
 ## 相关文档
 
@@ -207,7 +208,7 @@ BEEGO_RUNMODE=prod ./server                 # 或容器内运行
 | 维度 | 开源版（本仓库） | 商业版 |
 |---|---|---|
 | 功能覆盖 | 认证/物品/订单/支付/上传闭环；6 个业务控制器、5 张表；不含营销站 | 同一基础闭环，另含搜索/geo、押金与信用分、站内消息、短信登录、安全防护；营销站、Flutter Linux runner、完整素材、小程序退款入口 |
-| 安全防护 | JWT 双 Token、手机号 SHA-256、实名 AES-GCM、统一边界校验、密钥缺失 fail-fast | 同一套 + security-go 攻击检测/IP 封禁 |
+| 安全防护 | JWT 双 Token、手机号 HMAC-SHA256、实名 AES-GCM、统一边界校验、密钥缺失 fail-fast | 同一套 + security-go 攻击检测/IP 封禁 |
 | 性能与规模 | Go 1.24 + Beego v2.3、Redis 可选（refresh 会话）、MySQL 列表分页 | 同一套 + OpenSearch 全文/geo 检索 |
 | 数据与检索 | MySQL 5 张表（users/categories/items/orders/payments） | 8 张表（另含 deposits/credit_events/messages） |
 | 测试与质量 | Go 测试套件、Flutter test、CI（go test / flutter test） | 同一套代码与测试 |

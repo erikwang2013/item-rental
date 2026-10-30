@@ -15,7 +15,7 @@ type Item struct {
 	Images     string    `orm:"column(images);type(text)" json:"images"`
 	DailyPrice float64   `orm:"column(daily_price);digits(12);decimals(2)" json:"daily_price"`
 	Stock      int       `orm:"column(stock)" json:"stock"`
-	Status     int       `orm:"column(status)" json:"status"` // 1上架 0下架 2已售罄
+	Status     int       `orm:"column(status)" json:"status"` // 1上架 0下架
 	City       string    `orm:"column(city);size(64)" json:"city"`
 	CreatedAt  time.Time `orm:"column(created_at);auto_now_add;type(datetime)" json:"created_at"`
 	UpdatedAt  time.Time `orm:"column(updated_at);auto_now;type(datetime)" json:"updated_at"`
@@ -26,9 +26,4 @@ type Item struct {
 // TableName 指定表名
 func (i *Item) TableName() string {
 	return "items"
-}
-
-// IsOnShelf 是否上架可租
-func (i *Item) IsOnShelf() bool {
-	return i.Status == 1
 }

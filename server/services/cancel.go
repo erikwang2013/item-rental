@@ -18,7 +18,8 @@ type CancelStore interface {
 
 // CancelOrder 取消订单（0待支付 -> 5已取消）。
 // 仅订单租客或房东可操作；已取消幂等返回（transitioned=false, err=nil）；
-// 其他状态返回 ErrInvalidState。退款动作由调用方（controller）先执行。
+// 其他状态返回 ErrInvalidState。调用方在状态迁移成功（或已取消）后补退款，
+// 先抢状态后退款可避免并发重复退款，退款失败由用户重试补偿。
 func CancelOrder(st CancelStore, orderID, uid int64, reason string) (bool, error) {
 	order, err := st.GetOrder(orderID)
 	if err != nil {
@@ -39,7 +40,19 @@ func CancelOrder(st CancelStore, orderID, uid int64, reason string) (bool, error
 	if err != nil {
 		return false, err
 	}
-	return n > 0, nil
+	if n > 0 {
+		return true, nil
+	}
+	// 条件更新未生效：读后被并发迁移。重读区分“已被取消”（幂等，调用方继续补退款）
+	// 与“已支付/其他状态”（必须拒绝，否则会退款却保留已支付订单）。
+	latest, err := st.GetOrder(orderID)
+	if err != nil {
+		return false, err
+	}
+	if latest.Status == models.OrderStatusCancelled {
+		return false, nil
+	}
+	return false, ErrInvalidState
 }
 
 // --- 生产实现：Beego ORM ---

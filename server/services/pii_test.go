@@ -2,6 +2,7 @@
 package services
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"strings"
@@ -12,16 +13,34 @@ import (
 const piiTestKey = "5f2c9a1e8b3d4f6071a2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718"
 
 func TestPhoneHashStable(t *testing.T) {
+	t.Setenv("ITEM_RENTAL_PII_KEY", piiTestKey)
 	h1 := PhoneHash("13800138000")
 	h2 := PhoneHash("13800138000")
 	if h1 != h2 {
 		t.Fatalf("同号哈希应稳定: %s != %s", h1, h2)
 	}
 	if len(h1) != 64 {
-		t.Fatalf("sha256 hex 应为 64 字符, got %d", len(h1))
+		t.Fatalf("HMAC-SHA256 hex 应为 64 字符, got %d", len(h1))
 	}
 	if PhoneHash("13800138000") == PhoneHash("13800138001") {
 		t.Fatalf("不同手机号哈希不应相同")
+	}
+	if h1 == LegacyPhoneHash("13800138000") {
+		t.Fatalf("带密钥 HMAC 哈希必须与旧 sha256 哈希不同")
+	}
+}
+
+func TestLegacyPhoneHashStable(t *testing.T) {
+	h1 := LegacyPhoneHash("13800138000")
+	h2 := LegacyPhoneHash("13800138000")
+	if h1 != h2 {
+		t.Fatalf("旧哈希应稳定: %s != %s", h1, h2)
+	}
+	if len(h1) != 64 {
+		t.Fatalf("sha256 hex 应为 64 字符, got %d", len(h1))
+	}
+	if LegacyPhoneHash("13800138000") == LegacyPhoneHash("13800138001") {
+		t.Fatalf("不同手机号旧哈希不应相同")
 	}
 }
 
@@ -59,8 +78,14 @@ func TestRealNameTamperFails(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// 篡改密文任意字节 → 解密必须报错（GCM 认证失败）
-	tampered := "A" + enc[1:]
+	// 篡改密文字节 → 解密必须报错（GCM 认证失败）。
+	// 先解码再翻位，避免直接改 base64 首字符时恰好与原值相同（非确定篡改）。
+	raw, err := base64.StdEncoding.DecodeString(enc)
+	if err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	raw[len(raw)-1] ^= 0xFF
+	tampered := base64.StdEncoding.EncodeToString(raw)
 	if _, err := DecryptRealName(tampered); err == nil {
 		t.Fatalf("篡改密文应解密失败")
 	}

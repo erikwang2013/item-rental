@@ -78,7 +78,11 @@ services:
   #     redis: { condition: service_healthy }
   #   environment:
   #     BEEGO_RUNMODE: prod
+  #     # 与 MySQL 的 TZ=Asia/Shanghai 对齐，避免待支付 30 分钟窗口/时间字段偏移
+  #     TZ: Asia/Shanghai
   #     ITEM_RENTAL_JWT_SECRET: ${ITEM_RENTAL_JWT_SECRET:?ITEM_RENTAL_JWT_SECRET must be set}
+  #     # 64 位 hex；缺失启动即 panic。生产不要设 ITEM_RENTAL_LOGIN_MOCK（手机号登录默认拒绝）
+  #     ITEM_RENTAL_PII_KEY: ${ITEM_RENTAL_PII_KEY:?ITEM_RENTAL_PII_KEY must be set}
   #     WECHAT_MOCK: "0"
   #     WECHAT_APPID: ${WECHAT_APPID:-}
   #     WECHAT_MCHID: ${WECHAT_MCHID:-}

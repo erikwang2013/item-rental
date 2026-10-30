@@ -11,7 +11,7 @@
 | 主库 | MySQL 8 | users/categories/items/orders/payments |
 | 缓存 | Redis(可选) | refresh 会话轮换 |
 | 支付 | 微信支付 V3(JSAPI, M3) | 预付、回调、退款 |
-| 隐私 | 手机号 SHA-256 + 实名 AES-GCM | PII 存储保护 |
+| 隐私 | 手机号 HMAC-SHA256 + 实名 AES-GCM | PII 存储保护 |
 
 ## 2. 架构分层
 
@@ -53,7 +53,7 @@
 - 手机号直接登录(mock 入口,新用户自动注册),无短信验证码链路。
 - JWT:Access(2h)+ Refresh(7d);refresh 轮换支持多端并存、单端登出。
 - refresh 会话默认不落 Redis(`redis_enabled=false`),多实例部署置 `true` 落到 `auth:refresh:{uid}` hash。
-- PII:phone 存 SHA-256 hex;real_name AES-GCM 加密存储,密钥 `ITEM_RENTAL_PII_KEY` 缺失 fail-fast。
+- PII:phone 存 HMAC-SHA256 hex;real_name AES-GCM 加密存储,密钥 `ITEM_RENTAL_PII_KEY` 缺失 fail-fast。
 
 ### 3.4 安全与边界
 
@@ -69,7 +69,7 @@
 
 ## 4. 数据模型
 
-- **users**: Id | Phone(唯一,SHA-256) | Nickname | Avatar | RealName(AES-GCM) | Status
+- **users**: Id | Phone(唯一,HMAC-SHA256) | Nickname | Avatar | RealName(AES-GCM) | Status
 - **categories**: Id | Name | ParentId | Icon | Sort | Status
 - **items**: Id | OwnerId | CategoryId | Title | Desc | Images | DailyPrice | Stock | Status | City
 - **orders**: Id | OrderNo(唯一) | ItemId | RenterId | OwnerId | StartDate | EndDate | Days | RentAmount | Status | PayTradeNo | CancelReason

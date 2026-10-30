@@ -9,7 +9,7 @@
     <text x="212" y="124"  text-anchor="middle" font-size="19" font-weight="bold" fill="#7e22ce">认证与账号</text>
     <text x="212" y="156" text-anchor="middle" font-size="15" fill="#581c87">手机号登录（mock 入口，自动注册）</text>
     <text x="212" y="184" text-anchor="middle" font-size="15" fill="#581c87">JWT 双 Token：Access 2h + Refresh 7d（多端并存）</text>
-    <text x="212" y="212" text-anchor="middle" font-size="15" fill="#581c87">手机号 SHA-256、实名 AES-GCM</text>
+    <text x="212" y="212" text-anchor="middle" font-size="15" fill="#581c87">手机号 HMAC-SHA256、实名 AES-GCM</text>
     <text x="212" y="240" text-anchor="middle" font-size="15" fill="#581c87">用户资料、头像上传（PII 加密存储）</text>
 
     <!-- 物品管理 -->
@@ -24,7 +24,7 @@
     <rect x="806" y="90"  width="365" height="190" rx="12" fill="#fff7ed" stroke="#f97316"/>
     <text x="988" y="124"  text-anchor="middle" font-size="19" font-weight="bold" fill="#c2410c">安全与隐私</text>
     <text x="988" y="156" text-anchor="middle" font-size="15" fill="#7c2d12">JWT 双 Token 鉴权与轮换</text>
-    <text x="988" y="184" text-anchor="middle" font-size="15" fill="#7c2d12">手机号 SHA-256、实名 AES-GCM</text>
+    <text x="988" y="184" text-anchor="middle" font-size="15" fill="#7c2d12">手机号 HMAC-SHA256、实名 AES-GCM</text>
     <text x="988" y="212" text-anchor="middle" font-size="15" fill="#7c2d12">系统边界输入校验（金额/长度/图片）</text>
     <text x="988" y="240" text-anchor="middle" font-size="15" fill="#7c2d12">条件更新幂等防重复回调/退款</text>
 

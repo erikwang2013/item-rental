@@ -106,6 +106,13 @@ func (c *ItemController) Detail() {
 		c.Fail(404, "物品不存在")
 		return
 	}
+	// 下架物品仅本人可见；对外统一 404，避免泄露物品存在性
+	if item.Status != 1 {
+		if uid, ok := middleware.OptionalUserID(c.Ctx); !ok || uid != item.OwnerId {
+			c.Fail(404, "物品不存在")
+			return
+		}
+	}
 	// 富化房东公开信息(昵称/头像);owner 行缺失(孤儿数据)容错为 nil 不 500
 	owner := models.User{Id: item.OwnerId}
 	if err := o.Read(&owner); err == nil {
@@ -134,9 +141,11 @@ func (c *ItemController) Create() {
 	}
 	if err := services.ValidateItem(services.ItemValidateRequest{
 		Title:      req.Title,
+		Desc:       req.Desc,
 		Images:     req.Images,
 		DailyPrice: req.DailyPrice,
 		Stock:      req.Stock,
+		City:       req.City,
 	}); err != nil {
 		c.Fail(400, err.Error())
 		return
@@ -199,11 +208,16 @@ func (c *ItemController) Update() {
 		return
 	}
 
+	// 部分更新语义：仅非空字段覆盖，避免 PUT {"title":"x"} 清空描述/图片
 	if req.Title != "" {
 		item.Title = req.Title
 	}
-	item.Desc = req.Desc
-	item.Images = req.Images
+	if req.Desc != "" {
+		item.Desc = req.Desc
+	}
+	if req.Images != "" {
+		item.Images = req.Images
+	}
 	if req.DailyPrice > 0 {
 		item.DailyPrice = req.DailyPrice
 	}
@@ -215,9 +229,11 @@ func (c *ItemController) Update() {
 	}
 	if err := services.ValidateItem(services.ItemValidateRequest{
 		Title:      item.Title,
+		Desc:       item.Desc,
 		Images:     item.Images,
 		DailyPrice: item.DailyPrice,
 		Stock:      item.Stock,
+		City:       item.City,
 	}); err != nil {
 		c.Fail(400, err.Error())
 		return

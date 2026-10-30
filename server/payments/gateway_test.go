@@ -122,7 +122,7 @@ func TestCreatePrepayMock(t *testing.T) {
 // TestHandleNotifyPreDB 覆盖 ormer() 之前的全部校验分支（验签/字段/金额）。
 // 后续 DB 分支依赖全局 ORM，离线单测不触及。
 func TestHandleNotifyPreDB(t *testing.T) {
-	g := newTestGateway(true)
+	g := newTestGateway(false) // mock 模式会在解析前直接拒绝回调
 
 	if err := g.HandleNotify([]byte("<xml>bad</xml>")); err == nil {
 		t.Error("非法 XML 应返回错误")

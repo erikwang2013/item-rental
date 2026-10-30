@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # 阶段E 端到端冒烟(可执行真源;叙述性记录见 docs/e2e-smoke-d.md)。
-# 链1 = 主链路(登录/owner 视图/头像/下单/签名 notify/流转/real_name)
-# 链2 = cancel+breach(退款守卫 409/取消/违约)
+# 链1 = 主链路(登录/owner 视图/头像/下单/mock 支付自动完成/流转/real_name)
+# 链2 = cancel+breach(退款守卫 409/取消/违约)+重复预订 409+stock=2 峰值并发(2 可下/3 拒绝)
+# mock 说明: WECHAT_MOCK=1 时 unifiedorder 直接完成支付并把订单置为已付; /pay/notify 一律拒绝,
+#            故本脚本不构造签名回调。
 # 依赖: curl + python3(GNU date)。信封 {code,msg,data}:业务 Fail(code) 为 HTTP 200+body code;
 #       中间件 JWTAuth 失败为真 HTTP 401。
 # env:
@@ -44,21 +46,6 @@ login() {
     sleep 4
   done
 }
-notify_xml() { # notify_xml <out_trade_no> <fen> → 打 notify 并断言 SUCCESS
-  local otn=$1 fen=$2 sign xml
-  sign=$(OTN=$otn FEN=$fen python3 - <<'PY'
-import os,hmac,hashlib
-p={"return_code":"SUCCESS","result_code":"SUCCESS","out_trade_no":os.environ["OTN"],
-   "transaction_id":"TX"+os.environ["OTN"],"total_fee":os.environ["FEN"],"nonce_str":"smoke1"}
-s="&".join(f"{k}={p[k]}" for k in sorted(p))+"&key="
-print(hmac.new(b"",s.encode(),hashlib.sha256).hexdigest().upper())
-PY
-)
-  xml=$(printf '<xml><return_code><![CDATA[SUCCESS]]></return_code><result_code><![CDATA[SUCCESS]]></result_code><out_trade_no><![CDATA[%s]]></out_trade_no><transaction_id><![CDATA[TX%s]]></transaction_id><total_fee><![CDATA[%s]]></total_fee><nonce_str><![CDATA[smoke1]]></nonce_str><sign><![CDATA[%s]]></sign></xml>' "$otn" "$otn" "$fen" "$sign")
-  RES=$(curl -s -X POST "$B/pay/notify" -H 'Content-Type: text/xml' -d "$xml")
-  case "$RES" in *SUCCESS*) ;; *) die "notify 未确认: $RES";; esac
-}
-
 # 建一张 1x1 PNG(头像/物品图上传用)
 printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==' | base64 -d > /tmp/e2e-smoke.png
 
@@ -127,7 +114,7 @@ http POST /user/avatar -H "Authorization: Bearer $A" -F "file=@/tmp/e2e-evil.gif
 [ "$(code_of "$RES")" != 0 ] || die "gif 应 400"
 ok '头像 png/gif'
 
-# 5 下单→notify→流转
+# 5 下单→mock 支付自动完成→流转
 http POST /items -H "Authorization: Bearer $A" -H 'Content-Type: application/json' \
   -d '{"title":"冒烟-可租-'$RANDOM'","category_id":1,"daily_price":30,"stock":1,"city":"上海"}'
 ID=$(jget "$RES" data.id)
@@ -139,17 +126,14 @@ OID=$(jget "$RES" data.id); ONO=$(jget "$RES" data.order_no)
 http POST /pay/unifiedorder -H "Authorization: Bearer $B2" -H 'Content-Type: application/json' \
   -d "{\"order_no\":\"$ONO\",\"channel\":\"native\"}"
 [ "$(code_of "$RES")" = 0 ] || die "unifiedorder 失败: $RES"
-OTN=$(jget "$RES" data.out_trade_no); AMT=$(jget "$RES" data.amount)
-FEN=$(python3 -c "print(int(float('$AMT')*100+0.5))")
-notify_xml "$OTN" "$FEN"
 http GET "/orders/$OID" -H "Authorization: Bearer $B2"
-[ "$(jget "$RES" data.status)" = 1 ] || die "notify 后应 status=1"
+[ "$(jget "$RES" data.status)" = 1 ] || die "mock 支付后应 status=1"
 http POST "/orders/$OID/pickup" -H "Authorization: Bearer $B2" >/dev/null || die pickup
 http POST "/orders/$OID/return_request" -H "Authorization: Bearer $B2" >/dev/null || die return_request
 http POST "/orders/$OID/return_confirm" -H "Authorization: Bearer $A" >/dev/null || die return_confirm
 http GET "/orders/$OID" -H "Authorization: Bearer $B2"
 [ "$(jget "$RES" data.status)" = 4 ] || die "应 status=4"
-ok 'notify→pickup→return 全链'
+ok 'mock 支付→pickup→return 全链'
 
 # 6 real_name 回读
 http PUT /user/profile -H "Authorization: Bearer $A" -H 'Content-Type: application/json' \
@@ -163,7 +147,37 @@ say '== 链2 =='
 # 基准:C 租客(新号)
 C=$(login 13800138003)
 
-# 链2a cancel:下单→notify→退款→回 0→取消
+# 链2a-0 重复预订:B2 先占同物品同日期,C 再下应 409
+http POST /items -H "Authorization: Bearer $A" -H 'Content-Type: application/json' \
+  -d '{"title":"冒烟-dup-'$RANDOM'","category_id":1,"daily_price":30,"stock":1,"city":"上海"}'
+ID=$(jget "$RES" data.id)
+http POST /orders -H "Authorization: Bearer $B2" -H 'Content-Type: application/json' \
+  -d "{\"item_id\":\"$ID\",\"start_date\":\"$S\",\"end_date\":\"$E\"}"
+[ "$(code_of "$RES")" = 0 ] || die "首单失败: $RES"
+http POST /orders -H "Authorization: Bearer $C" -H 'Content-Type: application/json' \
+  -d "{\"item_id\":\"$ID\",\"start_date\":\"$S\",\"end_date\":\"$E\"}"
+[ "$(code_of "$RES")" = 409 ] || die "重复预订应 409,实际 $(code_of "$RES"): $RES"
+ok '重复预订 409(日期重叠/库存)'
+
+# 链2a-1 峰值并发:stock=2;B2[S,S]+C[E,E],B2[S,E] 峰值 2 应成功(旧计数会误 409);C[S,E] 峰值 3 应 409
+http POST /items -H "Authorization: Bearer $A" -H 'Content-Type: application/json' \
+  -d '{"title":"冒烟-peak-'$RANDOM'","category_id":1,"daily_price":30,"stock":2,"city":"上海"}'
+ID=$(jget "$RES" data.id)
+http POST /orders -H "Authorization: Bearer $B2" -H 'Content-Type: application/json' \
+  -d "{\"item_id\":\"$ID\",\"start_date\":\"$S\",\"end_date\":\"$S\"}"
+[ "$(code_of "$RES")" = 0 ] || die "峰值首单(S,S)失败: $RES"
+http POST /orders -H "Authorization: Bearer $C" -H 'Content-Type: application/json' \
+  -d "{\"item_id\":\"$ID\",\"start_date\":\"$E\",\"end_date\":\"$E\"}"
+[ "$(code_of "$RES")" = 0 ] || die "峰值次单(E,E)失败: $RES"
+http POST /orders -H "Authorization: Bearer $B2" -H 'Content-Type: application/json' \
+  -d "{\"item_id\":\"$ID\",\"start_date\":\"$S\",\"end_date\":\"$E\"}"
+[ "$(code_of "$RES")" = 0 ] || die "峰值 2 应可下单(旧计数会误 409),实际 $(code_of "$RES"): $RES"
+http POST /orders -H "Authorization: Bearer $C" -H 'Content-Type: application/json' \
+  -d "{\"item_id\":\"$ID\",\"start_date\":\"$S\",\"end_date\":\"$E\"}"
+[ "$(code_of "$RES")" = 409 ] || die "峰值 3 应 409,实际 $(code_of "$RES"): $RES"
+ok 'stock=2 峰值并发(2 可下/3 拒绝)'
+
+# 链2a cancel:下单→mock 支付→退款→回 0→取消
 http POST /items -H "Authorization: Bearer $A" -H 'Content-Type: application/json' \
   -d '{"title":"冒烟-cancel-'$RANDOM'","category_id":1,"daily_price":30,"stock":1,"city":"上海"}'
 ID=$(jget "$RES" data.id)
@@ -172,8 +186,9 @@ http POST /orders -H "Authorization: Bearer $C" -H 'Content-Type: application/js
 OID=$(jget "$RES" data.id); ONO=$(jget "$RES" data.order_no)
 http POST /pay/unifiedorder -H "Authorization: Bearer $C" -H 'Content-Type: application/json' \
   -d "{\"order_no\":\"$ONO\",\"channel\":\"native\"}"
-OTN=$(jget "$RES" data.out_trade_no); FEN=$(python3 -c "print(int(float('$(jget "$RES" data.amount)')*100+0.5))")
-notify_xml "$OTN" "$FEN"
+[ "$(code_of "$RES")" = 0 ] || die "unifiedorder 失败: $RES"
+http GET "/orders/$OID" -H "Authorization: Bearer $C"
+[ "$(jget "$RES" data.status)" = 1 ] || die "mock 支付后应 status=1"
 http POST /pay/refund -H "Authorization: Bearer $C" -H 'Content-Type: application/json' -d "{\"order_id\":\"$OID\"}"
 [ "$(code_of "$RES")" = 0 ] || die "退款失败: $RES"
 http GET "/orders/$OID" -H "Authorization: Bearer $C"
@@ -185,7 +200,7 @@ http GET "/orders/$OID" -H "Authorization: Bearer $C"
 [ "$(jget "$RES" data.status)" = 5 ] || die "应 status=5"
 ok 'cancel 链(退款回 0/取消=5)'
 
-# 链2b breach:再下单→notify→pickup→退款 409→return_request→breach
+# 链2b breach:再下单→mock 支付→pickup→退款 409→return_request→breach
 http POST /items -H "Authorization: Bearer $A" -H 'Content-Type: application/json' \
   -d '{"title":"冒烟-breach-'$RANDOM'","category_id":1,"daily_price":30,"stock":1,"city":"上海"}'
 ID=$(jget "$RES" data.id)
@@ -194,7 +209,7 @@ http POST /orders -H "Authorization: Bearer $C" -H 'Content-Type: application/js
 OID=$(jget "$RES" data.id); ONO=$(jget "$RES" data.order_no)
 http POST /pay/unifiedorder -H "Authorization: Bearer $C" -H 'Content-Type: application/json' \
   -d "{\"order_no\":\"$ONO\",\"channel\":\"native\"}"
-notify_xml "$(jget "$RES" data.out_trade_no)" "$(python3 -c "print(int(float('$(jget "$RES" data.amount)')*100+0.5))")"
+[ "$(code_of "$RES")" = 0 ] || die "unifiedorder 失败: $RES"
 http POST "/orders/$OID/pickup" -H "Authorization: Bearer $C" >/dev/null || die pickup
 http POST /pay/refund -H "Authorization: Bearer $C" -H 'Content-Type: application/json' -d "{\"order_id\":\"$OID\"}"
 [ "$(code_of "$RES")" = 409 ] || die "租赁中退款应 409,实际 $(code_of "$RES")"

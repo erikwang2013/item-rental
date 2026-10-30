@@ -2,12 +2,17 @@
 package routers
 
 import (
+	"log"
+	"time"
+
+	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/server/web/context"
 	"github.com/beego/beego/v2/server/web/filter/cors"
 	"github.com/erikwang2013/item-rental/server/controllers"
 	"github.com/erikwang2013/item-rental/server/middleware"
 	"github.com/erikwang2013/item-rental/server/models"
+	"github.com/erikwang2013/item-rental/server/services"
 )
 
 // requireAuth 注册"方法感知"的 JWT 过滤器。
@@ -27,6 +32,26 @@ func requireAuth(path string) {
 func init() {
 	// 初始化数据库连接与模型
 	models.InitORM()
+
+	// 待支付订单超时清理：每 5 分钟把超过支付窗口的订单置为已取消。
+	// 0 单+成功支付流水是退款/回调处理中（退款接口先抢占订单再调网关），
+	// 不能按超时取消，否则退款重试会被 409 阻断；排除这类订单。
+	// 条件更新幂等，多实例并发安全；goroutine 不阻塞启动。
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			cutoff := time.Now().Add(-services.PendingOrderHold)
+			if _, err := orm.NewOrm().Raw(
+				`UPDATE orders o SET o.status=?, o.cancel_reason=?
+				 WHERE o.status=? AND o.created_at<?
+				   AND NOT EXISTS (SELECT 1 FROM payments p WHERE p.order_id=o.id AND p.status=?)`,
+				models.OrderStatusCancelled, "超时未支付", models.OrderStatusPending, cutoff, models.PaymentStatusSuccess,
+			).Exec(); err != nil {
+				log.Printf("清理超时未支付订单失败: %v", err)
+			}
+		}
+	}()
 
 	// 全局 CORS(先于安全过滤器注册;dev 默认 *,app.conf cors_allow_origins 可收紧)
 	// OPTIONS 预检在此放行

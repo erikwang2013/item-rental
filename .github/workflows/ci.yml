@@ -1,4 +1,4 @@
-# CI gate (P2-3). 自动触发已关闭 — 仅手动 workflow_dispatch 运行。
+# CI gate (P2-3). 触发:push / pull_request / 手动 workflow_dispatch。
 #
 # Tests are offline by design (P1-4): they need NO MySQL / Redis
 # or any other infrastructure — the suite is fully runnable in a bare runner.
@@ -10,6 +10,8 @@
 name: CI
 
 on:
+  push:
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -44,7 +46,7 @@ jobs:
       - name: Vet
         run: go vet ./...
       - name: Test (offline, no infra)
-        run: go test ./... -count=1 -coverprofile=coverage.out
+        run: go test ./... -race -count=1 -coverprofile=coverage.out
       # Coverage floor = 15% (conservative).
       # Real baseline 2026-09-01: 25.9% total statements; floor-to-tens (20) - 5.
       - name: Coverage gate (>= 15%)

@@ -1,4 +1,4 @@
-// 模型纯方法单元测试：物品上下架判定、支付状态判定、公开视图裁剪
+// 模型纯方法单元测试：支付状态判定、公开视图裁剪
 package models
 
 import (
@@ -6,19 +6,6 @@ import (
 	"strings"
 	"testing"
 )
-
-func TestItemOnShelf(t *testing.T) {
-	on := Item{Status: 1}
-	if !on.IsOnShelf() {
-		t.Error("status=1 应上架")
-	}
-	for _, status := range []int{0, 2, 3} {
-		off := Item{Status: status}
-		if off.IsOnShelf() {
-			t.Errorf("status=%d 不应上架", status)
-		}
-	}
-}
 
 func TestPaymentIsPaid(t *testing.T) {
 	success := Payment{Status: PaymentStatusSuccess}

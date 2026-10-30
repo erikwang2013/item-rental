@@ -2,8 +2,8 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -38,11 +38,6 @@ func (c *ItemController) Upload() {
 		return
 	}
 
-	if err := os.MkdirAll(itemImageDir, 0o755); err != nil {
-		c.Fail(500, "保存失败")
-		return
-	}
-
 	// 文件名自生成（不信任客户端文件名，杜绝路径穿越）；任一张失败整批清理
 	ms := time.Now().UnixMilli()
 	names := make([]string, 0, len(files))
@@ -53,33 +48,11 @@ func (c *ItemController) Upload() {
 			c.Fail(400, err.Error())
 			return
 		}
-		src, err := fh.Open()
-		if err != nil {
-			c.cleanupItemImages(names)
-			c.Fail(400, "读取上传文件失败")
-			return
-		}
 		name := fmt.Sprintf("%d_%d_%d.%s", uid, ms, i, ext)
-		dst, err := os.Create(filepath.Join(itemImageDir, name))
-		if err != nil {
-			src.Close()
+		if err := services.SaveUpload(fh, itemImageDir, name, services.AvatarMaxBytes); err != nil {
 			c.cleanupItemImages(names)
-			c.Fail(500, "保存失败")
-			return
-		}
-		n, err := io.Copy(dst, io.LimitReader(src, services.AvatarMaxBytes+1))
-		src.Close()
-		dst.Close()
-		if err != nil {
-			_ = os.Remove(dst.Name())
-			c.cleanupItemImages(names)
-			c.Fail(500, "保存失败")
-			return
-		}
-		if n > services.AvatarMaxBytes {
-			_ = os.Remove(dst.Name())
-			c.cleanupItemImages(names)
-			c.Fail(400, "单张图片不能超过 4MB")
+			code, msg := uploadErr(err)
+			c.Fail(code, msg)
 			return
 		}
 		names = append(names, name)
@@ -96,5 +69,17 @@ func (c *ItemController) Upload() {
 func (c *ItemController) cleanupItemImages(names []string) {
 	for _, n := range names {
 		_ = os.Remove(filepath.Join(itemImageDir, n))
+	}
+}
+
+// uploadErr 将 services.SaveUpload 错误映射为对外状态码与提示
+func uploadErr(err error) (int, string) {
+	switch {
+	case errors.Is(err, services.ErrUploadTooLarge):
+		return 400, "文件不能超过 4MB"
+	case errors.Is(err, services.ErrUploadType):
+		return 400, "图片内容与格式不符"
+	default:
+		return 500, "保存失败"
 	}
 }

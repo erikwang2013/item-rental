@@ -37,20 +37,30 @@ func JWTAuth(ctx *context.Context) {
 	ctx.Input.SetData("role", claims.Role)
 }
 
+// OptionalUserID 尝试解析 Authorization: Bearer <access token>。
+// 缺失/非法/非 access 一律返回 false；不 Abort、不写响应，供公开接口做可选鉴权。
+func OptionalUserID(ctx *context.Context) (int64, bool) {
+	authHeader := ctx.Input.Header("Authorization")
+	if authHeader == "" {
+		return 0, false
+	}
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+		return 0, false
+	}
+	claims, err := ParseToken(strings.TrimSpace(parts[1]))
+	if err != nil || claims.TokenTyp != "access" {
+		return 0, false
+	}
+	return claims.UserID, true
+}
+
 // GetUserID 从请求上下文取当前登录用户 ID
 func GetUserID(ctx *context.Context) (int64, bool) {
 	if v, ok := ctx.Input.GetData("uid").(int64); ok {
 		return v, true
 	}
 	return 0, false
-}
-
-// GetRole 从请求上下文取当前用户角色
-func GetRole(ctx *context.Context) string {
-	if v, ok := ctx.Input.GetData("role").(string); ok {
-		return v
-	}
-	return ""
 }
 
 func unauthorized(ctx *context.Context, msg string) {

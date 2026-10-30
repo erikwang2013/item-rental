@@ -61,6 +61,13 @@ type RefundReq struct {
 	RefundNo   string  // 商户退款单号（out_refund_no，需全局唯一）
 }
 
+// RefundNo 按支付单号生成固定的商户退款单号。
+// 微信按 out_refund_no 保证退款幂等：同一笔支付的重试必须复用同一退款单号，
+// 否则每次重试都会被当成一笔新退款。
+func RefundNo(outTradeNo string) string {
+	return "REF" + outTradeNo
+}
+
 // RefundResult 退款结果
 type RefundResult struct {
 	// RefundID 微信退款单号

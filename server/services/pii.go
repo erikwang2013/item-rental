@@ -4,6 +4,7 @@ package services
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -36,9 +37,18 @@ func PiiKey() []byte {
 	return piiKey
 }
 
-// PhoneHash 手机号单向哈希（sha256 hex，64 字符）。users.phone 列存此值，
-// 登录等值查询天然兼容；原始手机号仅存在于请求内存，永不落库、永不下发。
+// PhoneHash 手机号单向哈希：HMAC-SHA256(key=PiiKey) hex，64 字符。
+// users.phone 列存此值，登录等值查询天然兼容；带密钥可防彩虹表/暴力反查。
+// 原始手机号仅存在于请求内存，永不落库、永不下发。
 func PhoneHash(phone string) string {
+	mac := hmac.New(sha256.New, PiiKey())
+	mac.Write([]byte(phone))
+	return hex.EncodeToString(mac.Sum(nil))
+}
+
+// LegacyPhoneHash 旧版无盐 sha256(phone)，仅用于登录时识别并懒迁移历史数据。
+// 新数据一律使用 PhoneHash。
+func LegacyPhoneHash(phone string) string {
 	sum := sha256.Sum256([]byte(phone))
 	return hex.EncodeToString(sum[:])
 }

@@ -46,6 +46,15 @@ func newCancelStub() *cancelStub {
 	}
 }
 
+// racePaidStub 模拟读后并发支付：条件更新 0 行且订单已变为待取。
+type racePaidStub struct{ order models.Order }
+
+func (s *racePaidStub) GetOrder(int64) (*models.Order, error) { return &s.order, nil }
+func (s *racePaidStub) CancelOrder(int64, string) (int64, error) {
+	s.order.Status = models.OrderStatusToPickup
+	return 0, nil
+}
+
 func TestCancelOrder(t *testing.T) {
 	t.Run("租客取消 0->5 并写取消原因", func(t *testing.T) {
 		st := newCancelStub()
@@ -99,6 +108,14 @@ func TestCancelOrder(t *testing.T) {
 		}
 		if len(st.cancels) != 0 {
 			t.Fatalf("不应执行取消写操作: %v", st.cancels)
+		}
+	})
+
+	t.Run("读后被并发支付则拒绝而非误退款", func(t *testing.T) {
+		st := &racePaidStub{order: models.Order{Id: 1, RenterId: 100, OwnerId: 200, Status: models.OrderStatusPending}}
+		_, err := CancelOrder(st, 1, 100, "")
+		if !errors.Is(err, ErrInvalidState) {
+			t.Fatalf("err = %v, 期望 ErrInvalidState", err)
 		}
 	})
 

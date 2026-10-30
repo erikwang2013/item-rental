@@ -62,6 +62,15 @@ func (c *UserController) UpdateProfile() {
 		c.Fail(400, "请求参数错误")
 		return
 	}
+	// 长度对齐 DB 列宽（nickname 64 / avatar 255），避免超长 INSERT 直接 500
+	if utf8.RuneCountInString(req.Nickname) > 64 {
+		c.Fail(400, "昵称过长（最多 64 字）")
+		return
+	}
+	if utf8.RuneCountInString(req.Avatar) > 255 {
+		c.Fail(400, "头像地址过长（最多 255 字符）")
+		return
+	}
 
 	o := orm.NewOrm()
 	user := models.User{Id: uid}

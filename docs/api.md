@@ -8,7 +8,7 @@
 
 | 方法 | 路径 | 鉴权 | 说明 |
 | --- | --- | --- | --- |
-| POST | /auth/login | 公开 | 手机号登录(mock 入口,自动注册),返回 access + refresh token |
+| POST | /auth/login | 公开 | 手机号登录(仅 dev 或 `ITEM_RENTAL_LOGIN_MOCK=1`;自动注册),返回 access + refresh token |
 | POST | /auth/refresh | 公开 | 双 Token 轮换(多端会话并存,轮换仅使当前端旧 refresh 失效) |
 | POST | /auth/logout | JWT | 登出;请求体可选 `refresh_token`(带则仅撤销该端会话,缺省撤销当前用户全部会话) |
 | GET | /user/profile | JWT | 获取用户资料 |
@@ -52,7 +52,7 @@
 
 ### GET/PUT /user/profile
 
-PUT 请求体可选:`nickname | avatar | real_name`。`real_name` 明文 ≤32 字符,服务端 AES-GCM 加密存储;GET /user/profile 返回解密后的明文。手机号仅以 SHA-256 哈希存储,不下发。
+PUT 请求体可选:`nickname | avatar | real_name`。`real_name` 明文 ≤32 字符,服务端 AES-GCM 加密存储;GET /user/profile 返回解密后的明文。手机号仅以 HMAC-SHA256 哈希存储,不下发。
 
 ### POST /user/avatar
 
@@ -118,7 +118,7 @@ PUT 请求体可选:`nickname | avatar | real_name`。`real_name` 明文 ≤32 �
 | POST | /orders/:id/return_request | 申请归还(2→3) |
 | POST | /orders/:id/return_confirm | 确认归还(3→4) |
 | POST | /orders/:id/breach | 违约(3→6) |
-| POST | /orders/:id/cancel | 取消(0→5,退租金) |
+| POST | /orders/:id/cancel | 取消(0→5;已支付则随后自动退款) |
 
 ### GET /orders/:id 详情响应富化
 
@@ -150,13 +150,13 @@ PUT 请求体可选:`nickname | avatar | real_name`。`real_name` 明文 ≤32 �
 
 | 方法 | 路径 | 鉴权 | 说明 |
 | --- | --- | --- | --- |
-| POST | /pay/unifiedorder | JWT | 微信预付(JSAPI),mock 模式返回测试 code_url |
+| POST | /pay/unifiedorder | JWT | 微信预付(JSAPI);mock 模式下单即自动完成支付(订单变已付) |
 | POST | /pay/refund | JWT(owner/renter) | 退款 |
-| POST | /pay/notify | 回调验签 | 支付/退款结果回调 |
+| POST | /pay/notify | 回调验签 | 支付/退款结果回调(mock 模式拒绝) |
 
 ### POST /pay/unifiedorder 请求体
 
-`{"order_no":"ORD...","channel":"native","openid":""}`(order_no 为订单号字符串,channel=native/jsapi;jsapi 需 openid)— 成功返回微信 JSAPI pay_params;mock 模式客户端轮询订单状态。
+`{"order_no":"ORD...","channel":"native","openid":""}`(order_no 为订单号字符串,channel=native/jsapi;jsapi 需 openid)— 成功返回微信 JSAPI pay_params;mock 模式下单即自动完成支付,客户端轮询订单状态即可看到已付。
 
 ### POST /pay/refund 请求体
 
@@ -167,7 +167,7 @@ PUT 请求体可选:`nickname | avatar | real_name`。`real_name` 明文 ≤32 �
 
 微信支付回调。验签 → 解析 trade_state/refund_status → 订单迁移(已付 / 已退款)。XML 响应:`<xml><return_code><![CDATA[SUCCESS]]></return_code></xml>`。
 
-mock/dev 模式(`WECHAT_MOCK=1`,商户密钥为空串):回调仍需按 V2 规则签名(HMAC-SHA256,参数按字典序拼 `k=v&...&key=`),字段需 return_code/result_code=SUCCESS、out_trade_no(支付单号)、非空 transaction_id、total_fee(分,须等于支付金额)。
+mock 模式(`WECHAT_MOCK=1`)下支付已在统一下单内完成,**`/pay/notify` 一律拒绝回调**。真实模式回调需按 V2 规则签名(HMAC-SHA256,参数按字典序拼 `k=v&...&key=`,商户密钥为空时验签直接失败),字段需 return_code/result_code=SUCCESS、out_trade_no(支付单号)、非空 transaction_id、total_fee(分,须等于支付金额)。
 
 ## 6. 其他公开端点
 

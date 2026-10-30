@@ -10,7 +10,8 @@ import (
 
 // stubOrderService 注入网关的订单服务桩：记录 MarkRefunded 调用以便断言
 type stubOrderService struct {
-	refunded []string
+	refunded        []string
+	paymentRefunded []string
 }
 
 func (s *stubOrderService) GetOrder(orderNo string) (*models.Order, error) {
@@ -23,6 +24,11 @@ func (s *stubOrderService) MarkPaid(orderNo, transactionId string) error {
 
 func (s *stubOrderService) MarkRefunded(outTradeNo string) error {
 	s.refunded = append(s.refunded, outTradeNo)
+	return nil
+}
+
+func (s *stubOrderService) MarkPaymentRefunded(outTradeNo string) error {
+	s.paymentRefunded = append(s.paymentRefunded, outTradeNo)
 	return nil
 }
 
@@ -108,7 +114,7 @@ func TestHandleNotifyRefund(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			svc := &stubOrderService{}
-			g := newTestGateway(true)
+			g := newTestGateway(false) // mock 模式已在 HandleNotify 拒绝回调
 			g.svc = svc
 
 			params := map[string]string{
@@ -138,7 +144,7 @@ func TestHandleNotifyRefund(t *testing.T) {
 // （DB 层条件更新 1->3 保证幂等，此测试验证通知层对重复回调不报错）
 func TestHandleNotifyRefundRepeat(t *testing.T) {
 	svc := &stubOrderService{}
-	g := newTestGateway(true)
+	g := newTestGateway(false) // mock 模式已在 HandleNotify 拒绝回调
 	g.svc = svc
 
 	params := map[string]string{
@@ -160,10 +166,36 @@ func TestHandleNotifyRefundRepeat(t *testing.T) {
 	}
 }
 
+// TestShouldResetOrderOnRefund 退款回调重置订单的归属判定：
+// 仅待取且支付流水为空或与本笔退款一致才重置，避免吞掉新支付。
+func TestShouldResetOrderOnRefund(t *testing.T) {
+	cases := []struct {
+		name            string
+		status          int
+		orderPayTradeNo string
+		txID            string
+		want            bool
+	}{
+		{"待取且交易号一致重置", models.OrderStatusToPickup, "wx1", "wx1", true},
+		{"待取且交易号为空（历史数据）重置", models.OrderStatusToPickup, "", "wx1", true},
+		{"待取但已被新支付接管不重置", models.OrderStatusToPickup, "wx2", "wx1", false},
+		{"租赁中不重置", models.OrderStatusRenting, "wx1", "wx1", false},
+		{"待支付不重置", models.OrderStatusPending, "", "wx1", false},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := shouldResetOrderOnRefund(c.status, c.orderPayTradeNo, c.txID); got != c.want {
+				t.Errorf("shouldResetOrderOnRefund(%d, %q, %q) = %v, 期望 %v",
+					c.status, c.orderPayTradeNo, c.txID, got, c.want)
+			}
+		})
+	}
+}
+
 // TestHandleNotifyRefundErrors 退款回调异常分支
 func TestHandleNotifyRefundErrors(t *testing.T) {
 	t.Run("缺少 out_trade_no", func(t *testing.T) {
-		g := newTestGateway(true)
+		g := newTestGateway(false)
 		params := map[string]string{
 			"return_code":   "SUCCESS",
 			"result_code":   "SUCCESS",
@@ -177,7 +209,7 @@ func TestHandleNotifyRefundErrors(t *testing.T) {
 	})
 
 	t.Run("SUCCESS 但订单服务未配置", func(t *testing.T) {
-		g := newTestGateway(true) // svc=nil
+		g := newTestGateway(false) // svc=nil
 		params := map[string]string{
 			"return_code":   "SUCCESS",
 			"result_code":   "SUCCESS",

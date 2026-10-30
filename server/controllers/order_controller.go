@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"unicode/utf8"
 
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/erikwang2013/item-rental/server/middleware"
@@ -46,10 +47,26 @@ func (c *OrderController) Create() {
 		c.Fail(400, "参数错误")
 		return
 	}
-	o := orm.NewOrm()
+	// 事务 + 物品行锁串行化同一物品的下单，避免并发超租
+	tx, err := orm.NewOrm().Begin()
+	if err != nil {
+		c.Fail(500, "创建订单失败")
+		return
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+
 	item := models.Item{Id: itemID}
-	if err := o.Read(&item); err != nil {
-		c.Fail(404, "物品不存在")
+	if err := tx.ReadForUpdate(&item); err != nil {
+		if err == orm.ErrNoRows {
+			c.Fail(404, "物品不存在")
+		} else {
+			c.Fail(500, "创建订单失败")
+		}
 		return
 	}
 
@@ -58,10 +75,50 @@ func (c *OrderController) Create() {
 		c.Fail(400, err.Error())
 		return
 	}
-	if _, err := o.Insert(order); err != nil {
+
+	// 查询日期重叠的既有订单区间：待支付单从创建即占用库存，
+	// 超时单只有被后台 ticker 置为已取消后才释放，避免"过期但还能支付"造成超租。
+	type dateRow struct {
+		Sd string `orm:"column(sd)"`
+		Ed string `orm:"column(ed)"`
+	}
+	var rows []dateRow
+	if _, err := tx.Raw(
+		`SELECT DATE_FORMAT(start_date,'%Y-%m-%d') AS sd, DATE_FORMAT(end_date,'%Y-%m-%d') AS ed
+		 FROM orders WHERE item_id=? AND status IN (0,1,2,3) AND start_date<=? AND end_date>=?`,
+		item.Id, order.EndDate, order.StartDate,
+	).QueryRows(&rows); err != nil {
 		c.Fail(500, "创建订单失败")
 		return
 	}
+	existing := make([]services.DateRange, 0, len(rows))
+	for _, r := range rows {
+		rng, err := services.ParseDateRange(r.Sd, r.Ed)
+		if err != nil {
+			c.Fail(500, "创建订单失败")
+			return
+		}
+		existing = append(existing, rng)
+	}
+	newRange, err := services.ParseDateRange(order.StartDate, order.EndDate)
+	if err != nil {
+		c.Fail(500, "创建订单失败")
+		return
+	}
+	if err := services.CheckAvailability(newRange, existing, item.Stock); err != nil {
+		c.Fail(409, err.Error())
+		return
+	}
+
+	if _, err := tx.Insert(order); err != nil {
+		c.Fail(500, "创建订单失败")
+		return
+	}
+	if err := tx.Commit(); err != nil {
+		c.Fail(500, "创建订单失败")
+		return
+	}
+	committed = true
 	c.OK(order)
 }
 
@@ -204,7 +261,8 @@ type cancelRequest struct {
 // Cancel 取消订单（需登录，仅订单租客或房东可操作）。
 // POST /api/v1/orders/:id/cancel
 // 仅 0待支付 状态可取消；已取消幂等成功；其他状态 409 拒绝。
-// 流程：身份/状态校验 -> 先退款既有支付单（mock 直接成功）-> 条件更新 0→5 + 取消原因
+// 顺序：先以条件更新抢占 0→5，成功或已取消后再补退款——避免并发重复退款，
+// 也避免"钱退了订单却仍待取"。退款失败返回 500，用户重试取消会再次尝试补退款。
 func (c *OrderController) Cancel() {
 	uid, ok := middleware.GetUserID(c.Ctx)
 	if !ok {
@@ -218,38 +276,13 @@ func (c *OrderController) Cancel() {
 	}
 	var req cancelRequest
 	_ = c.Ctx.BindJSON(&req) // cancel_reason 可选，解析失败不阻塞
-
-	o := orm.NewOrm()
-	order := &models.Order{Id: id}
-	if err := o.Read(order); err != nil {
-		c.Fail(404, "订单不存在")
-		return
-	}
-	if order.RenterId != uid && order.OwnerId != uid {
-		c.Fail(403, "无权操作该订单")
-		return
-	}
-	// 状态守卫（先于退款，避免对不可取消订单误退款）
-	switch order.Status {
-	case models.OrderStatusCancelled:
-		c.OK(map[string]string{"msg": "订单已取消"}) // 幂等
-		return
-	case models.OrderStatusPending:
-		// 可取消，继续
-	default:
-		c.Fail(409, "当前订单状态不允许取消")
+	if utf8.RuneCountInString(req.CancelReason) > 255 {
+		c.Fail(400, "取消原因过长")
 		return
 	}
 
-	// 先退款既有支付单（存在已成功支付单才退款，mock 直接成功）
-	if err := c.refundOrderPayment(o, order.Id); err != nil {
-		c.Fail(500, err.Error())
-		return
-	}
-
-	// 条件更新 0→5（幂等，原子迁移由 services.CancelOrder 保证）
-	transitioned, err := services.CancelOrder(services.NewCancelStore(), id, uid, req.CancelReason)
-	if err != nil {
+	// transitioned=false 且 err=nil 表示订单此前已取消（幂等），同样继续补退款
+	if _, err := services.CancelOrder(services.NewCancelStore(), id, uid, req.CancelReason); err != nil {
 		switch {
 		case errors.Is(err, services.ErrOrderNotFound):
 			c.Fail(404, "订单不存在")
@@ -262,36 +295,36 @@ func (c *OrderController) Cancel() {
 		}
 		return
 	}
-	if !transitioned {
-		c.Fail(409, "当前订单状态不允许取消")
+	if err := refundPaidPayment(orm.NewOrm(), id); err != nil {
+		c.Fail(500, err.Error())
 		return
 	}
 	c.OK(map[string]string{"msg": "订单已取消"})
 }
 
-// refundOrderPayment 若订单存在已成功支付单，则先退款（mock 直接成功）并标记退款。
-// 无支付单或未支付成功时跳过（幂等安全）。
-func (c *OrderController) refundOrderPayment(o orm.Ormer, orderID int64) error {
+// refundPaidPayment 为订单补退款：取最新一条支付成功流水退款，成功后标记支付单已退款。
+// 无成功支付单视为无需退款；DB 错误必须返回，避免静默漏退款。
+func refundPaidPayment(o orm.Ormer, orderID int64) error {
 	var pay models.Payment
-	if err := o.QueryTable(new(models.Payment)).
+	err := o.QueryTable(new(models.Payment)).
 		Filter("order_id", orderID).
+		Filter("status", models.PaymentStatusSuccess).
 		OrderBy("-id").
-		One(&pay); err != nil {
-		return nil // 无支付单，无需退款
+		One(&pay)
+	if err == orm.ErrNoRows {
+		return nil
 	}
-	if !pay.IsPaid() {
-		return nil // 未支付成功，无需退款
+	if err != nil {
+		return fmt.Errorf("查询支付单失败: %s", err.Error())
 	}
 
-	refundNo := genRefundNo(orderID)
-	gw := payments.DefaultGateway()
-	if _, err := gw.Refund(payments.RefundReq{
+	if _, err := payments.DefaultGateway().Refund(payments.RefundReq{
 		OutTradeNo: pay.OutTradeNo,
 		TotalFee:   pay.Amount,
 		RefundFee:  pay.Amount,
-		RefundNo:   refundNo,
+		RefundNo:   payments.RefundNo(pay.OutTradeNo),
 	}); err != nil {
 		return fmt.Errorf("退款失败: %s", err.Error())
 	}
-	return payments.NewOrderService().MarkRefunded(pay.OutTradeNo)
+	return payments.NewOrderService().MarkPaymentRefunded(pay.OutTradeNo)
 }

@@ -47,11 +47,14 @@ func (s *memRefreshStore) DeleteAll(uid int64) error {
 	return nil
 }
 
-func (s *memRefreshStore) Check(uid int64, jti string) bool {
+func (s *memRefreshStore) Consume(uid int64, jti string) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	_, ok := s.sessions[uid][jti]
-	return ok
+	if _, ok := s.sessions[uid][jti]; !ok {
+		return false
+	}
+	delete(s.sessions[uid], jti)
+	return true
 }
 
 // switchStore 临时替换全局 refreshStore，测试后恢复。
@@ -62,9 +65,18 @@ func switchStore(t *testing.T, st RefreshTokenStore) {
 	t.Cleanup(func() { refreshStore = old })
 }
 
+// allowRefreshUser 绕过真实 DB 的用户状态查询，默认放行。
+func allowRefreshUser(t *testing.T) {
+	t.Helper()
+	old := refreshUserActive
+	refreshUserActive = func(int64) bool { return true }
+	t.Cleanup(func() { refreshUserActive = old })
+}
+
 func TestRotateRefresh(t *testing.T) {
 	t.Setenv("ITEM_RENTAL_JWT_SECRET", refreshTestSecret)
 	switchStore(t, newMemRefreshStore())
+	allowRefreshUser(t)
 
 	const uid = int64(42)
 
@@ -119,8 +131,9 @@ func TestRotateRefresh(t *testing.T) {
 func TestRotateRefreshRejectsUnknownSession(t *testing.T) {
 	t.Setenv("ITEM_RENTAL_JWT_SECRET", refreshTestSecret)
 	switchStore(t, newMemRefreshStore())
+	allowRefreshUser(t)
 
-	// 会话中未注册的 refresh（stub Check 返回 false）→ 拒绝
+	// 会话中未注册的 refresh（stub Consume 返回 false）→ 拒绝
 	r, err := middleware.GenerateRefreshToken(7, "user")
 	if err != nil {
 		t.Fatalf("GenerateRefreshToken: %v", err)
@@ -130,10 +143,54 @@ func TestRotateRefreshRejectsUnknownSession(t *testing.T) {
 	}
 }
 
+// TestConsumeAtomic 同一 jti 连续消费：第二次必须失败（并发重放防护）。
+func TestConsumeAtomic(t *testing.T) {
+	st := newMemRefreshStore()
+	switchStore(t, st)
+
+	const uid = int64(3)
+	assertNil(t, st.Save(uid, "jti-1", time.Now().Add(time.Hour)), "Save")
+	if !refreshStore.Consume(uid, "jti-1") {
+		t.Fatal("首次 Consume 应返回 true")
+	}
+	if refreshStore.Consume(uid, "jti-1") {
+		t.Fatal("同一 jti 第二次 Consume 必须返回 false")
+	}
+}
+
+// TestRotateRefreshRejectsInactiveUser 封禁用户的 refresh 被拒，且不消耗 token（解封后仍可用）。
+func TestRotateRefreshRejectsInactiveUser(t *testing.T) {
+	st := newMemRefreshStore()
+	switchStore(t, st)
+	registerSecret(t)
+
+	old := refreshUserActive
+	refreshUserActive = func(int64) bool { return false }
+	t.Cleanup(func() { refreshUserActive = old })
+
+	const uid = int64(21)
+	r, err := middleware.GenerateRefreshToken(uid, "user")
+	if err != nil {
+		t.Fatalf("GenerateRefreshToken: %v", err)
+	}
+	assertNil(t, SaveRefreshSession(uid, r), "Save")
+
+	if _, _, err := RotateRefresh(r); !errors.Is(err, ErrRefreshRejected) {
+		t.Fatalf("封禁用户应被拒, got %v", err)
+	}
+
+	// 解封后同一 token 仍可轮换（证明封禁拒绝未消耗 jti）
+	refreshUserActive = func(int64) bool { return true }
+	if _, _, err := RotateRefresh(r); err != nil {
+		t.Fatalf("解封后同一 refresh 应可轮换, got %v", err)
+	}
+}
+
 func TestLogoutInvalidatesRefresh(t *testing.T) {
 	st := newMemRefreshStore()
 	switchStore(t, st)
 	registerSecret(t)
+	allowRefreshUser(t)
 
 	access0, refresh0, _ := setupRotation(t)
 	claims, err := middleware.ParseToken(refresh0)
@@ -154,6 +211,7 @@ func TestMultiDeviceSessions(t *testing.T) {
 	st := newMemRefreshStore()
 	switchStore(t, st)
 	registerSecret(t)
+	allowRefreshUser(t)
 
 	const uid = int64(9)
 	ra, _ := middleware.GenerateRefreshToken(uid, "user")
@@ -194,6 +252,7 @@ func TestLogoutAll(t *testing.T) {
 	st := newMemRefreshStore()
 	switchStore(t, st)
 	registerSecret(t)
+	allowRefreshUser(t)
 
 	const uid = int64(11)
 	ra, _ := middleware.GenerateRefreshToken(uid, "user")

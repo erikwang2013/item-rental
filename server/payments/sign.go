@@ -49,6 +49,10 @@ func signParams(params map[string]string, mchKey, signType string) string {
 
 // verifySign 校验微信回调/应答签名。
 func verifySign(params map[string]string, mchKey, signType string) bool {
+	// 空密钥会让签名可被公开计算，直接拒绝（启动校验之外的第二道防线）
+	if strings.TrimSpace(mchKey) == "" {
+		return false
+	}
 	got, ok := params["sign"]
 	if !ok || got == "" {
 		return false

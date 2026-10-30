@@ -18,7 +18,7 @@
 | 6 | `sqlconn` | — | `root:root123456@tcp(127.0.0.1:3306)/rental?...` | MySQL DSN(含密码) | **是** | **是(必设)** — 当前为开发弱口令 |
 | 7 | `redisaddr` | — | `127.0.0.1:6379` | Redis 地址 | 否 | 启用 Redis 会话时必设 |
 | 8 | `redispass` | — | `redis123456` | Redis 密码 | **是** | 启用 Redis 会话时必设 |
-| 9 | `redis_enabled` | — | `false` | refresh 会话是否落 Redis;多实例部署必须 `true` | 否 | 多实例必设 `true` |
+| 9 | `redis_enabled` | — | `false` | refresh 会话存储:`false` 走进程内(单实例),`true` 走 Redis;多实例部署必须 `true` | 否 | 多实例必设 `true` |
 | 10 | `jwtsecret` | `ITEM_RENTAL_JWT_SECRET` | `change-me-in-prod-rental-secret` | JWT 签名密钥 | **是** | **是(必设)** — 代码对默认值 fail-fast panic(middleware/jwt.go) |
 | 11 | `jwtttl` | — | `7200` | access token 有效期(秒) | 否 | 否 |
 | 12 | `jwtrt_ttl` | — | `604800` | refresh token 有效期(秒) | 否 | 否 |
@@ -31,15 +31,21 @@
 | 19 | `wechat_timeout` | — | `10` | 下单 HTTP 超时(秒) | 否 | 否 |
 | 20 | `wechat_cert_file` | `WECHAT_CERT_FILE` | 空 | 商户证书路径(退款等双向 TLS) | 否 | 使用退款功能时必设 |
 | 21 | `wechat_cert_key` | `WECHAT_CERT_KEY` | 空 | 商户证书私钥路径 | **是** | 使用退款功能时必设 |
-| 22 | `pii_key` | `ITEM_RENTAL_PII_KEY` | 空 | PII 加密密钥(AES-256,64 hex;phone sha256 + real_name 加密);env 优先 | **是** | **是(必设)** — 缺失/非 64 hex fail-fast panic(services/pii.go) |
+| 22 | `pii_key` | `ITEM_RENTAL_PII_KEY` | 空 | PII 加密密钥(AES-256,64 hex;phone HMAC-SHA256 + real_name 加密);env 优先 | **是** | **是(必设)** — 缺失/非 64 hex 启动即 panic(services/pii.go) |
 | 23 | `cors_allow_origins` | — | `*` | CORS 允许来源(dev 联调用 *;**生产收紧为具体域名**) | 否 | 生产建议收紧 |
 | 24 | `snowflake_node` | — | `1` | snowflake 节点号(0-1023);**多实例部署每实例须唯一**,否则跨实例同毫秒可能撞号 | 否 | 多实例部署必设(services/snowid.go) |
+| 25 | — | `ITEM_RENTAL_LOGIN_MOCK` | 空 | 手机号 mock 登录开关(=`1` 强制开启;`runmode=dev` 默认开启,prod 默认拒绝) | 否 | **是(生产保持未设置)** |
 
 ## 环境变量读取陷阱(重要)
 
-- `redis_enabled=false` 时 refresh 会话不落 Redis(单机/本地开发足够);多实例部署必须设为 `true`,否则各实例的 refresh 会话不共享,单端登出/轮换只在当前实例生效。
-- `jwtsecret` 与 `wechat_*` 支持环境变量覆盖;其余键仅从 app.conf 读取,改配置需改 app.conf 文件。
-- 未配置微信商户参数时保持 `WECHAT_MOCK=1`(或空)走 mock 支付;真实支付需同时配置商户号/密钥/回调地址。
+- `redis_enabled=false`(默认)时 refresh 会话存进程内,**仅适用于单实例**;多实例部署必须设为 `true`,否则各实例的 refresh 会话不共享,轮换/登出只在本实例生效,且重启即丢会话。
+- `jwtsecret` / `wechat_*` / `pii_key` 支持环境变量覆盖;`ITEM_RENTAL_LOGIN_MOCK` 仅读环境变量;其余键仅从 app.conf 读取,改配置需改 app.conf 文件。
+- **`ITEM_RENTAL_PII_KEY` 一经使用不可变更**:滚动发布/多实例必须所有实例一致;更换会让 HMAC 手机号全部变化,登录既查不到旧 HMAC 也查不到旧 sha256,从而自动注册重复账号、旧账号与订单独占。
+- **`BEEGO_RUNMODE` 会改变 beego 读取的配置文件名**:设置后读 `conf/<runmode>.app.conf`(如 `conf/prod.app.conf`),而不是 `conf/app.conf`;文件不存在则所有配置为空并启动 panic。切 prod 时需提供 `conf/prod.app.conf`,或改在 `app.conf` 内写 `runmode = prod` 且不设该环境变量。
+- 手机号登录默认仅 `runmode=dev` 可用;**生产必须保持 `ITEM_RENTAL_LOGIN_MOCK` 未设置**,否则知道手机号即可登录(账号接管)。
+- mock 支付须显式 `WECHAT_MOCK=1`:`/pay/unifiedorder` 直接完成支付并把订单置为已付,`/pay/notify` 一律拒绝。未开 mock 时必须配齐商户号/密钥/回调地址,否则启动 panic。
+- 启动即校验:真实模式(`WECHAT_MOCK` 关闭)缺任一 `wechat_appid/mchid/mchkey/notify_url` 直接 panic;PII 密钥缺失/非 64 hex 直接 panic。
+- 请求体上限:普通 JSON 1MB,上传接口 40MB(单张图片仍限 4MB)。
 
 ## real/prod 启动前必检清单
 
@@ -48,8 +54,9 @@
 3. `sqlconn` / `redispass` 替换开发默认口令。
 4. `WECHAT_MOCK=0`,`WECHAT_APPID/MCHID/MCHKEY/NOTIFY_URL` 已配置。
 5. 多实例部署设 `redis_enabled=true`;单实例可保持 `false`。
-6. `ITEM_RENTAL_PII_KEY` 强随机 64 hex(缺失/非 64 hex 启动即 panic,services/pii.go)。
+6. `ITEM_RENTAL_PII_KEY` 强随机 64 hex(缺失/非 64 hex 启动即 panic,services/pii.go);**轮换必须离线重算 `users.phone`(旧手机号已无明文,需用户逐次登录迁移或人工重算)并重新加密 `real_name`,不能直接改 env 重启**。
 7. 生产 CORS 收紧为具体域名(`cors_allow_origins`)。
+8. 确认 `ITEM_RENTAL_LOGIN_MOCK` 未设置(prod 默认拒绝手机号登录)。
 
 ## 生产 Docker Compose(deploy/docker-compose.prod.yml)
 

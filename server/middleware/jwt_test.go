@@ -80,6 +80,51 @@ func TestParseTokenExpired(t *testing.T) {
 	}
 }
 
+// TestOptionalUserID 可选鉴权：仅合法 access token 返回 true，且不写响应。
+func TestOptionalUserID(t *testing.T) {
+	registerSecret(t)
+
+	access, err := GenerateAccessToken(42, "user")
+	if err != nil {
+		t.Fatalf("GenerateAccessToken: %v", err)
+	}
+	refresh, err := GenerateRefreshToken(42, "user")
+	if err != nil {
+		t.Fatalf("GenerateRefreshToken: %v", err)
+	}
+
+	cases := []struct {
+		name   string
+		header string
+		wantOK bool
+	}{
+		{"valid_access", "Bearer " + access, true},
+		{"missing", "", false},
+		{"refresh_token", "Bearer " + refresh, false},
+		{"wrong_scheme", "Token " + access, false},
+		{"garbage", "Bearer not-a-token", false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			hdrs := map[string]string{}
+			if tc.header != "" {
+				hdrs["Authorization"] = tc.header
+			}
+			ctx, rec := makeCtx("GET", "/api/v1/items/1", "", "", hdrs)
+			uid, ok := OptionalUserID(ctx)
+			if ok != tc.wantOK {
+				t.Errorf("OptionalUserID ok = %v, 期望 %v", ok, tc.wantOK)
+			}
+			if tc.wantOK && uid != 42 {
+				t.Errorf("uid = %d, 期望 42", uid)
+			}
+			if rec.Code != 200 || rec.Body.Len() != 0 {
+				t.Errorf("OptionalUserID 不应写响应: code=%d body=%q", rec.Code, rec.Body.String())
+			}
+		})
+	}
+}
+
 func TestJWTSecretFailFast(t *testing.T) {
 	// 空密钥（且非默认占位符）必须 panic，不允许静默使用弱密钥
 	for _, secret := range []string{"", "change-me-in-prod-rental-secret"} {

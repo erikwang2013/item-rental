@@ -12,7 +12,7 @@ type Payment struct {
 	OrderId       int64     `orm:"column(order_id)" json:"order_id,string"`
 	OutTradeNo    string    `orm:"column(out_trade_no);size(64);unique" json:"out_trade_no"` // 商户订单号
 	TransactionId string    `orm:"column(transaction_id);size(64)" json:"transaction_id"`    // 微信支付单号
-	Channel       string    `orm:"column(channel);size(16)" json:"channel"`                  // 支付渠道 wechat
+	Channel       string    `orm:"column(channel);size(16)" json:"channel"`                  // 支付渠道 native/jsapi
 	Amount        float64   `orm:"column(amount);digits(12);decimals(2)" json:"amount"`      // 支付金额
 	Status        int       `orm:"column(status)" json:"status"`                             // 0待支付 1成功 2失败 3已退款
 	RawCallback   string    `orm:"column(raw_callback);type(text)" json:"-"`                 // 微信回调原始报文

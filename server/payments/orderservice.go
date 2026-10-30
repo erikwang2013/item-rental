@@ -20,6 +20,9 @@ type OrderService interface {
 	// 条件更新支付单 1成功 -> 3已退款（幂等），并把关联订单从 1待取 重置回 0待支付，
 	// 使订单重新可处理（重新支付或取消）。
 	MarkRefunded(outTradeNo string) error
+	// MarkPaymentRefunded 仅把支付单 1成功 -> 3已退款（幂等），不修改订单状态。
+	// 用于订单已取消/已归还等场景下的重复支付自动退款：钱已原路退回，订单保持原状。
+	MarkPaymentRefunded(outTradeNo string) error
 }
 
 // orderServiceImpl 基于 beego ORM 的默认实现。
@@ -75,7 +78,7 @@ func (s *orderServiceImpl) MarkPaid(orderNo, transactionId string) error {
 // MarkRefunded 标记支付单已退款（1 -> 3）并把订单重置回待支付（1 -> 0）。
 // outTradeNo 为支付单的 out_trade_no（退款回调/退款端点传此值）。
 // 幂等：支付单不在"已成功"状态时条件更新不生效，直接返回成功；
-// 订单不在"待取"状态时跳过订单重置（并发/重复退款安全）。
+// 订单不在"待取"状态或已被另一笔支付接管时跳过订单重置（并发/重复退款安全）。
 func (s *orderServiceImpl) MarkRefunded(outTradeNo string) error {
 	o := ormer()
 
@@ -98,12 +101,14 @@ func (s *orderServiceImpl) MarkRefunded(outTradeNo string) error {
 		return nil
 	}
 
-	// 订单关联：已付租金待取(1)的订单回到待支付(0)，可重新支付或取消
+	// 订单关联：已付租金待取(1)的订单回到待支付(0)，可重新支付或取消。
+	// 仅当订单当前支付流水就是本笔退款（或历史数据缺交易号）才重置：
+	// 退款抢占后订单可能已被新支付重新置 1，重置会吞掉新支付。
 	order := &models.Order{Id: pay.OrderId}
 	if err := o.Read(order); err != nil {
 		return err
 	}
-	if order.Status == models.OrderStatusToPickup {
+	if shouldResetOrderOnRefund(order.Status, order.PayTradeNo, pay.TransactionId) {
 		_, err := o.QueryTable(new(models.Order)).
 			Filter("id", order.Id).
 			Filter("status", models.OrderStatusToPickup).
@@ -113,4 +118,27 @@ func (s *orderServiceImpl) MarkRefunded(outTradeNo string) error {
 		}
 	}
 	return nil
+}
+
+// shouldResetOrderOnRefund 判断退款成功后是否应把订单重置回待支付：
+// 订单须为待取，且其支付流水为空（历史数据）或正是本笔退款对应的微信支付单号。
+// PayTradeNo 与 TransactionId 同源（MarkPaid 写入），不一致说明订单已被另一笔支付占用。
+func shouldResetOrderOnRefund(orderStatus int, orderPayTradeNo, payTransactionID string) bool {
+	return orderStatus == models.OrderStatusToPickup &&
+		(orderPayTradeNo == "" || orderPayTradeNo == payTransactionID)
+}
+
+// MarkPaymentRefunded 仅标记支付单已退款（1 -> 3），绝不修改订单状态。
+// 幂等：支付单不在"已成功"状态时条件更新不生效，直接返回成功。
+func (s *orderServiceImpl) MarkPaymentRefunded(outTradeNo string) error {
+	o := ormer()
+	pay := &models.Payment{OutTradeNo: outTradeNo}
+	if err := o.Read(pay, "out_trade_no"); err != nil {
+		return err
+	}
+	_, err := o.QueryTable(new(models.Payment)).
+		Filter("id", pay.Id).
+		Filter("status", models.PaymentStatusSuccess).
+		Update(map[string]any{"status": models.PaymentStatusRefunded})
+	return err
 }

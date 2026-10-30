@@ -3,10 +3,11 @@ package controllers
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/beego/beego/v2/client/orm"
@@ -50,37 +51,51 @@ func (c *UserController) UploadAvatar() {
 
 	// 文件名自生成（不信任客户端文件名，杜绝路径穿越）
 	name := fmt.Sprintf("%d_%d.%s", uid, time.Now().UnixMilli(), ext)
-	if err := os.MkdirAll(avatarDir, 0o755); err != nil {
-		c.Fail(500, "保存失败")
-		return
-	}
-	dst, err := os.Create(filepath.Join(avatarDir, name))
-	if err != nil {
-		c.Fail(500, "保存失败")
-		return
-	}
-	defer dst.Close()
-
-	n, err := io.Copy(dst, io.LimitReader(fh, services.AvatarMaxBytes+1))
-	if err != nil {
-		_ = os.Remove(dst.Name())
-		c.Fail(500, "保存失败")
-		return
-	}
-	if n > services.AvatarMaxBytes {
-		_ = os.Remove(dst.Name())
-		c.Fail(400, "文件不能超过 4MB")
+	if err := services.SaveUpload(hdr, avatarDir, name, services.AvatarMaxBytes); err != nil {
+		code, msg := uploadErr(err)
+		c.Fail(code, msg)
 		return
 	}
 
 	url := avatarURL(c.Ctx.Request, "/static/uploads/avatars/"+name)
+	oldAvatar := user.Avatar
 	user.Avatar = url
 	if _, err := o.Update(&user, "avatar"); err != nil {
-		_ = os.Remove(dst.Name())
+		_ = os.Remove(filepath.Join(avatarDir, name))
 		c.Fail(500, "更新失败")
 		return
 	}
+	deleteOldAvatar(uid, oldAvatar, url)
 	c.OK(map[string]any{"avatar": url})
+}
+
+// deleteOldAvatar 尽力删除本人旧头像文件，删除失败忽略（不影响响应）。
+func deleteOldAvatar(uid int64, oldURL, newURL string) {
+	if name := localAvatarFileName(uid, oldURL, newURL); name != "" {
+		_ = os.Remove(filepath.Join(avatarDir, name))
+	}
+}
+
+// localAvatarFileName 返回可安全删除的本人本地头像文件名，否则返回空串。
+// 仅接受本服务头像目录下、文件名为 "<uid>_" 开头的 URL（上传名格式 %d_%d.ext）；
+// 外部 URL、他人文件、新旧相同、含路径分隔符或 . / .. 一律跳过。
+func localAvatarFileName(uid int64, oldURL, newURL string) string {
+	const marker = "/static/uploads/avatars/"
+	if oldURL == newURL {
+		return ""
+	}
+	i := strings.LastIndex(oldURL, marker)
+	if i < 0 {
+		return ""
+	}
+	base := oldURL[i+len(marker):]
+	if base == "" || base == "." || base == ".." || strings.ContainsAny(base, `/\`) {
+		return ""
+	}
+	if !strings.HasPrefix(base, strconv.FormatInt(uid, 10)+"_") {
+		return ""
+	}
+	return base
 }
 
 // avatarURL 拼头像完整 URL（纯函数）。https 判定：直连 TLS 或反代 X-Forwarded-Proto:https；

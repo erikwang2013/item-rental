@@ -2,7 +2,9 @@
 package payments
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/beego/beego/v2/server/web"
 )
@@ -62,4 +64,31 @@ func LoadConfig() Config {
 		cfg.CertKey = env
 	}
 	return cfg
+}
+
+// ValidateConfig 校验真实支付模式的必填配置。
+// mock 模式跳过校验；真实模式缺任一必填项都返回错误并列出缺失的配置键。
+// 启动时调用可避免空密钥签名——空 MchKey 的签名可被任何人计算，回调即可伪造。
+func ValidateConfig(cfg Config) error {
+	if cfg.Mock {
+		return nil
+	}
+	var missing []string
+	for _, item := range []struct {
+		key   string
+		value string
+	}{
+		{"wechat_appid", cfg.AppID},
+		{"wechat_mchid", cfg.MchID},
+		{"wechat_mchkey", cfg.MchKey},
+		{"wechat_notify_url", cfg.NotifyURL},
+	} {
+		if strings.TrimSpace(item.value) == "" {
+			missing = append(missing, item.key)
+		}
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("缺少支付配置: %s", strings.Join(missing, ", "))
+	}
+	return nil
 }
